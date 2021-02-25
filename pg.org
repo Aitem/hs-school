@@ -1,0 +1,65 @@
+#+TITLE: PG basics
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5439 :dbhost localhost :dbuser postgres :dbpassword postgres :database testbox
+
+* List databases
+
+#+BEGIN_SRC shell :results value drawer
+  docker ps
+#+END_SRC
+
+
+** SQL
+
+#+BEGIN_SRC sql
+select id, resource->'name' patient_name
+from patient
+limit 1 ;
+#+END_SRC
+
+#+RESULTS:
+| id                                   | patient_name                                                                |
+|--------------------------------------+-----------------------------------------------------------------------------|
+| 5cc4a9ca-c3ed-46d0-a654-29ff17421854 | [{"use": "official", "given": ["ВЛАДИМИР", "ЮРЬЕВИЧ"], "family": "ПАВЛОВ"}] |
+
+
+** Explain
+
+#+BEGIN_SRC sql
+  explain analyze
+  select id , ts , cts
+  from patient
+  where id = '5cc4a9ca-c3ed-46d0-a654-29ff17421854';
+#+END_SRC
+
+#+RESULTS:
+| QUERY PLAN                                                                                                            |
+|-----------------------------------------------------------------------------------------------------------------------|
+| Index Scan using patient_pkey on patient  (cost=0.43..8.45 rows=1 width=53) (actual time=4.726..4.742 rows=1 loops=1) |
+| Index Cond: (id = '5cc4a9ca-c3ed-46d0-a654-29ff17421854'::text)                                                       |
+| Planning Time: 21.190 ms                                                                                              |
+| Execution Time: 4.830 ms                                                                                              |
+
+
+
+* Aggregates
+
+
+#+BEGIN_SRC sql
+  select count(*) as practitioner
+    from practitioner;
+#+END_SRC
+
+#+RESULTS:
+| practitioner |
+|--------------|
+|        23033 |
+
+
+
+#+name: my-query
+#+BEGIN_SRC sql
+  select count(*)
+  from organization;
+#+END_SRC
+
+#+RESULTS: my-query

@@ -1,0 +1,6 @@
+#+TITLE:  HS school
+#+AUTHOR: M. Surmashev
+#+DATE:   2021-02-01
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROJECT: HS School
+[[file:school.org][School]]
