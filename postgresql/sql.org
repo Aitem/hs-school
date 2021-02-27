@@ -57,6 +57,11 @@
     select 'Hello SQL';
   #+END_SRC
 
+  #+RESULTS: Query sample
+  | ?column?  |
+  |-----------|
+  | Hello SQL |
+
 * Query types
 
  ~DDL~ - Data Definition Language
@@ -77,11 +82,11 @@
 
 *** =Create=
 
-PostgreSQL =Create= commans list
+ PostgreSQL =Create= commans list
 
-[[https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en][CREATE ACCESS METHOD]] — define a new access method
-[[https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en][CREATE AGGREGATE]] — define a new aggregate function
-[[https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en][CREATE CAST]] — define a new cast
+ [[https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en][CREATE ACCESS METHOD]] — define a new access method
+ [[https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en][CREATE AGGREGATE]] — define a new aggregate function
+ [[https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en][CREATE CAST]] — define a new cast
 [[https://postgrespro.ru/docs/postgresql/13/sql-createcollation?lang=en][CREATE COLLATION]] — define a new collation
 [[https://postgrespro.ru/docs/postgresql/13/sql-createconversion?lang=en][CREATE CONVERSION]] — define a new encoding conversion
 [[https://postgrespro.ru/docs/postgresql/13/sql-createdatabase?lang=en][CREATE DATABASE]] — create a new database
