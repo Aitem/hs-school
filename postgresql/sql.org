@@ -4,7 +4,8 @@
 
 * Intro
 
-  Databases is black hole
+ [[./blackhole.png]]
+
 * Plan
 
 ** SQL
@@ -54,13 +55,13 @@
 
   #+name: Query sample
   #+BEGIN_SRC sql
-    select 'Hello SQL';
+    select 'Hello', 'SQL', '!';
   #+END_SRC
 
-  #+RESULTS: Query sample
-  | ?column?  |
-  |-----------|
-  | Hello SQL |
+  #+name: SubQuery sample
+  #+BEGIN_SRC sql
+    select 'Hello', (select 'SQL');
+  #+END_SRC
 
 * Query types
 
@@ -71,7 +72,7 @@
        =Select= =Insert= =Update= =Delete=
 
  ~DCL~ - Data Control Language
-       =Grant= =Revoke= =Deny=
+       =Grant= =Revoke=
 
  ~TCL~ - Transaction Control Language
        =Begin= =Commit= =Rollback= =Abort= =Savepoint=
@@ -79,54 +80,54 @@
 ** DDL
 
   ~Data Definition Language~ - is a syntax for creating and modifying
-  database objects such as =table=, =indice=, =users= and etc.
+  database objects such as =table=, =index=, =user= and etc.
 
 *** =Create=
 
-PostgreSQL =Create= commans list
+    PostgreSQL =Create= commans list
 
-[[https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en][CREATE ACCESS METHOD]] — define a new access method
-[[https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en][CREATE AGGREGATE]] — define a new aggregate function
-[[https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en][CREATE CAST]] — define a new cast
-[[https://postgrespro.ru/docs/postgresql/13/sql-createcollation?lang=en][CREATE COLLATION]] — define a new collation
-[[https://postgrespro.ru/docs/postgresql/13/sql-createconversion?lang=en][CREATE CONVERSION]] — define a new encoding conversion
-[[https://postgrespro.ru/docs/postgresql/13/sql-createdatabase?lang=en][CREATE DATABASE]] — create a new database
-[[https://postgrespro.ru/docs/postgresql/13/sql-createdomain?lang=en][CREATE DOMAIN]] — define a new domain
-[[https://postgrespro.ru/docs/postgresql/13/sql-createeventtrigger?lang=en][CREATE EVENT TRIGGER]] — define a new event trigger
-[[https://postgrespro.ru/docs/postgresql/13/sql-createextension?lang=en][CREATE EXTENSION]] — install an extension
-[[https://postgrespro.ru/docs/postgresql/13/sql-createforeigndatawrapper?lang=en][CREATE FOREIGN DATA WRAPPER]] — define a new foreign-data wrapper
-[[https://postgrespro.ru/docs/postgresql/13/sql-createforeigntable?lang=en][CREATE FOREIGN TABLE]] — define a new foreign table
-[[https://postgrespro.ru/docs/postgresql/13/sql-createfunction?lang=en][CREATE FUNCTION]] — define a new function
-[[https://postgrespro.ru/docs/postgresql/13/sql-creategroup?lang=en][CREATE GROUP]] — define a new database role
-[[https://postgrespro.ru/docs/postgresql/13/sql-createindex?lang=en][CREATE INDEX]] — define a new index
-[[https://postgrespro.ru/docs/postgresql/13/sql-createlanguage?lang=en][CREATE LANGUAGE]] — define a new procedural language
-[[https://postgrespro.ru/docs/postgresql/13/sql-creatematerializedview?lang=en][CREATE MATERIALIZED VIEW]] — define a new materialized view
-[[https://postgrespro.ru/docs/postgresql/13/sql-createoperator?lang=en][CREATE OPERATOR]] — define a new operator
-[[https://postgrespro.ru/docs/postgresql/13/sql-createopclass?lang=en][CREATE OPERATOR CLASS]] — define a new operator class
-[[https://postgrespro.ru/docs/postgresql/13/sql-createopfamily?lang=en][CREATE OPERATOR FAMILY]] — define a new operator family
-[[https://postgrespro.ru/docs/postgresql/13/sql-createpolicy?lang=en][CREATE POLICY]] — define a new row level security policy for a table
-[[https://postgrespro.ru/docs/postgresql/13/sql-createprocedure?lang=en][CREATE PROCEDURE]] — define a new procedure
-[[https://postgrespro.ru/docs/postgresql/13/sql-createpublication?lang=en][CREATE PUBLICATION]] — define a new publication
-[[https://postgrespro.ru/docs/postgresql/13/sql-createrole?lang=en][CREATE ROLE]] — define a new database role
-[[https://postgrespro.ru/docs/postgresql/13/sql-createrule?lang=en][CREATE RULE]] — define a new rewrite rule
-[[https://postgrespro.ru/docs/postgresql/13/sql-createschema?lang=en][CREATE SCHEMA]] — define a new schema
-[[https://postgrespro.ru/docs/postgresql/13/sql-createsequence?lang=en][CREATE SEQUENCE]] — define a new sequence generator
-[[https://postgrespro.ru/docs/postgresql/13/sql-createserver?lang=en][CREATE SERVER]] — define a new foreign server
-[[https://postgrespro.ru/docs/postgresql/13/sql-createstatistics?lang=en][CREATE STATISTICS]] — define extended statistics
-[[https://postgrespro.ru/docs/postgresql/13/sql-createsubscription?lang=en][CREATE SUBSCRIPTION]] — define a new subscription
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtable?lang=en][CREATE TABLE]] — define a new table
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtableas?lang=en][CREATE TABLE AS]] — define a new table from the results of a query
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtablespace?lang=en][CREATE TABLESPACE]] — define a new tablespace
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtsconfig?lang=en][CREATE TEXT SEARCH CONFIGURATION]] — define a new text search configuration
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtsdictionary?lang=en][CREATE TEXT SEARCH DICTIONARY]] — define a new text search dictionary
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtsparser?lang=en][CREATE TEXT SEARCH PARSER]] — define a new text search parser
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtstemplate?lang=en][CREATE TEXT SEARCH TEMPLATE]] — define a new text search template
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtransform?lang=en][CREATE TRANSFORM]] — define a new transform
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtrigger?lang=en][CREATE TRIGGER]] — define a new trigger
-[[https://postgrespro.ru/docs/postgresql/13/sql-createtype?lang=en][CREATE TYPE]] — define a new data type
-[[https://postgrespro.ru/docs/postgresql/13/sql-createuser?lang=en][CREATE USER]] — define a new database role
-[[https://postgrespro.ru/docs/postgresql/13/sql-createusermapping?lang=en][CREATE USER MAPPING]] — define a new mapping of a user to a foreign server
-[[https://postgrespro.ru/docs/postgresql/13/sql-createview?lang=en][CREATE VIEW]] — define a new view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en][CREATE ACCESS METHOD]] — define a new access method
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en][CREATE AGGREGATE]] — define a new aggregate function
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en][CREATE CAST]] — define a new cast
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createcollation?lang=en][CREATE COLLATION]] — define a new collation
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createconversion?lang=en][CREATE CONVERSION]] — define a new encoding conversion
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createdatabase?lang=en][CREATE DATABASE]] — create a new database
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createdomain?lang=en][CREATE DOMAIN]] — define a new domain
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createeventtrigger?lang=en][CREATE EVENT TRIGGER]] — define a new event trigger
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createextension?lang=en][CREATE EXTENSION]] — install an extension
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createforeigndatawrapper?lang=en][CREATE FOREIGN DATA WRAPPER]] — define a new foreign-data wrapper
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createforeigntable?lang=en][CREATE FOREIGN TABLE]] — define a new foreign table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createfunction?lang=en][CREATE FUNCTION]] — define a new function
+    [[https://postgrespro.ru/docs/postgresql/13/sql-creategroup?lang=en][CREATE GROUP]] — define a new database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createindex?lang=en][CREATE INDEX]] — define a new index
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createlanguage?lang=en][CREATE LANGUAGE]] — define a new procedural language
+    [[https://postgrespro.ru/docs/postgresql/13/sql-creatematerializedview?lang=en][CREATE MATERIALIZED VIEW]] — define a new materialized view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createoperator?lang=en][CREATE OPERATOR]] — define a new operator
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createopclass?lang=en][CREATE OPERATOR CLASS]] — define a new operator class
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createopfamily?lang=en][CREATE OPERATOR FAMILY]] — define a new operator family
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createpolicy?lang=en][CREATE POLICY]] — define a new row level security policy for a table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createprocedure?lang=en][CREATE PROCEDURE]] — define a new procedure
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createpublication?lang=en][CREATE PUBLICATION]] — define a new publication
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createrole?lang=en][CREATE ROLE]] — define a new database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createrule?lang=en][CREATE RULE]] — define a new rewrite rule
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createschema?lang=en][CREATE SCHEMA]] — define a new schema
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createsequence?lang=en][CREATE SEQUENCE]] — define a new sequence generator
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createserver?lang=en][CREATE SERVER]] — define a new foreign server
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createstatistics?lang=en][CREATE STATISTICS]] — define extended statistics
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createsubscription?lang=en][CREATE SUBSCRIPTION]] — define a new subscription
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtable?lang=en][CREATE TABLE]] — define a new table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtableas?lang=en][CREATE TABLE AS]] — define a new table from the results of a query
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtablespace?lang=en][CREATE TABLESPACE]] — define a new tablespace
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsconfig?lang=en][CREATE TEXT SEARCH CONFIGURATION]] — define a new text search configuration
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsdictionary?lang=en][CREATE TEXT SEARCH DICTIONARY]] — define a new text search dictionary
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsparser?lang=en][CREATE TEXT SEARCH PARSER]] — define a new text search parser
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtstemplate?lang=en][CREATE TEXT SEARCH TEMPLATE]] — define a new text search template
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtransform?lang=en][CREATE TRANSFORM]] — define a new transform
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtrigger?lang=en][CREATE TRIGGER]] — define a new trigger
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtype?lang=en][CREATE TYPE]] — define a new data type
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createuser?lang=en][CREATE USER]] — define a new database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createusermapping?lang=en][CREATE USER MAPPING]] — define a new mapping of a user to a foreign server
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createview?lang=en][CREATE VIEW]] — define a new view
 
 **** CREATE TABLE
 
@@ -139,6 +140,7 @@ PostgreSQL =Create= commans list
     - *Bold* text  represents something you need to fill.
     - ... - mean that the preceding element can be repeated
     - , ... - mean that the preceding element can be repeated with separator ~,~
+
 
     ~CREATE~ =[ [= ~GLOBAL~ | ~LOCAL~ =]= ={= ~TEMPORARY~ | ~TEMP~ =}= | ~UNLOGGED~ =]= ~TABLE~
     =[= ~IF NOT EXISTS~ =]= *table_name*
@@ -155,72 +157,391 @@ PostgreSQL =Create= commans list
 
 ***** Example
 
-#+name: Create table
-#+BEGIN_SRC sql
-  CREATE table sample (
-   id int not null,
-   name varchar(256) default 'HS'
-  );
-#+END_SRC
+    #+name: Create table without rows
+    #+BEGIN_SRC sql
+      CREATE table empty_sample ();
+    #+END_SRC
 
+    #+name: Describe table
+    #+BEGIN_SRC sql
+      \dt
+    #+END_SRC
 
-#+name: Describe table
-#+BEGIN_SRC sql
-  \d sample
-#+END_SRC
+    #+name: Create table
+    #+BEGIN_SRC sql
+      CREATE table sample (
+        id int not null,
+        name varchar(256) default 'HS'
+      );
+    #+END_SRC
 
+    #+name: Describe table
+    #+BEGIN_SRC sql
+      \d sample
+    #+END_SRC
 
 *** =Alter=
 
-PostgreSQL =Alter= commans list
+    PostgreSQL =Alter= commans list
 
-[[https://postgrespro.ru/docs/postgresql/13/sql-alteraggregate?lang=en][ALTER AGGREGATE]] — change the definition of an aggregate function
-[[https://postgrespro.ru/docs/postgresql/13/sql-altercollation?lang=en][ALTER COLLATION]] — change the definition of a collation
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterconversion?lang=en][ALTER CONVERSION]] — change the definition of a conversion
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterdatabase?lang=en][ALTER DATABASE]] — change a database
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterdefaultprivileges?lang=en][ALTER DEFAULT PRIVILEGES]] — define default access privileges
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterdomain?lang=en][ALTER DOMAIN]] — change the definition of a domain
-[[https://postgrespro.ru/docs/postgresql/13/sql-altereventtrigger?lang=en][ALTER EVENT TRIGGER]] — change the definition of an event trigger
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterextension?lang=en][ALTER EXTENSION]] — change the definition of an extension
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterforeigndatawrapper?lang=en][ALTER FOREIGN DATA WRAPPER]] — change the definition of a foreign-data wrapper
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterforeigntable?lang=en][ALTER FOREIGN TABLE]] — change the definition of a foreign table
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterfunction?lang=en][ALTER FUNCTION]] — change the definition of a function
-[[https://postgrespro.ru/docs/postgresql/13/sql-altergroup?lang=en][ALTER GROUP]] — change role name or membership
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterindex?lang=en][ALTER INDEX]] — change the definition of an index
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterlanguage?lang=en][ALTER LANGUAGE]] — change the definition of a procedural language
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterlargeobject?lang=en][ALTER LARGE OBJECT]] — change the definition of a large object
-[[https://postgrespro.ru/docs/postgresql/13/sql-altermaterializedview?lang=en][ALTER MATERIALIZED VIEW]] — change the definition of a materialized view
-[[https://postgrespro.ru/docs/postgresql/13/sql-alteroperator?lang=en][ALTER OPERATOR]] — change the definition of an operator
-[[https://postgrespro.ru/docs/postgresql/13/sql-alteropclass?lang=en][ALTER OPERATOR CLASS]] — change the definition of an operator class
-[[https://postgrespro.ru/docs/postgresql/13/sql-alteropfamily?lang=en][ALTER OPERATOR FAMILY]] — change the definition of an operator family
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterpolicy?lang=en][ALTER POLICY]] — change the definition of a row level security policy
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterprocedure?lang=en][ALTER PROCEDURE]] — change the definition of a procedure
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterpublication?lang=en][ALTER PUBLICATION]] — change the definition of a publication
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterrole?lang=en][ALTER ROLE]] — change a database role
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterroutine?lang=en][ALTER ROUTINE]] — change the definition of a routine
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterrule?lang=en][ALTER RULE]] — change the definition of a rule
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterschema?lang=en][ALTER SCHEMA]] — change the definition of a schema
-[[https://postgrespro.ru/docs/postgresql/13/sql-altersequence?lang=en][ALTER SEQUENCE]] — change the definition of a sequence generator
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterserver?lang=en][ALTER SERVER]] — change the definition of a foreign server
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterstatistics?lang=en][ALTER STATISTICS]] — change the definition of an extended statistics object
-[[https://postgrespro.ru/docs/postgresql/13/sql-altersubscription?lang=en][ALTER SUBSCRIPTION]] — change the definition of a subscription
-[[https://postgrespro.ru/docs/postgresql/13/sql-altersystem?lang=en][ALTER SYSTEM]] — change a server configuration parameter
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertable?lang=en][ALTER TABLE]] — change the definition of a table
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertablespace?lang=en][ALTER TABLESPACE]] — change the definition of a tablespace
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertsconfig?lang=en][ALTER TEXT SEARCH CONFIGURATION]] — change the definition of a text search configuration
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertsdictionary?lang=en][ALTER TEXT SEARCH DICTIONARY]] — change the definition of a text search dictionary
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertsparser?lang=en][ALTER TEXT SEARCH PARSER]] — change the definition of a text search parser
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertstemplate?lang=en][ALTER TEXT SEARCH TEMPLATE]] — change the definition of a text search template
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertrigger?lang=en][ALTER TRIGGER]] — change the definition of a trigger
-[[https://postgrespro.ru/docs/postgresql/13/sql-altertype?lang=en][ALTER TYPE]] — change the definition of a type
-[[https://postgrespro.ru/docs/postgresql/13/sql-alteruser?lang=en][ALTER USER]] — change a database role
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterusermapping?lang=en][ALTER USER MAPPING]] — change the definition of a user mapping
-[[https://postgrespro.ru/docs/postgresql/13/sql-alterview?lang=en][ALTER VIEW]] — change the definition of a view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alteraggregate?lang=en][ALTER AGGREGATE]] — change the definition of an aggregate function
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altercollation?lang=en][ALTER COLLATION]] — change the definition of a collation
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterconversion?lang=en][ALTER CONVERSION]] — change the definition of a conversion
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterdatabase?lang=en][ALTER DATABASE]] — change a database
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterdefaultprivileges?lang=en][ALTER DEFAULT PRIVILEGES]] — define default access privileges
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterdomain?lang=en][ALTER DOMAIN]] — change the definition of a domain
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altereventtrigger?lang=en][ALTER EVENT TRIGGER]] — change the definition of an event trigger
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterextension?lang=en][ALTER EXTENSION]] — change the definition of an extension
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterforeigndatawrapper?lang=en][ALTER FOREIGN DATA WRAPPER]] — change the definition of a foreign-data wrapper
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterforeigntable?lang=en][ALTER FOREIGN TABLE]] — change the definition of a foreign table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterfunction?lang=en][ALTER FUNCTION]] — change the definition of a function
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altergroup?lang=en][ALTER GROUP]] — change role name or membership
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterindex?lang=en][ALTER INDEX]] — change the definition of an index
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterlanguage?lang=en][ALTER LANGUAGE]] — change the definition of a procedural language
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterlargeobject?lang=en][ALTER LARGE OBJECT]] — change the definition of a large object
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altermaterializedview?lang=en][ALTER MATERIALIZED VIEW]] — change the definition of a materialized view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alteroperator?lang=en][ALTER OPERATOR]] — change the definition of an operator
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alteropclass?lang=en][ALTER OPERATOR CLASS]] — change the definition of an operator class
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alteropfamily?lang=en][ALTER OPERATOR FAMILY]] — change the definition of an operator family
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterpolicy?lang=en][ALTER POLICY]] — change the definition of a row level security policy
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterprocedure?lang=en][ALTER PROCEDURE]] — change the definition of a procedure
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterpublication?lang=en][ALTER PUBLICATION]] — change the definition of a publication
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterrole?lang=en][ALTER ROLE]] — change a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterroutine?lang=en][ALTER ROUTINE]] — change the definition of a routine
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterrule?lang=en][ALTER RULE]] — change the definition of a rule
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterschema?lang=en][ALTER SCHEMA]] — change the definition of a schema
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altersequence?lang=en][ALTER SEQUENCE]] — change the definition of a sequence generator
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterserver?lang=en][ALTER SERVER]] — change the definition of a foreign server
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterstatistics?lang=en][ALTER STATISTICS]] — change the definition of an extended statistics object
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altersubscription?lang=en][ALTER SUBSCRIPTION]] — change the definition of a subscription
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altersystem?lang=en][ALTER SYSTEM]] — change a server configuration parameter
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertable?lang=en][ALTER TABLE]] — change the definition of a table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertablespace?lang=en][ALTER TABLESPACE]] — change the definition of a tablespace
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertsconfig?lang=en][ALTER TEXT SEARCH CONFIGURATION]] — change the definition of a text search configuration
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertsdictionary?lang=en][ALTER TEXT SEARCH DICTIONARY]] — change the definition of a text search dictionary
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertsparser?lang=en][ALTER TEXT SEARCH PARSER]] — change the definition of a text search parser
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertstemplate?lang=en][ALTER TEXT SEARCH TEMPLATE]] — change the definition of a text search template
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertrigger?lang=en][ALTER TRIGGER]] — change the definition of a trigger
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertype?lang=en][ALTER TYPE]] — change the definition of a type
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alteruser?lang=en][ALTER USER]] — change a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterusermapping?lang=en][ALTER USER MAPPING]] — change the definition of a user mapping
+    [[https://postgrespro.ru/docs/postgresql/13/sql-alterview?lang=en][ALTER VIEW]] — change the definition of a view
+
+**** Sample
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-altertable?lang=en][ALTER TABLE]] — change the definition of a table
+
+    #+name: Describe table
+    #+BEGIN_SRC sql
+      \d sample
+    #+END_SRC
+
+    #+name: Add column
+    #+BEGIN_SRC sql
+      ALTER table sample
+      ADD column ts timestamptz;
+    #+END_SRC
+
+    #+name: Describe table
+    #+BEGIN_SRC sql
+      \d sample
+    #+END_SRC
+
 *** =Drop=
 
+    PostgreSQL =Drop= commans list
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-drop-access-method?lang=en][DROP ACCESS METHOD]] — remove an access method
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropaggregate?lang=en][DROP AGGREGATE]] — remove an aggregate function
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropcast?lang=en][DROP CAST]] — remove a cast
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropcollation?lang=en][DROP COLLATION]] — remove a collation
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropconversion?lang=en][DROP CONVERSION]] — remove a conversion
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropdatabase?lang=en][DROP DATABASE]] — remove a database
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropdomain?lang=en][DROP DOMAIN]] — remove a domain
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropeventtrigger?lang=en][DROP EVENT TRIGGER]] — remove an event trigger
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropextension?lang=en][DROP EXTENSION]] — remove an extension
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropforeigndatawrapper?lang=en][DROP FOREIGN DATA WRAPPER]] — remove a foreign-data wrapper
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropforeigntable?lang=en][DROP FOREIGN TABLE]] — remove a foreign table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropfunction?lang=en][DROP FUNCTION]] — remove a function
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropgroup?lang=en][DROP GROUP]] — remove a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropindex?lang=en][DROP INDEX]] — remove an index
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droplanguage?lang=en][DROP LANGUAGE]] — remove a procedural language
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropmaterializedview?lang=en][DROP MATERIALIZED VIEW]] — remove a materialized view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropoperator?lang=en][DROP OPERATOR]] — remove an operator
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropopclass?lang=en][DROP OPERATOR CLASS]] — remove an operator class
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropopfamily?lang=en][DROP OPERATOR FAMILY]] — remove an operator family
+    [[https://postgrespro.ru/docs/postgresql/13/sql-drop-owned?lang=en][DROP OWNED]] — remove database objects owned by a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droppolicy?lang=en][DROP POLICY]] — remove a row level security policy from a table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropprocedure?lang=en][DROP PROCEDURE]] — remove a procedure
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droppublication?lang=en][DROP PUBLICATION]] — remove a publication
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droprole?lang=en][DROP ROLE]] — remove a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droproutine?lang=en][DROP ROUTINE]] — remove a routine
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droprule?lang=en][DROP RULE]] — remove a rewrite rule
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropschema?lang=en][DROP SCHEMA]] — remove a schema
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropsequence?lang=en][DROP SEQUENCE]] — remove a sequence
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropserver?lang=en][DROP SERVER]] — remove a foreign server descriptor
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropstatistics?lang=en][DROP STATISTICS]] — remove extended statistics
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropsubscription?lang=en][DROP SUBSCRIPTION]] — remove a subscription
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptable?lang=en][DROP TABLE]] — remove a table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptablespace?lang=en][DROP TABLESPACE]] — remove a tablespace
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptsconfig?lang=en][DROP TEXT SEARCH CONFIGURATION]] — remove a text search configuration
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptsdictionary?lang=en][DROP TEXT SEARCH DICTIONARY]] — remove a text search dictionary
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptsparser?lang=en][DROP TEXT SEARCH PARSER]] — remove a text search parser
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptstemplate?lang=en][DROP TEXT SEARCH TEMPLATE]] — remove a text search template
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptransform?lang=en][DROP TRANSFORM]] — remove a transform
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptrigger?lang=en][DROP TRIGGER]] — remove a trigger
+    [[https://postgrespro.ru/docs/postgresql/13/sql-droptype?lang=en][DROP TYPE]] — remove a data type
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropuser?lang=en][DROP USER]] — remove a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropusermapping?lang=en][DROP USER MAPPING]] — remove a user mapping for a foreign server
+    [[https://postgrespro.ru/docs/postgresql/13/sql-dropview?lang=en][DROP VIEW]] — remove a view
+
+**** Sample
+
+    #+BEGIN_SRC sql
+      \dt
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      DROP table sample;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      \dt
+    #+END_SRC
+
 ** DML
+
+  ~Data Manipulation Language~ - used for adding (inserting), deleting,
+  selecting, and modifying (updating) data in a database.
+
+*** =Insert=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-insert?lang=en][INSERT]] — create new rows in a table
+
+    #+BEGIN_SRC sql
+      create table sample (id int);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      insert into sample (id)
+      values (1) ,(2) ,(3);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select * from sample;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      insert into sample(id)
+      select * from generate_series(100,105);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      truncate sample;
+    #+END_SRC
+
+   ⚡  [[https://postgrespro.ru/docs/postgresql/13/sql-values?lang=en][VALUES]] — compute a set of rows
+
+    #+BEGIN_SRC sql
+      values (1) ,(2) ,(3);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      values (now()), (current_timestamp);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select now();
+    #+END_SRC
+
+*** =Select=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-select?lang=en][SELECT]] — retrieve rows from a table or view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-selectinto?lang=en][SELECT INTO]] — define a new table from the results of a query
+
+    #+BEGIN_SRC sql
+      select * from sample;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select * into sample_big from sample where id > 102;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select * from sample_big;
+    #+END_SRC
+
+*** =Update=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-update?lang=en][UPDATE]] — update rows of a table
+
+    #+BEGIN_SRC sql
+      update sample
+      set id = (id + 100)
+      where id > 100
+      returning id
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql
+      select * from sample
+    #+END_SRC
+
+*** =Delete=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-delete?lang=en][DELETE]] — delete rows of a table
+
+    #+BEGIN_SRC sql
+      delete from sample
+      where id >= 100
+      returning id;
+    #+END_SRC
+
+    =Delete= ~VS~ =Truncate=
+
+    ⚡ [[https://postgrespro.ru/docs/postgresql/13/sql-truncate?lang=en][TRUNCATE]] — empty a table or set of tables
+
 ** DCL
+
+  ~Data Control Language~ - defines the control over the data in the database.
+
+*** =Grant=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-grant?lang=en][GRANT]] — define access privileges
+
+    #+name: Create new user
+    #+BEGIN_SRC sql
+      create user samurai;
+    #+END_SRC
+
+    #+name: Describe user
+    #+BEGIN_SRC sql
+      \du
+    #+END_SRC
+
+    #+name: Grant privileges
+    #+BEGIN_SRC sql
+      GRANT ALL PRIVILEGES ON sample TO samurai;
+    #+END_SRC
+
+    #+name: Check privileges
+    #+BEGIN_SRC sql
+      SELECT grantee, privilege_type
+      FROM information_schema.role_table_grants
+      WHERE table_name='sample'
+    #+END_SRC
+
+*** =Revoke=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-revoke?lang=en][REVOKE]] — remove access privileges
+
+    #+name: Revoke privileges
+    #+BEGIN_SRC sql
+      REVOKE ALL PRIVILEGES ON sample FROM samurai;
+    #+END_SRC
+
+    #+name: Check privileges
+    #+BEGIN_SRC sql
+      SELECT grantee, privilege_type
+      FROM information_schema.role_table_grants
+      WHERE table_name='sample'
+    #+END_SRC
+
 ** TCL
+
+  ~Transaction Control Language~ - commands are used to manage the transactions in the database.
+  Samples in [[./playground.sql]] file.
+
+*** =Begin=
+
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-begin?lang=en][BEGIN]] — start a transaction block
+    [[https://postgrespro.ru/docs/postgresql/13/sql-start-transaction?lang=en][START TRANSACTION]] — start a transaction block
+    [[https://postgrespro.ru/docs/postgresql/13/sql-prepare-transaction?lang=en][PREPARE TRANSACTION]] — prepare the current transaction for two-phase commit
+
+*** =Commit=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-commit?lang=en][COMMIT]] — commit the current transaction
+    [[https://postgrespro.ru/docs/postgresql/13/sql-commit-prepared?lang=en][COMMIT PREPARED]] — commit a transaction that was earlier prepared for two-phase commit
+    [[https://postgrespro.ru/docs/postgresql/13/sql-end?lang=en][END]] — commit the current transaction
+
+*** =Rollback=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-rollback?lang=en][ROLLBACK]] — abort the current transaction
+    [[https://postgrespro.ru/docs/postgresql/13/sql-rollback-prepared?lang=en][ROLLBACK PREPARED]] — cancel a transaction that was earlier prepared for two-phase commit
+    [[https://postgrespro.ru/docs/postgresql/13/sql-rollback-to?lang=en][ROLLBACK TO SAVEPOINT]] — roll back to a savepoint
+
+*** =Abort=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-abort?lang=en][ABORT]] — abort the current transaction
+
+*** =Savepoint=
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-savepoint?lang=en][SAVEPOINT]] — define a new savepoint within the current transaction
+    [[https://postgrespro.ru/docs/postgresql/13/sql-release-savepoint?lang=en][RELEASE SAVEPOINT]] — destroy a previously defined savepoint
+
+
+** PGSQL
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-call?lang=en][CALL]] — invoke a procedure
+    [[https://postgrespro.ru/docs/postgresql/13/sql-checkpoint?lang=en][CHECKPOINT]] — force a write-ahead log checkpoint
+    [[https://postgrespro.ru/docs/postgresql/13/sql-close?lang=en][CLOSE]] — close a cursor
+    [[https://postgrespro.ru/docs/postgresql/13/sql-comment?lang=en][COMMENT]] — define or change the comment of an object
+    [[https://postgrespro.ru/docs/postgresql/13/sql-declare?lang=en][DECLARE]] — define a cursor
+    [[https://postgrespro.ru/docs/postgresql/13/sql-discard?lang=en][DISCARD]] — discard session state
+    [[https://postgrespro.ru/docs/postgresql/13/sql-do?lang=en][DO]] — execute an anonymous code block
+    [[https://postgrespro.ru/docs/postgresql/13/sql-fetch?lang=en][FETCH]] — retrieve rows from a query using a cursor
+    [[https://postgrespro.ru/docs/postgresql/13/sql-importforeignschema?lang=en][IMPORT FOREIGN SCHEMA]] — import table definitions from a foreign server
+    [[https://postgrespro.ru/docs/postgresql/13/sql-listen?lang=en][LISTEN]] — listen for a notification
+    [[https://postgrespro.ru/docs/postgresql/13/sql-load?lang=en][LOAD]] — load a shared library file
+    [[https://postgrespro.ru/docs/postgresql/13/sql-lock?lang=en][LOCK]] — lock a table
+    [[https://postgrespro.ru/docs/postgresql/13/sql-move?lang=en][MOVE]] — position a cursor
+    [[https://postgrespro.ru/docs/postgresql/13/sql-notify?lang=en][NOTIFY]] — generate a notification
+    [[https://postgrespro.ru/docs/postgresql/13/sql-reassign-owned?lang=en][REASSIGN OWNED]] — change the ownership of database objects owned by a database role
+    [[https://postgrespro.ru/docs/postgresql/13/sql-refreshmaterializedview?lang=en][REFRESH MATERIALIZED VIEW]] — replace the contents of a materialized view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-security-label?lang=en][SECURITY LABEL]] — define or change a security label applied to an object
+    [[https://postgrespro.ru/docs/postgresql/13/sql-unlisten?lang=en][UNLISTEN]] — stop listening for a notification
+    [[https://postgrespro.ru/docs/postgresql/13/sql-values?lang=en][VALUES]] — compute a set of rows
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-cluster?lang=en][CLUSTER]] — cluster a table according to an index
+    [[https://postgrespro.ru/docs/postgresql/13/sql-reindex?lang=en][REINDEX]] — rebuild indexes
+
+    [[https://postgrespro.ru/docs/postgresql/13/sql-truncate?lang=en][TRUNCATE]] — empty a table or set of tables
+    [[https://postgrespro.ru/docs/postgresql/13/sql-copy?lang=en][COPY]] — copy data between a file and a table
+
+    Optimization & Analyze
+    [[https://postgrespro.ru/docs/postgresql/13/sql-analyze?lang=en][ANALYZE]] — collect statistics about a database
+    [[https://postgrespro.ru/docs/postgresql/13/sql-explain?lang=en][EXPLAIN]] — show the execution plan of a statement
+    [[https://postgrespro.ru/docs/postgresql/13/sql-vacuum?lang=en][VACUUM]] — garbage-collect and optionally analyze a database
+
+    Statements
+    [[https://postgrespro.ru/docs/postgresql/13/sql-prepare?lang=en][PREPARE]] — prepare a statement for execution
+    [[https://postgrespro.ru/docs/postgresql/13/sql-execute?lang=en][EXECUTE]] — execute a prepared statement
+    [[https://postgrespro.ru/docs/postgresql/13/sql-deallocate?lang=en][DEALLOCATE]] — deallocate a prepared statement
+
+    Run-time parameter
+    [[https://postgrespro.ru/docs/postgresql/13/sql-set?lang=en][SET]] — change a run-time parameter
+    [[https://postgrespro.ru/docs/postgresql/13/sql-set-constraints?lang=en][SET CONSTRAINTS]] — set constraint check timing for the current transaction
+    [[https://postgrespro.ru/docs/postgresql/13/sql-set-role?lang=en][SET ROLE]] — set the current user identifier of the current session
+    [[https://postgrespro.ru/docs/postgresql/13/sql-set-session-authorization?lang=en][SET SESSION AUTHORIZATION]] — set the session user identifier and the current user identifier of the current session
+    [[https://postgrespro.ru/docs/postgresql/13/sql-set-transaction?lang=en][SET TRANSACTION]] — set the characteristics of the current transaction
+    [[https://postgrespro.ru/docs/postgresql/13/sql-show?lang=en][SHOW]] — show the value of a run-time parameter
+    [[https://postgrespro.ru/docs/postgresql/13/sql-reset?lang=en][RESET]] — restore the value of a run-time parameter to the default value
+
+*** Samples
+
+    #+BEGIN_SRC sql
+      SHOW max_connections;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      vacuum analyze sample
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      explain analyze
+      select * from sample
+    #+END_SRC
 
 * JSONB
 
@@ -229,6 +550,8 @@ PostgreSQL =Alter= commans list
 ** JsonPath
 
 * Aggregates
+
+** Usage
 ** Sorting
 ** Condition
 ** Window Functions
