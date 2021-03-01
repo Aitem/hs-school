@@ -518,17 +518,17 @@
     [[https://postgrespro.ru/docs/postgresql/13/sql-truncate?lang=en][TRUNCATE]] — empty a table or set of tables
     [[https://postgrespro.ru/docs/postgresql/13/sql-copy?lang=en][COPY]] — copy data between a file and a table
 
-    Optimization & Analyze
+    ~Optimization & Analyze~
     [[https://postgrespro.ru/docs/postgresql/13/sql-analyze?lang=en][ANALYZE]] — collect statistics about a database
     [[https://postgrespro.ru/docs/postgresql/13/sql-explain?lang=en][EXPLAIN]] — show the execution plan of a statement
     [[https://postgrespro.ru/docs/postgresql/13/sql-vacuum?lang=en][VACUUM]] — garbage-collect and optionally analyze a database
 
-    Statements
+    ~Statement~
     [[https://postgrespro.ru/docs/postgresql/13/sql-prepare?lang=en][PREPARE]] — prepare a statement for execution
     [[https://postgrespro.ru/docs/postgresql/13/sql-execute?lang=en][EXECUTE]] — execute a prepared statement
     [[https://postgrespro.ru/docs/postgresql/13/sql-deallocate?lang=en][DEALLOCATE]] — deallocate a prepared statement
 
-    Run-time parameter
+    ~Run-time parameter~
     [[https://postgrespro.ru/docs/postgresql/13/sql-set?lang=en][SET]] — change a run-time parameter
     [[https://postgrespro.ru/docs/postgresql/13/sql-set-constraints?lang=en][SET CONSTRAINTS]] — set constraint check timing for the current transaction
     [[https://postgrespro.ru/docs/postgresql/13/sql-set-role?lang=en][SET ROLE]] — set the current user identifier of the current session
@@ -552,6 +552,227 @@
       select * from sample
     #+END_SRC
 
+* Data Types
+
+  =DBMS= -> =Database= -> =Schema= -> =Table= -> =Column=
+
+  =DBMS= (Cluster) - ~my.super.instance~
+    =Database= - ~project~
+      =Schema= - ~public~
+        =Table= - ~sample~
+          =Column= -  ~id~ (type)
+
+** Numeric Types
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-numeric?lang=en][Numeric Types]] - Numeric types consist of two-, four-, and eight-byte integers,
+   four- and eight-byte floating-point numbers, and selectable-precision decimals.
+
+| ~Name~                      | ~StorageSize~ | ~Description~                     | ~Range~                                                                                    |
+|---------------------------+-------------+---------------------------------+------------------------------------------------------------------------------------------|
+| =smallint=, =int2=            | 2 bytes     | small-range integer             | -32768 to +32767                                                                         |
+| =integer=, =int=, =int4=        | 4 bytes     | typical choice for integer      | -2147483648 to +2147483647                                                               |
+| =bigint=, =int8=              | 8 bytes     | large-range integer             | -9223372036854775808 to +9223372036854775807                                             |
+| =decimal=, =decimal [(p, s)]= | variable    | user-specified precision, exact | up to 131072 digits before the decimal point; up to 16383 digits after the decimal point |
+| =numeric=, =numeric [(p, s)]= | variable    | user-specified precision, exact | up to 131072 digits before the decimal point; up to 16383 digits after the decimal point |
+| =real=, =float4=              | 4 bytes     | variable-precision, inexact     | 6 decimal digits precision                                                               |
+| =double precision=, =float8=  | 8 bytes     | variable-precision, inexact     | 15 decimal digits precision                                                              |
+| =smallserial=, =serial2=      | 2 bytes     | small autoincrementing integer  | 1 to 32767                                                                               |
+| =serial=, =serial4=           | 4 bytes     | autoincrementing integer        | 1 to 2147483647                                                                          |
+| =bigserial=, =serial8=        | 8 bytes     | large autoincrementing integer  | 1 to 9223372036854775807                                                                 |
+
+    #+BEGIN_SRC sql
+      select (1.5)::integer
+    #+END_SRC
+
+   #+BEGIN_SRC sql
+     create table sample_serial (
+	id serial,
+	name varchar(10))
+   #+END_SRC
+
+    #+BEGIN_SRC sql
+      \d+ sample_serial
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      \ds
+    #+END_SRC
+
+** Character Types
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-character?lang=en][Character Types]] - general-purpose character types.
+
+| ~Name~                             | ~Description~                |
+|----------------------------------+----------------------------|
+| =character varying(n), varchar(n)= | variable-length with limit |
+| =character(n), char(n)=            | fixed-length, blank padded |
+| =text=                             | variable unlimited length  |
+
+    #+BEGIN_SRC sql
+      select 'Hello ' || 123::text || ' world';
+    #+END_SRC
+
+** Date/Time Types
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-datetime?lang=en][Date/Time Types]] - types for date and time
+
+:zap: [[https://www.postgresql.org/docs/13/functions-datetime.html][Date/Time Functions and Operators]]
+
+| ~Name~                                    | ~StorageSize~ | ~Description~                           |
+|-----------------------------------------+-------------+---------------------------------------+
+| =timestamp [ (p) ] [ without time zone ]= | 8 bytes     | both date and time (no time zone)     |
+| =timestamp [ (p) ] with time zone=        | 8 bytes     | both date and time, with time zone    |
+| =date=                                    | 4 bytes     | date (no time of day)                 |
+| =time [ (p) ] [ without time zone ]=      | 8 bytes     | time of day (no date)                 |
+| =time [ (p) ] with time zone=             | 12 bytes    | time of day (no date), with time zone |
+| =interval [ fields ] [ (p) ]=             | 16 bytes    | time interval                         |
+
+    #+BEGIN_SRC sql
+      select now();
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select EXTRACT(hours from now());
+    #+END_SRC
+
+** JSON/JSONB
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - data types are for storing JSON
+
+:zap: [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
+
+| ~JSON primitive type~ | ~Notes~                                                                                   |
+|---------------------+-----------------------------------------------------------------------------------------|
+| =string=              | ~\u0000~ is disallowed, as are non-ASCII Unicode escapes if database encoding is not UTF8 |
+| =number=              | NaN and infinity values are disallowed                                                  |
+| =boolean=             | Only lowercase true and false spellings are accepted                                    |
+| =null=                | SQL NULL is a different concept                                                         |
+
+   #+BEGIN_SRC sql
+     select '{"name": "Joe"}'::jsonb
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select '[1, false , 3, "foo"]'::jsonb
+   #+END_SRC
+
+** Boolean Type
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-boolean?lang=en][Boolean Type]] - can have several states: ~true~, ~false~, and a third
+                  state, ~unknown~, which is represented by the SQL null value.
+
+    #+BEGIN_SRC sql
+      select 1 > 2;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select false;
+    #+END_SRC
+
+** Geometric Types
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-geometric?lang=en][Geometric Types]] - Geometric data types represent two-dimensional spatial objects.
+
+:zap:[[https://postgrespro.ru/docs/postgrespro/10/functions-geometry?lang=en][Geometric Functions and Operators]]
+
+:zap:[[https://postgis.net/][PostGIS]] - is a spatial database extender for PostgreSQL object-relational database.
+            It adds support for geographic objects allowing location queries to be run in SQL.
+
+| ~Nam~     | ~Storage Siz~  | ~Description~                      | ~Representation~                      |
+|---------+--------------+----------------------------------+-------------------------------------|
+| =point=   | 16 bytes     | Point on a plane                 | (x,y)                               |
+| =line=    | 32 bytes     | Infinite line                    | {A,B,C}                             |
+| =lseg=    | 32 bytes     | Finite line segment              | ((x1,y1),(x2,y2))                   |
+| =box=     | 32 bytes     | Rectangular box                  | ((x1,y1),(x2,y2))                   |
+| =path=    | 16+16n bytes | Closed path (similar to polygon) | ((x1,y1),...)                       |
+| =path=    | 16+16n bytes | Open path                        | [(x1,y1),...]                       |
+| =polygon= | 40+16n bytes | Polygon (similar to closed path) | ((x1,y1),...)                       |
+| =circle=  | 24 bytes     | Circle                           | <(x,y),r> (center point and radius) |
+
+    #+BEGIN_SRC sql
+      select POINT(10, 10);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select LSEG '(-10, 0), (10, 0)';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select LSEG '(-10, 0), (10, 0)' ?# LSEG '(0, -10), (0, 10)';
+    #+END_SRC
+
+** Arrays
+
+   [[https://postgrespro.ru/docs/postgrespro/10/arrays?lang=en][Arrays]] - of any built-in or user-defined base type, enum type, or composite type can be created.
+
+:zap: [[https://www.postgresql.org/docs/13/functions-array.html][Array Functions and Operators]]
+
+    #+BEGIN_SRC sql
+      select ARRAY[1, 2,3];
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select '{1, 2, 3}'::int[];
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select ARRAY['{"name": "Joe"}', '{"name": "Bob"}'];
+    #+END_SRC
+
+** NULL
+
+   #+BEGIN_SRC sql
+     select true = true;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select true = null;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select false = null;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select null is null;
+   #+END_SRC
+
+    #+BEGIN_SRC sql
+      select 5 + null;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select 5 + coalesce(null, 0);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+    select 'Hello' || ' ' || 'world';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select 'Hello' || null || ' ' || 'world';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select concat('Hello', null, ' ', 'world')
+    #+END_SRC
+
+** Other Types
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-money?lang=en][Monetary]] - type stores a currency amount with a fixed fractional precision
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-binary?lang=en][Binary Data Types]] - ~bytea~ data type allows storage of binary strings
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-enum?lang=en][Enumerated Types]] - types are data types that comprise a static, ordered set of values
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-net-types?lang=en][Network Address]] - data types to store ~IPv4~, ~IPv6~, and ~MAC~ addresses
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-bit?lang=en][Bit String]] - can be used to store or visualize bit masks.
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-textsearch?lang=en][Text Search]] - data types that are designed to support full text search
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-uuid?lang=en][UUID type]] - for ~UUID~ storage
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-xml?lang=en][XML type]] - data type can be used to store ~XML~ data
+   [[https://postgrespro.ru/docs/postgrespro/10/rowtypes?lang=en][Composite type]] - composite type represents the structure of a row or record
+   [[https://postgrespro.ru/docs/postgrespro/10/rangetypes?lang=en][Range types]] - are data types representing a range of values of some element type
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-pseudo?lang=en][Pseudo-Types]] - special-purpose entries that are collectively called pseudo-types.
+                  A pseudo-type cannot be used as a column data type, but it can be
+                  used to declare a function's argument or result type.
+
 * JSONB
 
 ** Basic operators and functions
@@ -573,3 +794,7 @@
   https://learndb.ru/
   https://sql-academy.org/
   https://sql-ex.ru/
+* Home Work
+
+ - Recursive
+ - Duplicates
