@@ -1,0 +1,1719 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2021-03-01 Mon 13:59 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Structured Query Language</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="M. Surmashev @muradbei" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { width: 90%; }
+  /*]]>*/-->
+</style>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/bigblow_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/bigblow_theme/css/bigblow.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/bigblow_theme/css/hideshow.css"/>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery-ui-1.10.2.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery.localscroll-min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery.scrollTo-1.4.3.1-min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/jquery.zclip.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/bigblow.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/bigblow_theme/js/hideshow.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2020 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">Structured Query Language</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#orge02948f">1. Intro</a></li>
+<li><a href="#org54c74df">2. Plan</a>
+<ul>
+<li><a href="#orgfd95aab">2.1. SQL</a></li>
+<li><a href="#orge2e3fce">2.2. Indexes</a></li>
+<li><a href="#orgd828c1b">2.3. PostgreSQL internal</a></li>
+<li><a href="#org75fa45a">2.4. Administration</a></li>
+</ul>
+</li>
+<li><a href="#orgbceba86">3. Install</a></li>
+<li><a href="#org8120d03">4. What is SQL?</a></li>
+<li><a href="#org4230941">5. Query types</a>
+<ul>
+<li><a href="#orgc41b0fc">5.1. DDL</a>
+<ul>
+<li><a href="#org7da0d48">5.1.1. <code>Create</code></a></li>
+<li><a href="#org6a06e03">5.1.2. <code>Alter</code></a></li>
+<li><a href="#org94eb1ac">5.1.3. <code>Drop</code></a></li>
+</ul>
+</li>
+<li><a href="#org4dfbc83">5.2. DML</a>
+<ul>
+<li><a href="#org2812b4f">5.2.1. <code>Insert</code></a></li>
+<li><a href="#orge3b0ab5">5.2.2. <code>Select</code></a></li>
+<li><a href="#org66613de">5.2.3. <code>Update</code></a></li>
+<li><a href="#org72f68cf">5.2.4. <code>Delete</code></a></li>
+</ul>
+</li>
+<li><a href="#org68be1b8">5.3. DCL</a>
+<ul>
+<li><a href="#org68783ce">5.3.1. <code>Grant</code></a></li>
+<li><a href="#org832fb78">5.3.2. <code>Revoke</code></a></li>
+</ul>
+</li>
+<li><a href="#org5b628b9">5.4. TCL</a></li>
+<li><a href="#orgc8b5da4">5.5. PGSQL</a>
+<ul>
+<li><a href="#org457fb91">5.5.1. Samples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org86ac344">6. Data Types</a>
+<ul>
+<li><a href="#org6a19b0a">6.1. Numeric Types</a></li>
+<li><a href="#org74e54b9">6.2. Character Types</a></li>
+<li><a href="#org79a8adb">6.3. Date/Time Types</a></li>
+<li><a href="#org97de975">6.4. JSON/JSONB</a></li>
+<li><a href="#org9f05ce6">6.5. Boolean Type</a></li>
+<li><a href="#orgefe5904">6.6. Geometric Types</a></li>
+<li><a href="#org14148a1">6.7. Arrays</a></li>
+<li><a href="#orgb677af2">6.8. NULL</a></li>
+<li><a href="#orgbeaa392">6.9. Other Types</a></li>
+</ul>
+</li>
+<li><a href="#org949e7e7">7. JSONB</a>
+<ul>
+<li><a href="#orge711d7c">7.1. Basic operators and functions</a></li>
+<li><a href="#org525a575">7.2. Jsquery</a></li>
+<li><a href="#org2cd202d">7.3. JsonPath</a></li>
+</ul>
+</li>
+<li><a href="#orga747560">8. Aggregates</a>
+<ul>
+<li><a href="#orga51ce3f">8.1. Usage</a></li>
+<li><a href="#orgc940ff0">8.2. Sorting</a></li>
+<li><a href="#org6f2953d">8.3. Condition</a></li>
+<li><a href="#org5ee8c4f">8.4. Window Functions</a></li>
+</ul>
+</li>
+<li><a href="#orgcf1a39c">9. Joins</a></li>
+<li><a href="#org0211749">10. CTE and RECURSIVE</a>
+<ul>
+<li><a href="#org9c8d6d4">10.1. CTE</a></li>
+<li><a href="#org177d1a2">10.2. Recursive</a></li>
+</ul>
+</li>
+<li><a href="#org2ab115e">11. SQL trainer</a></li>
+<li><a href="#org782240c">12. Home Work</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orge02948f" class="outline-2">
+<h2 id="orge02948f"><span class="section-number-2">1</span> Intro</h2>
+<div class="outline-text-2" id="text-1">
+
+<div class="figure">
+<p><img src="./blackhole.png" alt="blackhole.png" />
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org54c74df" class="outline-2">
+<h2 id="org54c74df"><span class="section-number-2">2</span> Plan</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-orgfd95aab" class="outline-3">
+<h3 id="orgfd95aab"><span class="section-number-3">2.1</span> SQL</h3>
+<div class="outline-text-3" id="text-2-1">
+<ul class="org-ul">
+<li>Query types</li>
+<li>JSONB</li>
+<li>Aggregates</li>
+<li>JOINS</li>
+<li>CTE</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orge2e3fce" class="outline-3">
+<h3 id="orge2e3fce"><span class="section-number-3">2.2</span> Indexes</h3>
+<div class="outline-text-3" id="text-2-2">
+<ul class="org-ul">
+<li>Explain</li>
+<li>BTREE</li>
+<li>GIN</li>
+<li>GIST</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgd828c1b" class="outline-3">
+<h3 id="orgd828c1b"><span class="section-number-3">2.3</span> PostgreSQL internal</h3>
+<div class="outline-text-3" id="text-2-3">
+<ul class="org-ul">
+<li>Storage</li>
+<li>MVCC</li>
+<li>Isolation</li>
+<li>Toast</li>
+<li>Checkpoints</li>
+<li>Wal</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-org75fa45a" class="outline-3">
+<h3 id="org75fa45a"><span class="section-number-3">2.4</span> Administration</h3>
+<div class="outline-text-3" id="text-2-4">
+<ul class="org-ul">
+<li>Replication</li>
+<li>Backup and resotre</li>
+<li>Monitoring</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgbceba86" class="outline-2">
+<h2 id="orgbceba86"><span class="section-number-2">3</span> Install</h2>
+<div class="outline-text-2" id="text-3">
+<div class="org-src-container">
+<pre class="src src-bash" id="orgcf2c5e0">docker-compose up -d
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org0692add">\l
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org8120d03" class="outline-2">
+<h2 id="org8120d03"><span class="section-number-2">4</span> What is SQL?</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+<code>SQL</code> - Structured Query Language (<a href="https://en.wikipedia.org/wiki/SQL">Wiki</a>)
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="orgc0dbac3">select 'Hello', 'SQL', '!';
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org6a14316">select 'Hello', (select 'SQL');
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org4230941" class="outline-2">
+<h2 id="org4230941"><span class="section-number-2">5</span> Query types</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+<code>DDL</code> - Data Definition Language
+      <code>Create</code> <code>Alter</code> <code>Drop</code>
+</p>
+
+<p>
+<code>DML</code> - Data Manipulation Language
+      <code>Select</code> <code>Insert</code> <code>Update</code> <code>Delete</code>
+</p>
+
+<p>
+<code>DCL</code> - Data Control Language
+      <code>Grant</code> <code>Revoke</code>
+</p>
+
+<p>
+<code>TCL</code> - Transaction Control Language
+      <code>Begin</code> <code>Commit</code> <code>Rollback</code> <code>Abort</code> <code>Savepoint</code>
+</p>
+</div>
+
+<div id="outline-container-orgc41b0fc" class="outline-3">
+<h3 id="orgc41b0fc"><span class="section-number-3">5.1</span> DDL</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+<code>Data Definition Language</code> - is a syntax for creating and modifying
+database objects such as <code>table</code>, <code>index</code>, <code>user</code> and etc.
+</p>
+</div>
+
+<div id="outline-container-org7da0d48" class="outline-4">
+<h4 id="org7da0d48"><span class="section-number-4">5.1.1</span> <code>Create</code></h4>
+<div class="outline-text-4" id="text-5-1-1">
+<p>
+PostgreSQL <code>Create</code> commans list
+</p>
+
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en">CREATE ACCESS METHOD</a> — define a new access method
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en">CREATE AGGREGATE</a> — define a new aggregate function
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en">CREATE CAST</a> — define a new cast
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createcollation?lang=en">CREATE COLLATION</a> — define a new collation
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createconversion?lang=en">CREATE CONVERSION</a> — define a new encoding conversion
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createdatabase?lang=en">CREATE DATABASE</a> — create a new database
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createdomain?lang=en">CREATE DOMAIN</a> — define a new domain
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createeventtrigger?lang=en">CREATE EVENT TRIGGER</a> — define a new event trigger
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createextension?lang=en">CREATE EXTENSION</a> — install an extension
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createforeigndatawrapper?lang=en">CREATE FOREIGN DATA WRAPPER</a> — define a new foreign-data wrapper
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createforeigntable?lang=en">CREATE FOREIGN TABLE</a> — define a new foreign table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createfunction?lang=en">CREATE FUNCTION</a> — define a new function
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-creategroup?lang=en">CREATE GROUP</a> — define a new database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createindex?lang=en">CREATE INDEX</a> — define a new index
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createlanguage?lang=en">CREATE LANGUAGE</a> — define a new procedural language
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-creatematerializedview?lang=en">CREATE MATERIALIZED VIEW</a> — define a new materialized view
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createoperator?lang=en">CREATE OPERATOR</a> — define a new operator
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createopclass?lang=en">CREATE OPERATOR CLASS</a> — define a new operator class
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createopfamily?lang=en">CREATE OPERATOR FAMILY</a> — define a new operator family
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createpolicy?lang=en">CREATE POLICY</a> — define a new row level security policy for a table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createprocedure?lang=en">CREATE PROCEDURE</a> — define a new procedure
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createpublication?lang=en">CREATE PUBLICATION</a> — define a new publication
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createrole?lang=en">CREATE ROLE</a> — define a new database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createrule?lang=en">CREATE RULE</a> — define a new rewrite rule
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createschema?lang=en">CREATE SCHEMA</a> — define a new schema
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createsequence?lang=en">CREATE SEQUENCE</a> — define a new sequence generator
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createserver?lang=en">CREATE SERVER</a> — define a new foreign server
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createstatistics?lang=en">CREATE STATISTICS</a> — define extended statistics
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createsubscription?lang=en">CREATE SUBSCRIPTION</a> — define a new subscription
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtable?lang=en">CREATE TABLE</a> — define a new table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtableas?lang=en">CREATE TABLE AS</a> — define a new table from the results of a query
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtablespace?lang=en">CREATE TABLESPACE</a> — define a new tablespace
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtsconfig?lang=en">CREATE TEXT SEARCH CONFIGURATION</a> — define a new text search configuration
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtsdictionary?lang=en">CREATE TEXT SEARCH DICTIONARY</a> — define a new text search dictionary
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtsparser?lang=en">CREATE TEXT SEARCH PARSER</a> — define a new text search parser
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtstemplate?lang=en">CREATE TEXT SEARCH TEMPLATE</a> — define a new text search template
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtransform?lang=en">CREATE TRANSFORM</a> — define a new transform
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtrigger?lang=en">CREATE TRIGGER</a> — define a new trigger
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtype?lang=en">CREATE TYPE</a> — define a new data type
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createuser?lang=en">CREATE USER</a> — define a new database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createusermapping?lang=en">CREATE USER MAPPING</a> — define a new mapping of a user to a foreign server
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createview?lang=en">CREATE VIEW</a> — define a new view
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org644b828"></a>CREATE TABLE<br />
+<div class="outline-text-5" id="text-5-1-1-1">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-createtable?lang=en">CREATE TABLE</a> — define a new table
+</p>
+
+<p>
+How to read <a href="https://www.postgresql.org/docs/13/notation.html">Synopsis</a>:
+</p>
+
+<ul class="org-ul">
+<li><code>[</code> <code>a</code> | <code>b</code> <code>]</code> means that <code>a</code> or <code>b</code> is optional</li>
+<li><code>{</code> <code>a</code> | <code>b</code> <code>}</code> means <code>a</code> or <code>b</code></li>
+<li><b>Bold</b> text  represents something you need to fill.</li>
+<li>&#x2026; - mean that the preceding element can be repeated</li>
+<li>, &#x2026; - mean that the preceding element can be repeated with separator <code>,</code></li>
+</ul>
+
+
+<p>
+<code>CREATE</code> <code>[ [</code> <code>GLOBAL</code> | <code>LOCAL</code> <code>]</code> <code>{</code> <code>TEMPORARY</code> | <code>TEMP</code> <code>}</code> | <code>UNLOGGED</code> <code>]</code> <code>TABLE</code>
+<code>[</code> <code>IF NOT EXISTS</code> <code>]</code> <b>table<sub>name</sub></b>
+(<code>[{</code> <b>column<sub>name</sub></b> <b>data<sub>type</sub></b> <code>[</code> <code>COLLATE</code> <b>collation</b> <code>] [</code> <b>column<sub>constraint</sub></b> <code>[ ... ]</code> ] |
+    <b>table<sub>constraint</sub></b> |
+    <code>LIKE</code> <b>source<sub>table</sub></b> [ <b>like<sub>option</sub></b> &#x2026; ] <code>}</code>
+  [, &#x2026; ] <code>]</code>)
+<code>[</code> <code>INHERITS</code> ( <b>parent<sub>table</sub></b> <code>[</code>, &#x2026; <code>]</code> ) <code>]</code>
+<code>[ ~PARTITION BY~ ={</code> <code>RANGE</code> | <code>LIST</code> | <code>HASH</code> <code>}</code> ( <code>{</code> <b>column<sub>name</sub></b> <code>|</code> ( <b>expression</b> ) <code>}</code> <code>[</code> <code>COLLATE</code> <b>collation</b> <code>] [</code> <b>opclass</b> <code>] [</code>, &#x2026; <code>]</code> ) <code>]</code>
+<code>[</code> <code>USING</code> <b>method <code>]</code>
+<code>[</code> <code>WITH</code> ( *storage<sub>parameter</sub></b> <code>[</code> value <code>] [</code>, &#x2026; <code>]</code> ) | <code>WITHOUT OIDS</code> <code>]</code>
+<code>[</code> <code>ON COMMIT</code> <code>{</code> <code>PRESERVE ROWS</code> | <code>DELETE ROWS</code> | <code>DROP</code> <code>}</code> <code>]</code>
+<code>[</code> <code>TABLESPACE</code> <b>tablespace<sub>name</sub></b> <code>]</code>
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org9f9047d"></a>Example<br />
+<div class="outline-text-6" id="text-5-1-1-1-1">
+<div class="org-src-container">
+<pre class="src src-sql" id="org1912a79">CREATE table empty_sample ();
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org8d74a60">\dt
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="orga678cd0">CREATE table sample (
+  id int not null,
+  name varchar(256) default 'HS'
+);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org44172e5">\d sample
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org6a06e03" class="outline-4">
+<h4 id="org6a06e03"><span class="section-number-4">5.1.2</span> <code>Alter</code></h4>
+<div class="outline-text-4" id="text-5-1-2">
+<p>
+PostgreSQL <code>Alter</code> commans list
+</p>
+
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alteraggregate?lang=en">ALTER AGGREGATE</a> — change the definition of an aggregate function
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altercollation?lang=en">ALTER COLLATION</a> — change the definition of a collation
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterconversion?lang=en">ALTER CONVERSION</a> — change the definition of a conversion
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterdatabase?lang=en">ALTER DATABASE</a> — change a database
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterdefaultprivileges?lang=en">ALTER DEFAULT PRIVILEGES</a> — define default access privileges
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterdomain?lang=en">ALTER DOMAIN</a> — change the definition of a domain
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altereventtrigger?lang=en">ALTER EVENT TRIGGER</a> — change the definition of an event trigger
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterextension?lang=en">ALTER EXTENSION</a> — change the definition of an extension
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterforeigndatawrapper?lang=en">ALTER FOREIGN DATA WRAPPER</a> — change the definition of a foreign-data wrapper
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterforeigntable?lang=en">ALTER FOREIGN TABLE</a> — change the definition of a foreign table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterfunction?lang=en">ALTER FUNCTION</a> — change the definition of a function
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altergroup?lang=en">ALTER GROUP</a> — change role name or membership
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterindex?lang=en">ALTER INDEX</a> — change the definition of an index
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterlanguage?lang=en">ALTER LANGUAGE</a> — change the definition of a procedural language
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterlargeobject?lang=en">ALTER LARGE OBJECT</a> — change the definition of a large object
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altermaterializedview?lang=en">ALTER MATERIALIZED VIEW</a> — change the definition of a materialized view
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alteroperator?lang=en">ALTER OPERATOR</a> — change the definition of an operator
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alteropclass?lang=en">ALTER OPERATOR CLASS</a> — change the definition of an operator class
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alteropfamily?lang=en">ALTER OPERATOR FAMILY</a> — change the definition of an operator family
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterpolicy?lang=en">ALTER POLICY</a> — change the definition of a row level security policy
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterprocedure?lang=en">ALTER PROCEDURE</a> — change the definition of a procedure
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterpublication?lang=en">ALTER PUBLICATION</a> — change the definition of a publication
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterrole?lang=en">ALTER ROLE</a> — change a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterroutine?lang=en">ALTER ROUTINE</a> — change the definition of a routine
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterrule?lang=en">ALTER RULE</a> — change the definition of a rule
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterschema?lang=en">ALTER SCHEMA</a> — change the definition of a schema
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altersequence?lang=en">ALTER SEQUENCE</a> — change the definition of a sequence generator
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterserver?lang=en">ALTER SERVER</a> — change the definition of a foreign server
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterstatistics?lang=en">ALTER STATISTICS</a> — change the definition of an extended statistics object
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altersubscription?lang=en">ALTER SUBSCRIPTION</a> — change the definition of a subscription
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altersystem?lang=en">ALTER SYSTEM</a> — change a server configuration parameter
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertable?lang=en">ALTER TABLE</a> — change the definition of a table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertablespace?lang=en">ALTER TABLESPACE</a> — change the definition of a tablespace
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertsconfig?lang=en">ALTER TEXT SEARCH CONFIGURATION</a> — change the definition of a text search configuration
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertsdictionary?lang=en">ALTER TEXT SEARCH DICTIONARY</a> — change the definition of a text search dictionary
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertsparser?lang=en">ALTER TEXT SEARCH PARSER</a> — change the definition of a text search parser
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertstemplate?lang=en">ALTER TEXT SEARCH TEMPLATE</a> — change the definition of a text search template
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertrigger?lang=en">ALTER TRIGGER</a> — change the definition of a trigger
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertype?lang=en">ALTER TYPE</a> — change the definition of a type
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alteruser?lang=en">ALTER USER</a> — change a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterusermapping?lang=en">ALTER USER MAPPING</a> — change the definition of a user mapping
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-alterview?lang=en">ALTER VIEW</a> — change the definition of a view
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="org51ae106"></a>Sample<br />
+<div class="outline-text-5" id="text-5-1-2-1">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-altertable?lang=en">ALTER TABLE</a> — change the definition of a table
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="orgec96974">\d sample
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org2f2c23a">ALTER table sample
+ADD column ts timestamptz;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="orgbb78c14">\d sample
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+
+<div id="outline-container-org94eb1ac" class="outline-4">
+<h4 id="org94eb1ac"><span class="section-number-4">5.1.3</span> <code>Drop</code></h4>
+<div class="outline-text-4" id="text-5-1-3">
+<p>
+PostgreSQL <code>Drop</code> commans list
+</p>
+
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-drop-access-method?lang=en">DROP ACCESS METHOD</a> — remove an access method
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropaggregate?lang=en">DROP AGGREGATE</a> — remove an aggregate function
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropcast?lang=en">DROP CAST</a> — remove a cast
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropcollation?lang=en">DROP COLLATION</a> — remove a collation
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropconversion?lang=en">DROP CONVERSION</a> — remove a conversion
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropdatabase?lang=en">DROP DATABASE</a> — remove a database
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropdomain?lang=en">DROP DOMAIN</a> — remove a domain
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropeventtrigger?lang=en">DROP EVENT TRIGGER</a> — remove an event trigger
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropextension?lang=en">DROP EXTENSION</a> — remove an extension
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropforeigndatawrapper?lang=en">DROP FOREIGN DATA WRAPPER</a> — remove a foreign-data wrapper
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropforeigntable?lang=en">DROP FOREIGN TABLE</a> — remove a foreign table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropfunction?lang=en">DROP FUNCTION</a> — remove a function
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropgroup?lang=en">DROP GROUP</a> — remove a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropindex?lang=en">DROP INDEX</a> — remove an index
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droplanguage?lang=en">DROP LANGUAGE</a> — remove a procedural language
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropmaterializedview?lang=en">DROP MATERIALIZED VIEW</a> — remove a materialized view
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropoperator?lang=en">DROP OPERATOR</a> — remove an operator
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropopclass?lang=en">DROP OPERATOR CLASS</a> — remove an operator class
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropopfamily?lang=en">DROP OPERATOR FAMILY</a> — remove an operator family
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-drop-owned?lang=en">DROP OWNED</a> — remove database objects owned by a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droppolicy?lang=en">DROP POLICY</a> — remove a row level security policy from a table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropprocedure?lang=en">DROP PROCEDURE</a> — remove a procedure
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droppublication?lang=en">DROP PUBLICATION</a> — remove a publication
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droprole?lang=en">DROP ROLE</a> — remove a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droproutine?lang=en">DROP ROUTINE</a> — remove a routine
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droprule?lang=en">DROP RULE</a> — remove a rewrite rule
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropschema?lang=en">DROP SCHEMA</a> — remove a schema
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropsequence?lang=en">DROP SEQUENCE</a> — remove a sequence
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropserver?lang=en">DROP SERVER</a> — remove a foreign server descriptor
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropstatistics?lang=en">DROP STATISTICS</a> — remove extended statistics
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropsubscription?lang=en">DROP SUBSCRIPTION</a> — remove a subscription
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptable?lang=en">DROP TABLE</a> — remove a table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptablespace?lang=en">DROP TABLESPACE</a> — remove a tablespace
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptsconfig?lang=en">DROP TEXT SEARCH CONFIGURATION</a> — remove a text search configuration
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptsdictionary?lang=en">DROP TEXT SEARCH DICTIONARY</a> — remove a text search dictionary
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptsparser?lang=en">DROP TEXT SEARCH PARSER</a> — remove a text search parser
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptstemplate?lang=en">DROP TEXT SEARCH TEMPLATE</a> — remove a text search template
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptransform?lang=en">DROP TRANSFORM</a> — remove a transform
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptrigger?lang=en">DROP TRIGGER</a> — remove a trigger
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-droptype?lang=en">DROP TYPE</a> — remove a data type
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropuser?lang=en">DROP USER</a> — remove a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropusermapping?lang=en">DROP USER MAPPING</a> — remove a user mapping for a foreign server
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-dropview?lang=en">DROP VIEW</a> — remove a view
+</p>
+</div>
+
+<ol class="org-ol">
+<li><a id="orge93f807"></a>Sample<br />
+<div class="outline-text-5" id="text-5-1-3-1">
+<div class="org-src-container">
+<pre class="src src-sql">\dt
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">DROP table sample;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">\dt
+</pre>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+
+<div id="outline-container-org4dfbc83" class="outline-3">
+<h3 id="org4dfbc83"><span class="section-number-3">5.2</span> DML</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+<code>Data Manipulation Language</code> - used for adding (inserting), deleting,
+selecting, and modifying (updating) data in a database.
+</p>
+</div>
+
+<div id="outline-container-org2812b4f" class="outline-4">
+<h4 id="org2812b4f"><span class="section-number-4">5.2.1</span> <code>Insert</code></h4>
+<div class="outline-text-4" id="text-5-2-1">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-insert?lang=en">INSERT</a> — create new rows in a table
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">create table sample (id int);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">insert into sample (id)
+values (1) ,(2) ,(3);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select * from sample;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">insert into sample(id)
+select * from generate_series(100,105);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">truncate sample;
+</pre>
+</div>
+
+<p>
+⚡  <a href="https://postgrespro.ru/docs/postgresql/13/sql-values?lang=en">VALUES</a> — compute a set of rows
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">values (1) ,(2) ,(3);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">values (now()), (current_timestamp);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select now();
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orge3b0ab5" class="outline-4">
+<h4 id="orge3b0ab5"><span class="section-number-4">5.2.2</span> <code>Select</code></h4>
+<div class="outline-text-4" id="text-5-2-2">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-select?lang=en">SELECT</a> — retrieve rows from a table or view
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-selectinto?lang=en">SELECT INTO</a> — define a new table from the results of a query
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">select * from sample;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select * into sample_big from sample where id &gt; 102;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select * from sample_big;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org66613de" class="outline-4">
+<h4 id="org66613de"><span class="section-number-4">5.2.3</span> <code>Update</code></h4>
+<div class="outline-text-4" id="text-5-2-3">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-update?lang=en">UPDATE</a> — update rows of a table
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">update sample
+set id = (id + 100)
+where id &gt; 100
+returning id
+</pre>
+</div>
+
+
+<div class="org-src-container">
+<pre class="src src-sql">select * from sample
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org72f68cf" class="outline-4">
+<h4 id="org72f68cf"><span class="section-number-4">5.2.4</span> <code>Delete</code></h4>
+<div class="outline-text-4" id="text-5-2-4">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-delete?lang=en">DELETE</a> — delete rows of a table
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">delete from sample
+where id &gt;= 100
+returning id;
+</pre>
+</div>
+
+<p>
+<code>Delete</code> <code>VS</code> <code>Truncate</code>
+</p>
+
+<p>
+⚡ <a href="https://postgrespro.ru/docs/postgresql/13/sql-truncate?lang=en">TRUNCATE</a> — empty a table or set of tables
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org68be1b8" class="outline-3">
+<h3 id="org68be1b8"><span class="section-number-3">5.3</span> DCL</h3>
+<div class="outline-text-3" id="text-5-3">
+<p>
+<code>Data Control Language</code> - defines the control over the data in the database.
+</p>
+</div>
+
+<div id="outline-container-org68783ce" class="outline-4">
+<h4 id="org68783ce"><span class="section-number-4">5.3.1</span> <code>Grant</code></h4>
+<div class="outline-text-4" id="text-5-3-1">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-grant?lang=en">GRANT</a> — define access privileges
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="orgc8d44ff">create user samurai;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org2f2c5d1">\du
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org6d413cf">GRANT ALL PRIVILEGES ON sample TO samurai;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org0362255">SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_name='sample'
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org832fb78" class="outline-4">
+<h4 id="org832fb78"><span class="section-number-4">5.3.2</span> <code>Revoke</code></h4>
+<div class="outline-text-4" id="text-5-3-2">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-revoke?lang=en">REVOKE</a> — remove access privileges
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="orgfded65a">REVOKE ALL PRIVILEGES ON sample FROM samurai;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org2c2615d">SELECT grantee, privilege_type
+FROM information_schema.role_table_grants
+WHERE table_name='sample'
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org5b628b9" class="outline-3">
+<h3 id="org5b628b9"><span class="section-number-3">5.4</span> TCL</h3>
+<div class="outline-text-3" id="text-5-4">
+<p>
+<code>Transaction Control Language</code> - commands are used to manage the transactions in the database.
+Samples in <a href="./playground.sql">./playground.sql</a> file.
+</p>
+
+<ul class="org-ul">
+<li><code>Begin</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-begin?lang=en">BEGIN</a> — start a transaction block
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-start-transaction?lang=en">START TRANSACTION</a> — start a transaction block
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-prepare-transaction?lang=en">PREPARE TRANSACTION</a> — prepare the current transaction for two-phase commit</li>
+
+<li><code>Commit</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-commit?lang=en">COMMIT</a> — commit the current transaction
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-commit-prepared?lang=en">COMMIT PREPARED</a> — commit a transaction that was earlier prepared for two-phase commit
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-end?lang=en">END</a> — commit the current transaction</li>
+
+<li><code>Rollback</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-rollback?lang=en">ROLLBACK</a> — abort the current transaction
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-rollback-prepared?lang=en">ROLLBACK PREPARED</a> — cancel a transaction that was earlier prepared for two-phase commit
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-rollback-to?lang=en">ROLLBACK TO SAVEPOINT</a> — roll back to a savepoint</li>
+
+<li><code>Abort</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-abort?lang=en">ABORT</a> — abort the current transaction</li>
+
+<li><p>
+<code>Savepoint</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-savepoint?lang=en">SAVEPOINT</a> — define a new savepoint within the current transaction
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-release-savepoint?lang=en">RELEASE SAVEPOINT</a> — destroy a previously defined savepoint
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org182de24">begin;
+insert into sample (id)
+select * from generate_series(0, 10);
+commit;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql" id="org24d7db2">begin;
+delete from sample;
+select * from sample;
+rollback;
+</pre>
+</div></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-orgc8b5da4" class="outline-3">
+<h3 id="orgc8b5da4"><span class="section-number-3">5.5</span> PGSQL</h3>
+<div class="outline-text-3" id="text-5-5">
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-call?lang=en">CALL</a> — invoke a procedure
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-checkpoint?lang=en">CHECKPOINT</a> — force a write-ahead log checkpoint
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-close?lang=en">CLOSE</a> — close a cursor
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-comment?lang=en">COMMENT</a> — define or change the comment of an object
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-declare?lang=en">DECLARE</a> — define a cursor
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-discard?lang=en">DISCARD</a> — discard session state
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-do?lang=en">DO</a> — execute an anonymous code block
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-fetch?lang=en">FETCH</a> — retrieve rows from a query using a cursor
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-importforeignschema?lang=en">IMPORT FOREIGN SCHEMA</a> — import table definitions from a foreign server
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-listen?lang=en">LISTEN</a> — listen for a notification
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-load?lang=en">LOAD</a> — load a shared library file
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-lock?lang=en">LOCK</a> — lock a table
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-move?lang=en">MOVE</a> — position a cursor
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-notify?lang=en">NOTIFY</a> — generate a notification
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-reassign-owned?lang=en">REASSIGN OWNED</a> — change the ownership of database objects owned by a database role
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-refreshmaterializedview?lang=en">REFRESH MATERIALIZED VIEW</a> — replace the contents of a materialized view
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-security-label?lang=en">SECURITY LABEL</a> — define or change a security label applied to an object
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-unlisten?lang=en">UNLISTEN</a> — stop listening for a notification
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-values?lang=en">VALUES</a> — compute a set of rows
+</p>
+
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-cluster?lang=en">CLUSTER</a> — cluster a table according to an index
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-reindex?lang=en">REINDEX</a> — rebuild indexes
+</p>
+
+<p>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-truncate?lang=en">TRUNCATE</a> — empty a table or set of tables
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-copy?lang=en">COPY</a> — copy data between a file and a table
+</p>
+
+<p>
+<code>Optimization &amp; Analyze</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-analyze?lang=en">ANALYZE</a> — collect statistics about a database
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-explain?lang=en">EXPLAIN</a> — show the execution plan of a statement
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-vacuum?lang=en">VACUUM</a> — garbage-collect and optionally analyze a database
+</p>
+
+<p>
+<code>Statement</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-prepare?lang=en">PREPARE</a> — prepare a statement for execution
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-execute?lang=en">EXECUTE</a> — execute a prepared statement
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-deallocate?lang=en">DEALLOCATE</a> — deallocate a prepared statement
+</p>
+
+<p>
+<code>Run-time parameter</code>
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-set?lang=en">SET</a> — change a run-time parameter
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-set-constraints?lang=en">SET CONSTRAINTS</a> — set constraint check timing for the current transaction
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-set-role?lang=en">SET ROLE</a> — set the current user identifier of the current session
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-set-session-authorization?lang=en">SET SESSION AUTHORIZATION</a> — set the session user identifier and the current user identifier of the current session
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-set-transaction?lang=en">SET TRANSACTION</a> — set the characteristics of the current transaction
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-show?lang=en">SHOW</a> — show the value of a run-time parameter
+<a href="https://postgrespro.ru/docs/postgresql/13/sql-reset?lang=en">RESET</a> — restore the value of a run-time parameter to the default value
+</p>
+</div>
+
+<div id="outline-container-org457fb91" class="outline-4">
+<h4 id="org457fb91"><span class="section-number-4">5.5.1</span> Samples</h4>
+<div class="outline-text-4" id="text-5-5-1">
+<div class="org-src-container">
+<pre class="src src-sql">SHOW max_connections;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">vacuum analyze sample
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">explain analyze
+select * from sample
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org86ac344" class="outline-2">
+<h2 id="org86ac344"><span class="section-number-2">6</span> Data Types</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+<code>DBMS</code> -&gt; <code>Database</code> -&gt; <code>Schema</code> -&gt; <code>Table</code> -&gt; <code>Column</code>
+</p>
+
+<p>
+<code>DBMS</code> (Cluster) - <code>my.super.instance</code>
+  <code>Database</code> - <code>project</code>
+    <code>Schema</code> - <code>public</code>
+      <code>Table</code> - <code>sample</code>
+	<code>Column</code> -  <code>id</code> (type)
+</p>
+</div>
+
+<div id="outline-container-org6a19b0a" class="outline-3">
+<h3 id="org6a19b0a"><span class="section-number-3">6.1</span> Numeric Types</h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-numeric?lang=en">Numeric Types</a> - Numeric types consist of two-, four-, and eight-byte integers,
+four- and eight-byte floating-point numbers, and selectable-precision decimals.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><code>Name</code></th>
+<th scope="col" class="org-left"><code>StorageSize</code></th>
+<th scope="col" class="org-left"><code>Description</code></th>
+<th scope="col" class="org-left"><code>Range</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>smallint</code>, <code>int2</code></td>
+<td class="org-left">2 bytes</td>
+<td class="org-left">small-range integer</td>
+<td class="org-left">-32768 to +32767</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>integer</code>, <code>int</code>, <code>int4</code></td>
+<td class="org-left">4 bytes</td>
+<td class="org-left">typical choice for integer</td>
+<td class="org-left">-2147483648 to +2147483647</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>bigint</code>, <code>int8</code></td>
+<td class="org-left">8 bytes</td>
+<td class="org-left">large-range integer</td>
+<td class="org-left">-9223372036854775808 to +9223372036854775807</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>decimal</code>, <code>decimal [(p, s)]</code></td>
+<td class="org-left">variable</td>
+<td class="org-left">user-specified precision, exact</td>
+<td class="org-left">up to 131072 digits before the decimal point; up to 16383 digits after the decimal point</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>numeric</code>, <code>numeric [(p, s)]</code></td>
+<td class="org-left">variable</td>
+<td class="org-left">user-specified precision, exact</td>
+<td class="org-left">up to 131072 digits before the decimal point; up to 16383 digits after the decimal point</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>real</code>, <code>float4</code></td>
+<td class="org-left">4 bytes</td>
+<td class="org-left">variable-precision, inexact</td>
+<td class="org-left">6 decimal digits precision</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>double precision</code>, <code>float8</code></td>
+<td class="org-left">8 bytes</td>
+<td class="org-left">variable-precision, inexact</td>
+<td class="org-left">15 decimal digits precision</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>smallserial</code>, <code>serial2</code></td>
+<td class="org-left">2 bytes</td>
+<td class="org-left">small autoincrementing integer</td>
+<td class="org-left">1 to 32767</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>serial</code>, <code>serial4</code></td>
+<td class="org-left">4 bytes</td>
+<td class="org-left">autoincrementing integer</td>
+<td class="org-left">1 to 2147483647</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>bigserial</code>, <code>serial8</code></td>
+<td class="org-left">8 bytes</td>
+<td class="org-left">large autoincrementing integer</td>
+<td class="org-left">1 to 9223372036854775807</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-sql">select (1.5)::integer
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">create table sample_serial (
+   id serial,
+   name varchar(10))
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">\d+ sample_serial
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">\ds
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org74e54b9" class="outline-3">
+<h3 id="org74e54b9"><span class="section-number-3">6.2</span> Character Types</h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-character?lang=en">Character Types</a> - general-purpose character types.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><code>Name</code></th>
+<th scope="col" class="org-left"><code>Description</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>character varying(n), varchar(n)</code></td>
+<td class="org-left">variable-length with limit</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>character(n), char(n)</code></td>
+<td class="org-left">fixed-length, blank padded</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>text</code></td>
+<td class="org-left">variable unlimited length</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-sql">select 'Hello ' || 123::text || ' world';
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org79a8adb" class="outline-3">
+<h3 id="org79a8adb"><span class="section-number-3">6.3</span> Date/Time Types</h3>
+<div class="outline-text-3" id="text-6-3">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-datetime?lang=en">Date/Time Types</a> - types for date and time
+</p>
+
+<p>
+:zap: <a href="https://www.postgresql.org/docs/13/functions-datetime.html">Date/Time Functions and Operators</a>
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><code>Name</code></th>
+<th scope="col" class="org-left"><code>StorageSize</code></th>
+<th scope="col" class="org-left"><code>Description</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>timestamp [ (p) ] [ without time zone ]</code></td>
+<td class="org-left">8 bytes</td>
+<td class="org-left">both date and time (no time zone)</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>timestamp [ (p) ] with time zone</code></td>
+<td class="org-left">8 bytes</td>
+<td class="org-left">both date and time, with time zone</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>date</code></td>
+<td class="org-left">4 bytes</td>
+<td class="org-left">date (no time of day)</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>time [ (p) ] [ without time zone ]</code></td>
+<td class="org-left">8 bytes</td>
+<td class="org-left">time of day (no date)</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>time [ (p) ] with time zone</code></td>
+<td class="org-left">12 bytes</td>
+<td class="org-left">time of day (no date), with time zone</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>interval [ fields ] [ (p) ]</code></td>
+<td class="org-left">16 bytes</td>
+<td class="org-left">time interval</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-sql">select now();
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select EXTRACT(hours from now());
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org97de975" class="outline-3">
+<h3 id="org97de975"><span class="section-number-3">6.4</span> JSON/JSONB</h3>
+<div class="outline-text-3" id="text-6-4">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en">JSON/JSONB</a> - data types are for storing JSON
+</p>
+
+<p>
+:zap: <a href="https://www.postgresql.org/docs/13/functions-json.html">JSON Functions and Operators</a> - functions and operators for processing and creating JSON data
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><code>JSON primitive type</code></th>
+<th scope="col" class="org-left"><code>Notes</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>string</code></td>
+<td class="org-left"><code>\u0000</code> is disallowed, as are non-ASCII Unicode escapes if database encoding is not UTF8</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>number</code></td>
+<td class="org-left">NaN and infinity values are disallowed</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>boolean</code></td>
+<td class="org-left">Only lowercase true and false spellings are accepted</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>null</code></td>
+<td class="org-left">SQL NULL is a different concept</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-sql">select '{"name": "Joe"}'::jsonb
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select '[1, false , 3, "foo"]'::jsonb
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org9f05ce6" class="outline-3">
+<h3 id="org9f05ce6"><span class="section-number-3">6.5</span> Boolean Type</h3>
+<div class="outline-text-3" id="text-6-5">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-boolean?lang=en">Boolean Type</a> - can have several states: <code>true</code>, <code>false</code>, and a third
+	       state, <code>unknown</code>, which is represented by the SQL null value.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">select 1 &gt; 2;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select false;
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgefe5904" class="outline-3">
+<h3 id="orgefe5904"><span class="section-number-3">6.6</span> Geometric Types</h3>
+<div class="outline-text-3" id="text-6-6">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-geometric?lang=en">Geometric Types</a> - Geometric data types represent two-dimensional spatial objects.
+</p>
+
+<p>
+:zap:<a href="https://postgrespro.ru/docs/postgrespro/10/functions-geometry?lang=en">Geometric Functions and Operators</a>
+</p>
+
+<p>
+:zap:<a href="https://postgis.net/">PostGIS</a> - is a spatial database extender for PostgreSQL object-relational database.
+            It adds support for geographic objects allowing location queries to be run in SQL.
+</p>
+
+<table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
+
+
+<colgroup>
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+
+<col  class="org-left" />
+</colgroup>
+<thead>
+<tr>
+<th scope="col" class="org-left"><code>Nam</code></th>
+<th scope="col" class="org-left"><code>Storage Siz</code></th>
+<th scope="col" class="org-left"><code>Description</code></th>
+<th scope="col" class="org-left"><code>Representation</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="org-left"><code>point</code></td>
+<td class="org-left">16 bytes</td>
+<td class="org-left">Point on a plane</td>
+<td class="org-left">(x,y)</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>line</code></td>
+<td class="org-left">32 bytes</td>
+<td class="org-left">Infinite line</td>
+<td class="org-left">{A,B,C}</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>lseg</code></td>
+<td class="org-left">32 bytes</td>
+<td class="org-left">Finite line segment</td>
+<td class="org-left">((x1,y1),(x2,y2))</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>box</code></td>
+<td class="org-left">32 bytes</td>
+<td class="org-left">Rectangular box</td>
+<td class="org-left">((x1,y1),(x2,y2))</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>path</code></td>
+<td class="org-left">16+16n bytes</td>
+<td class="org-left">Closed path (similar to polygon)</td>
+<td class="org-left">((x1,y1),&#x2026;)</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>path</code></td>
+<td class="org-left">16+16n bytes</td>
+<td class="org-left">Open path</td>
+<td class="org-left">[(x1,y1),&#x2026;]</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>polygon</code></td>
+<td class="org-left">40+16n bytes</td>
+<td class="org-left">Polygon (similar to closed path)</td>
+<td class="org-left">((x1,y1),&#x2026;)</td>
+</tr>
+
+<tr>
+<td class="org-left"><code>circle</code></td>
+<td class="org-left">24 bytes</td>
+<td class="org-left">Circle</td>
+<td class="org-left">&lt;(x,y),r&gt; (center point and radius)</td>
+</tr>
+</tbody>
+</table>
+
+<div class="org-src-container">
+<pre class="src src-sql">select POINT(10, 10);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select LSEG '(-10, 0), (10, 0)';
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select LSEG '(-10, 0), (10, 0)' ?# LSEG '(0, -10), (0, 10)';
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org14148a1" class="outline-3">
+<h3 id="org14148a1"><span class="section-number-3">6.7</span> Arrays</h3>
+<div class="outline-text-3" id="text-6-7">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/arrays?lang=en">Arrays</a> - of any built-in or user-defined base type, enum type, or composite type can be created.
+</p>
+
+<p>
+:zap: <a href="https://www.postgresql.org/docs/13/functions-array.html">Array Functions and Operators</a>
+</p>
+
+<div class="org-src-container">
+<pre class="src src-sql">select ARRAY[1, 2,3];
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select '{1, 2, 3}'::int[];
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select ARRAY['{"name": "Joe"}', '{"name": "Bob"}'];
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgb677af2" class="outline-3">
+<h3 id="orgb677af2"><span class="section-number-3">6.8</span> NULL</h3>
+<div class="outline-text-3" id="text-6-8">
+<div class="org-src-container">
+<pre class="src src-sql">select true = true;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select true = null;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select false = null;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select null is null;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select 5 + null;
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select 5 + coalesce(null, 0);
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select 'Hello' || ' ' || 'world';
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select 'Hello' || null || ' ' || 'world';
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-sql">select concat('Hello', null, ' ', 'world')
+</pre>
+</div>
+</div>
+</div>
+
+<div id="outline-container-orgbeaa392" class="outline-3">
+<h3 id="orgbeaa392"><span class="section-number-3">6.9</span> Other Types</h3>
+<div class="outline-text-3" id="text-6-9">
+<p>
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-money?lang=en">Monetary</a> - type stores a currency amount with a fixed fractional precision
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-binary?lang=en">Binary Data Types</a> - <code>bytea</code> data type allows storage of binary strings
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-enum?lang=en">Enumerated Types</a> - types are data types that comprise a static, ordered set of values
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-net-types?lang=en">Network Address</a> - data types to store <code>IPv4</code>, <code>IPv6</code>, and <code>MAC</code> addresses
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-bit?lang=en">Bit String</a> - can be used to store or visualize bit masks.
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-textsearch?lang=en">Text Search</a> - data types that are designed to support full text search
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-uuid?lang=en">UUID type</a> - for <code>UUID</code> storage
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-xml?lang=en">XML type</a> - data type can be used to store <code>XML</code> data
+<a href="https://postgrespro.ru/docs/postgrespro/10/rowtypes?lang=en">Composite type</a> - composite type represents the structure of a row or record
+<a href="https://postgrespro.ru/docs/postgrespro/10/rangetypes?lang=en">Range types</a> - are data types representing a range of values of some element type
+<a href="https://postgrespro.ru/docs/postgrespro/10/datatype-pseudo?lang=en">Pseudo-Types</a> - special-purpose entries that are collectively called pseudo-types.
+	       A pseudo-type cannot be used as a column data type, but it can be
+	       used to declare a function's argument or result type.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-org949e7e7" class="outline-2">
+<h2 id="org949e7e7"><span class="section-number-2">7</span> JSONB</h2>
+<div class="outline-text-2" id="text-7">
+</div>
+<div id="outline-container-orge711d7c" class="outline-3">
+<h3 id="orge711d7c"><span class="section-number-3">7.1</span> Basic operators and functions</h3>
+</div>
+<div id="outline-container-org525a575" class="outline-3">
+<h3 id="org525a575"><span class="section-number-3">7.2</span> Jsquery</h3>
+</div>
+<div id="outline-container-org2cd202d" class="outline-3">
+<h3 id="org2cd202d"><span class="section-number-3">7.3</span> JsonPath</h3>
+</div>
+</div>
+
+<div id="outline-container-orga747560" class="outline-2">
+<h2 id="orga747560"><span class="section-number-2">8</span> Aggregates</h2>
+<div class="outline-text-2" id="text-8">
+</div>
+<div id="outline-container-orga51ce3f" class="outline-3">
+<h3 id="orga51ce3f"><span class="section-number-3">8.1</span> Usage</h3>
+</div>
+<div id="outline-container-orgc940ff0" class="outline-3">
+<h3 id="orgc940ff0"><span class="section-number-3">8.2</span> Sorting</h3>
+</div>
+<div id="outline-container-org6f2953d" class="outline-3">
+<h3 id="org6f2953d"><span class="section-number-3">8.3</span> Condition</h3>
+</div>
+<div id="outline-container-org5ee8c4f" class="outline-3">
+<h3 id="org5ee8c4f"><span class="section-number-3">8.4</span> Window Functions</h3>
+</div>
+</div>
+
+<div id="outline-container-orgcf1a39c" class="outline-2">
+<h2 id="orgcf1a39c"><span class="section-number-2">9</span> Joins</h2>
+</div>
+<div id="outline-container-org0211749" class="outline-2">
+<h2 id="org0211749"><span class="section-number-2">10</span> CTE and RECURSIVE</h2>
+<div class="outline-text-2" id="text-10">
+</div>
+<div id="outline-container-org9c8d6d4" class="outline-3">
+<h3 id="org9c8d6d4"><span class="section-number-3">10.1</span> CTE</h3>
+</div>
+<div id="outline-container-org177d1a2" class="outline-3">
+<h3 id="org177d1a2"><span class="section-number-3">10.2</span> Recursive</h3>
+</div>
+</div>
+<div id="outline-container-org2ab115e" class="outline-2">
+<h2 id="org2ab115e"><span class="section-number-2">11</span> SQL trainer</h2>
+<div class="outline-text-2" id="text-11">
+<p>
+<a href="https://learndb.ru/">https://learndb.ru/</a>
+<a href="https://sql-academy.org/">https://sql-academy.org/</a>
+<a href="https://sql-ex.ru/">https://sql-ex.ru/</a>
+</p>
+</div>
+</div>
+<div id="outline-container-org782240c" class="outline-2">
+<h2 id="org782240c"><span class="section-number-2">12</span> Home Work</h2>
+<div class="outline-text-2" id="text-12">
+<ul class="org-ul">
+<li>Recursive</li>
+<li>Duplicates</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: M. Surmashev @muradbei</p>
+<p class="date">Created: 2021-03-01 Mon 13:59</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

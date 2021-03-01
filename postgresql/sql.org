@@ -1,5 +1,6 @@
 #+TITLE: Structured Query Language
 #+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-bigblow.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
 * Intro
@@ -166,6 +167,16 @@
     #+BEGIN_SRC sql
       \dt
     #+END_SRC
+
+    #+RESULTS: Describe table
+    | List of relations |               |       |          |
+    |-------------------+---------------+-------+----------|
+    | Schema            | Name          | Type  | Owner    |
+    | public            | empty_sample  | table | postgres |
+    | public            | sampl_serial  | table | postgres |
+    | public            | sample        | table | postgres |
+    | public            | sample_big    | table | postgres |
+    | public            | sample_serial | table | postgres |
 
     #+name: Create table
     #+BEGIN_SRC sql
@@ -775,25 +786,278 @@
 
 * JSONB
 
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - data types are for storing JSON
+
+:zap: [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
+
+   #+BEGIN_SRC sql
+     select '{"name": "Joe"}'::jsonb
+   #+END_SRC
+
 ** Basic operators and functions
+
+  - =Cast=
+   #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::JSONB;
+   #+END_SRC
+
+  - =jsonb_build_array=
+   #+BEGIN_SRC sql
+     select jsonb_build_array(1, 2, 3, 'Bob');
+   #+END_SRC
+
+  - =jsonb_build_object=
+   #+BEGIN_SRC sql
+     select jsonb_build_object('name', 'Bob');
+   #+END_SRC
+
+  - =intersect=
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "family": "Smith"}'::jsonb
+            @> '{"name": "Bob"}'::jsonb ;
+   #+END_SRC
+
+  - =?=
+    #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::JSONB ? 'name';
+    #+END_SRC
+
+  - =||=
+    #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::JSONB || '{"family": "Smith"}'::JSONB;
+    #+END_SRC
+
+  - =-=
+    #+BEGIN_SRC sql
+     select '{"name": "Bob", "family": "Smith"}'::jsonb - 'name'
+    #+END_SRC
+
+  - =-> ->> #> #>>=
+
+| ~Operator~ | ~Argument~      | ~Result~ |
+|----------+---------------+--------+
+| ~->~       | integer, text | jsonb  |
+| ~->>~      | integer, text | text   |
+| ~#>~       | text[]        | jsonb  |
+| ~#>>~      | text[]        | text   |
+
+    #+name: - # > >>
+    #+BEGIN_SRC sql
+      select
+	  x -> 1 as "->"
+	, pg_typeof(x -> 1) as "->"
+	, x->> 1 as "->>"
+	, x#> '{0, name}' as "->>"
+	, x#>> '{0, name}' as "->>"
+      from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x);
+      select
+	  pg_typeof(x -> 1) as "->"
+	, pg_typeof(x->> 1) as "->>"
+	, pg_typeof(x#> '{0, name}') as "->>"
+	, pg_typeof(x#>> '{0, name}') as "->>"
+      from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x) ;
+    #+END_SRC
+
+  - =jsonb_array_elements=
+    #+BEGIN_SRC sql
+      select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb) itm
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select sum(x::int)
+      from (select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb)) t(x)
+    #+END_SRC
+
+  - =jsonb_each=
+    #+BEGIN_SRC sql
+      select *
+      from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
+    #+END_SRC
+
+  - =jsonb_set=
+    #+BEGIN_SRC sql
+      select jsonb_set('{"f1":1,"f2":null}', '{f1}', '[2,3,4]') ;
+    #+END_SRC
+
+
 ** Jsquery
+
+   [[https://github.com/postgrespro/jsquery][JsQuery]] - json query language with ~GIN~ indexing support
+
+
+   #+BEGIN_SRC sql
+     create extension jsquery;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::jsonb @@ ('name = Bob')::jsquery
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select '[{"name": "Bob"}, {"name": "John"}]'::jsonb @@ ('#(name = Bob)')::jsquery
+   #+END_SRC
+
+:zap: ~JsQuery~ - only predicate
+
 ** JsonPath
+
+   [[https://www.postgresql.org/docs/13/functions-json.html][JsonPath]] - SQL json standard realization
+:zap: Unlike ~JsQuery~, ~JsonPath~ - can =extract= and =predicate=
+
+   Set of ~jsonb_path_query*~ functions and ~@@~ operator
+
+   #+BEGIN_SRC sql
+     select jsonb_path_query_first('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
+   #+END_SRC
 
 * Aggregates
 
-** Usage
-** Sorting
-** Condition
+
+  [[https://www.postgresql.org/docs/9.5/functions-aggregate.html][Aggregate Functions]] - compute a single result from a set of input values.
+
+  #+BEGIN_SRC sql
+    select sum(x) as "sum"
+         , count(*) as "count"
+         , max(x) as "max"
+         , string_agg(x::text, ' ')
+    from  generate_series(0, 5) x
+  #+END_SRC
+
+** Sorting and Filtering
+
+  #+BEGIN_SRC sql
+    select array_agg(x)
+    from  generate_series(0, 10) x
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select array_agg(x::int order by x desc)
+    from  generate_series(0, 10) x
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select array_agg(x::int order by x desc) filter (where x > 5)
+    from  generate_series(0, 10) x
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select unnest(x)
+    from (
+      select array_agg(x::int order by x desc) filter (where x > 5)
+      from  generate_series(0, 10) x
+    ) t(x)
+  #+END_SRC
+
 ** Window Functions
 
+  [[https://www.postgresql.org/docs/9.1/tutorial-window.html][Window Functions]] - performs a calculation across a set of table rows that are somehow related to the current row.
+
+  #+BEGIN_SRC sql
+    select EXTRACT(YEAR from d), v
+          , lag(v, -1) over (order by d desc) prev
+          , v - lag(v, -1) over (order by d desc)  inc
+    from (values ('2021-01-01'::timestamp, 10)
+               , ('2020-01-01'::timestamp, 8)
+               , ('2019-01-01'::timestamp, 10)
+               , ('2018-01-01'::timestamp, 5))  t(d, v)
+  #+END_SRC
+
 * Joins
+
+  WIP
+
 * CTE and RECURSIVE
-** CTE
+
+   [[https://postgrespro.ru/docs/postgrespro/13/queries-with?lang=en][Common Table Expressions]] - provides a way to write auxiliary statements for use in a larger query.
+
+    #+BEGIN_SRC sql
+      with
+      numbers as (
+	  select generate_series(1, 5) x)
+      select * from numbers;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+    with
+    numbers as (
+	select generate_series(1, 5) x
+    ),
+    odd as (
+	select * from numbers where (x % 2) = 1
+    )
+    select x as "odd" from odd;
+    #+END_SRC
+
 ** Recursive
-* SQL trainer
-  https://learndb.ru/
-  https://sql-academy.org/
-  https://sql-ex.ru/
+
+    #+BEGIN_SRC sql
+      WITH RECURSIVE r AS (
+	  SELECT
+	      1 AS i,
+	      1 AS factorial
+
+	  UNION
+
+	  SELECT
+	      i+1 AS i,
+	      factorial * (i+1) as factorial
+	  FROM r
+	  WHERE i < 10
+      )
+      SELECT * FROM r;
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql
+      CREATE TABLE geo (
+	  id int not null primary key,
+	  parent_id int references geo(id),
+	  name varchar(1000)
+      );
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      INSERT INTO geo
+        (id, parent_id, name)
+      VALUES
+	(1, null, 'Планета Земля'),
+	(2, 1, 'Континент Евразия'),
+	(3, 1, 'Континент Северная Америка'),
+	(4, 2, 'Европа'),
+	(5, 4, 'Россия'),
+	(6, 4, 'Германия'),
+	(7, 5, 'Москва'),
+	(8, 5, 'Санкт-Петербург'),
+	(9, 6, 'Берлин');
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql
+      WITH RECURSIVE r AS (
+	SELECT id, parent_id, name
+	FROM geo
+	WHERE parent_id = 4
+
+	UNION
+
+	SELECT geo.id, geo.parent_id, geo.name
+	FROM geo
+	JOIN r ON geo.parent_id = r.id
+      )
+
+      SELECT * FROM r;
+    #+END_SRC
+
+* SQL trainers
+
+  [[https://learndb.ru/][LearnDB]] - modern UI, theory and practic
+  [[https://sql-academy.org/][SQL academy]] - interactive ui, rating, complex tasks
+  [[https://sql-ex.ru/][SQL-ex]] - very old site
+
 * Home Work
 
  - Recursive
