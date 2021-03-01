@@ -452,34 +452,43 @@
   ~Transaction Control Language~ - commands are used to manage the transactions in the database.
   Samples in [[./playground.sql]] file.
 
-*** =Begin=
-
-
+  - =Begin=
     [[https://postgrespro.ru/docs/postgresql/13/sql-begin?lang=en][BEGIN]] — start a transaction block
     [[https://postgrespro.ru/docs/postgresql/13/sql-start-transaction?lang=en][START TRANSACTION]] — start a transaction block
     [[https://postgrespro.ru/docs/postgresql/13/sql-prepare-transaction?lang=en][PREPARE TRANSACTION]] — prepare the current transaction for two-phase commit
 
-*** =Commit=
-
+  - =Commit=
     [[https://postgrespro.ru/docs/postgresql/13/sql-commit?lang=en][COMMIT]] — commit the current transaction
     [[https://postgrespro.ru/docs/postgresql/13/sql-commit-prepared?lang=en][COMMIT PREPARED]] — commit a transaction that was earlier prepared for two-phase commit
     [[https://postgrespro.ru/docs/postgresql/13/sql-end?lang=en][END]] — commit the current transaction
 
-*** =Rollback=
-
+  - =Rollback=
     [[https://postgrespro.ru/docs/postgresql/13/sql-rollback?lang=en][ROLLBACK]] — abort the current transaction
     [[https://postgrespro.ru/docs/postgresql/13/sql-rollback-prepared?lang=en][ROLLBACK PREPARED]] — cancel a transaction that was earlier prepared for two-phase commit
     [[https://postgrespro.ru/docs/postgresql/13/sql-rollback-to?lang=en][ROLLBACK TO SAVEPOINT]] — roll back to a savepoint
 
-*** =Abort=
-
+  - =Abort=
     [[https://postgrespro.ru/docs/postgresql/13/sql-abort?lang=en][ABORT]] — abort the current transaction
 
-*** =Savepoint=
-
+  - =Savepoint=
     [[https://postgrespro.ru/docs/postgresql/13/sql-savepoint?lang=en][SAVEPOINT]] — define a new savepoint within the current transaction
     [[https://postgrespro.ru/docs/postgresql/13/sql-release-savepoint?lang=en][RELEASE SAVEPOINT]] — destroy a previously defined savepoint
 
+    #+name: Insert in transaction
+    #+BEGIN_SRC sql
+      begin;
+      insert into sample (id)
+      select * from generate_series(0, 10);
+      commit;
+    #+END_SRC
+
+    #+name: Rollback
+    #+BEGIN_SRC sql
+      begin;
+      delete from sample;
+      select * from sample;
+      rollback;
+    #+END_SRC
 
 ** PGSQL
 
@@ -560,3 +569,7 @@
 * CTE and RECURSIVE
 ** CTE
 ** Recursive
+* SQL trainer
+  https://learndb.ru/
+  https://sql-academy.org/
+  https://sql-ex.ru/
