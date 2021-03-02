@@ -1,5 +1,6 @@
 #+TITLE: Structured Query Language
 #+AUTHOR: M. Surmashev @muradbei
+#+OPTIONS: \n:t
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-bigblow.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
@@ -1057,6 +1058,10 @@
   [[https://learndb.ru/][LearnDB]] - modern UI, theory and practic
   [[https://sql-academy.org/][SQL academy]] - interactive ui, rating, complex tasks
   [[https://sql-ex.ru/][SQL-ex]] - very old site
+
+
+https://pgexercises.com/
+https://postgrespro.ru/education/university/sqlprimer
 
 * Home Work
 
