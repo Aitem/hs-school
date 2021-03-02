@@ -1,12 +1,10 @@
-#+TITLE: Structured Query Language
+#+TITLE: SQL home work
 #+AUTHOR: M. Surmashev @muradbei
 #+OPTIONS: \n:t
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-bigblow.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
-* Домашнее задание
-
-** Создание таблицы
+* Создание таблицы
 
 Создать таблицу ~codes~ с следующим содержимым:
 
@@ -28,7 +26,7 @@
  - ~display~ text
  - ~path~ jsonb
 
-** Вставка и генерация данных
+* Вставка и генерация данных
 
 Сгенерировать и вставить в таблицу ~items~ 1000000 значений примерно следующего вида (с фиксированным значением ~code~ A.1.02.1)
 
@@ -40,7 +38,7 @@
 |     ... | ...      | ...                          |      |
 | 1001000 | A.1.02.1 | Some static item num 1000000 |      |
 
-** Обновление данных
+* Обновление данных
 
 Написать запрос который проставит для всех строк из таблицы ~items~ в поле ~path~  jsonb объект содержащий значения code и desc всех родителей для значения code
 
@@ -72,6 +70,6 @@
 ]
 #+END_SRC
 
-** Как сдавать
+* Как сдавать
 
 Результаты можно присылать в виде sql скриптов, ссылок на GIST или github репозиторий
