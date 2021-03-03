@@ -1,5 +1,15 @@
 #+TITLE: Typography
 
+* Table of Contents                                                   :TOC_3:
+- [[#basic][Basic]]
+  - [[#text][Text]]
+  - [[#lists][Lists]]
+  - [[#tables][Tables]]
+- [[#code-block][Code block]]
+- [[#headers][Headers]]
+  - [[#head-2][Head 2]]
+    - [[#head-3][Head 3]]
+
 * Basic
 
 ** Text
@@ -18,18 +28,26 @@
    + Item 2.1
  - Item 3
 
- * Item 1.1
+
+ * Item 1
  * Item 2
  * Item 3
+
 
  + Item 1
  + Item 2
  + Item 3
 
+
  1. Item 1
  2. Item 2
  3. Item 3
 
+
+
+#+begin_quote
+ Some example text of quote
+#+end_quote
 
 ** Tables
 
@@ -39,9 +57,8 @@
 |  2 | Value 2 | Desc for value 2 |
 |  2 | Value 2 | Desc for value 3 |
 
+* Code block
 * Headers
-
-* Head 1
 ** Head 2
 *** Head 3
 **** Head 4
