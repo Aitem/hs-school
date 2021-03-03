@@ -1,0 +1,47 @@
+#+TITLE: Typography
+
+* Basic
+
+** Text
+
+ - *bold*
+ - _underline_
+ - =tag=
+ - ~code~
+ - [[https://google.com][link]]
+
+** Lists
+
+ - Item 1
+   * Item 1.1
+ - Item 2
+   + Item 2.1
+ - Item 3
+
+ * Item 1.1
+ * Item 2
+ * Item 3
+
+ + Item 1
+ + Item 2
+ + Item 3
+
+ 1. Item 1
+ 2. Item 2
+ 3. Item 3
+
+
+** Tables
+
+| id | value   | desc             |
+|----+---------+------------------|
+|  1 | Value 1 | Desc for value 1 |
+|  2 | Value 2 | Desc for value 2 |
+|  2 | Value 2 | Desc for value 3 |
+
+* Headers
+
+* Head 1
+** Head 2
+*** Head 3
+**** Head 4

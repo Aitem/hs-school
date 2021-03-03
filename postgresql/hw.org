@@ -4,7 +4,6 @@
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
-[[./sql.org]]
 
 * Создание таблицы
 
@@ -76,3 +75,7 @@
 * Как сдавать
 
 Результаты можно присылать в виде sql скриптов, ссылок на GIST или github репозиторий
+
+
+TODO: заполнить таблицу разными кодами
+TODO: Проверка в виде тестов
