@@ -1,0 +1,349 @@
+#+TITLE: JSONB
+#+AUTHOR: M. Surmashev @muradbei
+#+OPTIONS: \n:t
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Intro                                                            :noexport:
+
+  [[./jsonb.png]]
+
+* Table of Contents                                                   :TOC_3:
+- [[#install][Install]]
+- [[#jsonb][JSONB]]
+  - [[#json-vs-jsonb][JSON vs JSONB]]
+- [[#basic-operators-and-functions][Basic operators and functions]]
+  - [[#create-jsonb][Create JSONB]]
+  - [[#predicates][Predicates]]
+  - [[#change-jsonb][Change jsonb]]
+  - [[#extract-value][Extract value]]
+  - [[#iterators][Iterators]]
+- [[#jsquery][Jsquery]]
+  - [[#jsquery-syntax][Jsquery syntax]]
+    - [[#simple-expression][Simple expression]]
+    - [[#path-select][Path select]]
+- [[#jsonpath][JsonPath]]
+  - [[#sqljson-path-language][SQL/JSON Path Language]]
+    - [[#strict-and-lax-modes][Strict And Lax Modes]]
+    - [[#operators-and-methods][Operators and Methods]]
+    - [[#filter-expression][Filter Expression]]
+    - [[#sqljson-regular-expressions][SQL/JSON Regular Expressions]]
+- [[#json-knife][Json knife]]
+  - [[#functions][Functions]]
+- [[#class-work][Class work]]
+  - [[#task-1][Task 1]]
+  - [[#task-2][Task 2]]
+
+* Install
+
+   #+name: Run db
+   #+BEGIN_SRC bash
+     docker-compose up -d
+   #+END_SRC
+
+   #+RESULTS: Run db
+
+   #+name: Check connection and list databases
+   #+BEGIN_SRC sql
+     \l
+   #+END_SRC
+
+   #+RESULTS: Check connection and list databases
+   | List of databases     |          |          |                 |             |                   |
+   |-----------------------+----------+----------+-----------------+-------------+-------------------|
+   | Name                  | Owner    | Encoding | Collate         | Ctype       | Access privileges |
+   | hs                    | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
+   | postgres              | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
+   | template0             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
+   | postgres=CTc/postgres |          |          |                 |             |                   |
+   | template1             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
+   | postgres=CTc/postgres |          |          |                 |             |                   |
+
+* JSONB
+
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - data types are for storing JSON
+
+:zap: [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
+
+** JSON vs JSONB
+
+ - ~JSON~ plain text json
+ - ~JSONB~ binary json format
+   - All keys unique
+   - All keys sorted
+
+  #+name: Cast to JSON
+  #+BEGIN_SRC sql
+    select '{"name": "Bob", "name": "John"}'::json
+  #+END_SRC
+
+  #+RESULTS: Cast to JSON
+  | json                            |
+  |---------------------------------|
+  | {"name": "Bob", "name": "John"} |
+
+
+  #+name: Cast to JSONB
+  #+BEGIN_SRC sql
+    select '{"name": "Bob", "name": "John"}'::jsonb
+  #+END_SRC
+
+  #+RESULTS: Cast to JSONB
+  | jsonb            |
+  |------------------|
+  | {"name": "John"} |
+
+
+
+* Basic operators and functions
+
+** Create JSONB
+
+  - =Cast=
+   #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::JSONB;
+   #+END_SRC
+
+  - =jsonb_build_array=
+   #+BEGIN_SRC sql
+     select jsonb_build_array(1, 2, 3, 'Bob');
+   #+END_SRC
+
+  - =jsonb_build_object=
+   #+BEGIN_SRC sql
+     select jsonb_build_object('name', 'Bob', 'family', 'Smith');
+   #+END_SRC
+
+** Predicates
+
+  - =?=
+    #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::JSONB ? 'name';
+    #+END_SRC
+
+  - =intersect=
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "family": "Smith"}'::jsonb
+            @> '{"name": "Bob"}'::jsonb ;
+   #+END_SRC
+
+
+** Change jsonb
+
+  - =||=
+    #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::JSONB || '{"family": "Smith"}'::JSONB;
+    #+END_SRC
+
+  - =-=
+    #+BEGIN_SRC sql
+     select '{"name": "Bob", "family": "Smith"}'::jsonb - 'name'
+    #+END_SRC
+
+  - =jsonb_set=
+    #+BEGIN_SRC sql
+      select jsonb_set('{"f1":1,"f2":null}', '{f1}', '[2,3,4]') ;
+    #+END_SRC
+
+
+** Extract value
+
+  - =-> ->> #> #>>=
+
+| *Operator* | *Argument*      | *Result* |
+|----------+---------------+--------|
+| ~->~       | integer, text | jsonb  |
+| ~->>~      | integer, text | text   |
+| ~#>~       | text[]        | jsonb  |
+| ~#>>~      | text[]        | text   |
+
+    #+BEGIN_SRC sql
+      select
+	  x -> 1 as "->"
+	, x->> 1 as "->>"
+	, x#> '{0, name}' as "->>"
+	, x#>> '{0, name}' as "->>"
+      from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x);
+      select
+	  pg_typeof(x -> 1) as "->"
+	, pg_typeof(x->> 1) as "->>"
+	, pg_typeof(x#> '{0, name}') as "->>"
+	, pg_typeof(x#>> '{0, name}') as "->>"
+      from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x) ;
+    #+END_SRC
+
+    #+RESULTS:
+    | ->              | ->>             | ->>   | ->>  |
+    |-----------------+-----------------+-------+------|
+    | {"name": "Bob"} | {"name": "Bob"} | "Joe" | Joe  |
+    | ->              | ->>             | ->>   | ->>  |
+    | jsonb           | text            | jsonb | text |
+
+
+** Iterators
+
+  - =jsonb_array_elements=
+    #+BEGIN_SRC sql
+      select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb) itm
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select sum(x::int)
+      from (select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb)) t(x)
+    #+END_SRC
+
+  - =jsonb_each=
+    #+BEGIN_SRC sql
+      select *
+      from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
+    #+END_SRC
+
+    #+RESULTS:
+    | key    | value   |
+    |--------+---------|
+    | name   | "Joe"   |
+    | family | "Smith" |
+
+
+* Jsquery
+
+   [[https://github.com/postgrespro/jsquery][JsQuery]] - json query language with ~GIN~ indexing support
+
+:zap: ~JsQuery~ - only as predicate
+
+   #+BEGIN_SRC sql
+     create extension jsquery;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select '{"name": "Bob"}'::jsonb @@ ('name = Bob')::jsquery
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select '[{"name": "Bob"}, {"name": "John"}]'::jsonb @@ ('#(name = Bob)')::jsquery
+   #+END_SRC
+
+
+** Jsquery syntax
+
+*** Simple expression
+
+ * ~x = "abc"~ — value of key ~"x"~ is equal ~"abc"~;
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "family": "Smith"}'::jsonb @@ ('name = Bob')::jsquery
+   #+END_SRC
+
+ * ~$ @> [4, 5]~ - the JSON document is an array containing values ~4, 5 and "zzz"~;
+   #+BEGIN_SRC sql
+     select '[1, 2, 3, 4, 5, 6, 7]'::jsonb @@ ('$ @> [1, 4, 8]')::jsquery
+   #+END_SRC
+
+ * ~"abc" >= 10~ - value of key ~"abc"~ is greater than or equal to ~10~;
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55}'::jsonb @@ ('age > 15')::jsquery
+   #+END_SRC
+
+ * ~volume IS NUMERIC~ - type of key "volume" is numeric.
+                       Also supports ~IS ARRAY~, ~IS OBJECT~, ~IS STRING~ and ~IS BOOLEAN~.
+ * ~$ = true~ - the whole JSON document is just a true.
+ * ~foo = *~ - key "foo" exists in object.
+ * ~*.color = "red"~ - there is object somewhere which key "color" has value "red".
+ * ~similar_ids.@# > 5~ - ~similar_ids~ is an array or object of length greater than ~5~;
+ * ~similar_product_ids.# = "0684824396"~ - array ~"similar_product_ids"~ contains string ~"0684824396"~.
+
+**** TODO More samples
+
+*** Path select
+
+ * ~#~ - any index of array;
+ * ~#:~ - every index of array;
+
+ * ~#N~ - Nth index of array;
+
+ * ~%~ - any key of object;
+ * ~%:~ - every key of object;
+
+ * ~*~ - any sequence of array indexes and object keys;
+ * ~*:~ - every sequence of array indexes and object keys.
+
+ * ~@#~ - length of array or object, could be only used as last component of path;
+
+ * ~$~ - the whole JSON document as single value, could be only the whole path.
+
+
+
+
+**** TODO More samples
+
+* JsonPath
+
+   [[https://www.postgresql.org/docs/13/functions-json.html][JsonPath]] - SQL json standard realization
+
+:zap:Unlike ~JsQuery~, ~JsonPath~ can =extract= and =predicate=
+
+   Set of ~jsonb_path_query*~ functions and ~@@~ operator
+
+   #+BEGIN_SRC sql
+     select jsonb_path_query_first('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
+   #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query_first |
+   |------------------------|
+   |                      2 |
+
+   #+BEGIN_SRC sql
+     select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
+   #+END_SRC
+
+   #+RESULTS:
+   | ?column? |
+   |----------|
+   | t        |
+
+
+** SQL/JSON Path Language
+*** Strict And Lax Modes
+**** TODO More samples
+*** Operators and Methods
+**** TODO More samples
+*** Filter Expression
+**** TODO More samples
+*** SQL/JSON Regular Expressions
+**** TODO More samples
+
+* Json knife
+
+https://github.com/niquola/jsonknife
+
+** Functions
+   ~knife_extract~
+   ~knife_extract_text~
+   ~knife_extract_numeric~
+   ~knife_extract_min_numeric~
+   ~knife_extract_max_numeric~
+   ~knife_extract_min_timestamptz~
+   ~knife_extract_max_timestamptz~
+   ~knife_date_bound~
+
+* Class work
+
+** Task 1
+
+Extract database usage statistics for all tables in single JSONB object
+ - Rows count
+ - Table size
+ - Index count
+ - Index size
+ - Toast size
+
+
+** Task 2
+
+Extract jsonb oject keys usuage statistics
+
+
+#+BEGIN_SRC sql
+select *
+from value
+#+END_SRC

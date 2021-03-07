@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2021-03-02 Tue 21:06 -->
+<!-- 2021-03-03 Wed 20:00 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>SQL home work</title>
@@ -253,28 +253,26 @@ for the JavaScript code in this tag.
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents">
 <ul>
-<li><a href="#org378ae5f">1. Создание таблицы</a>
+<li><a href="#org0740ed0">1. Создание таблицы</a>
 <ul>
-<li><a href="#orgc2eed65">1.1. Таблица <code>codes</code></a></li>
-<li><a href="#orgd368ff0">1.2. Таблица <code>items</code></a></li>
+<li><a href="#orge74b59a">1.1. Таблица <code>codes</code></a></li>
+<li><a href="#org8ce78e4">1.2. Таблица <code>items</code></a></li>
 </ul>
 </li>
-<li><a href="#orgfab063a">2. Вставка и генерация данных</a></li>
-<li><a href="#orgd5d6f29">3. Обновление данных</a></li>
-<li><a href="#org3c6ee05">4. Как сдавать</a></li>
+<li><a href="#orgc977d59">2. Вставка и генерация данных</a></li>
+<li><a href="#org5e2bdc5">3. Обновление данных</a></li>
+<li><a href="#orgc150b8e">4. Как сдавать</a></li>
 </ul>
 </div>
 </div>
-<p>
-<a href="./sql.html">./sql.html</a><br />
-</p>
 
-<div id="outline-container-org378ae5f" class="outline-2">
-<h2 id="org378ae5f"><span class="section-number-2">1</span> Создание таблицы</h2>
+
+<div id="outline-container-org0740ed0" class="outline-2">
+<h2 id="org0740ed0"><span class="section-number-2">1</span> Создание таблицы</h2>
 <div class="outline-text-2" id="text-1">
 </div>
-<div id="outline-container-orgc2eed65" class="outline-3">
-<h3 id="orgc2eed65"><span class="section-number-3">1.1</span> Таблица <code>codes</code></h3>
+<div id="outline-container-orge74b59a" class="outline-3">
+<h3 id="orge74b59a"><span class="section-number-3">1.1</span> Таблица <code>codes</code></h3>
 <div class="outline-text-3" id="text-1-1">
 <p>
 Создать таблицу <code>codes</code> с следующим содержимым:<br />
@@ -336,8 +334,8 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgd368ff0" class="outline-3">
-<h3 id="orgd368ff0"><span class="section-number-3">1.2</span> Таблица <code>items</code></h3>
+<div id="outline-container-org8ce78e4" class="outline-3">
+<h3 id="org8ce78e4"><span class="section-number-3">1.2</span> Таблица <code>items</code></h3>
 <div class="outline-text-3" id="text-1-2">
 <p>
 Создать вторую таблицу <code>items</code> с следующей структурой:<br />
@@ -353,8 +351,8 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgfab063a" class="outline-2">
-<h2 id="orgfab063a"><span class="section-number-2">2</span> Вставка и генерация данных</h2>
+<div id="outline-container-orgc977d59" class="outline-2">
+<h2 id="orgc977d59"><span class="section-number-2">2</span> Вставка и генерация данных</h2>
 <div class="outline-text-2" id="text-2">
 <p>
 Сгенерировать и вставить в таблицу <code>items</code> 1000000 значений примерно следующего вида (с фиксированным значением <code>code</code> A.1.02.1)<br />
@@ -420,8 +418,8 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-orgd5d6f29" class="outline-2">
-<h2 id="orgd5d6f29"><span class="section-number-2">3</span> Обновление данных</h2>
+<div id="outline-container-org5e2bdc5" class="outline-2">
+<h2 id="org5e2bdc5"><span class="section-number-2">3</span> Обновление данных</h2>
 <div class="outline-text-2" id="text-3">
 <p>
 Написать запрос который проставит для всех строк из таблицы <code>items</code> в поле <code>path</code>  jsonb объект содержащий значения code и desc всех родителей для значения code<br />
@@ -486,18 +484,24 @@ for the JavaScript code in this tag.
 </div>
 </div>
 
-<div id="outline-container-org3c6ee05" class="outline-2">
-<h2 id="org3c6ee05"><span class="section-number-2">4</span> Как сдавать</h2>
+<div id="outline-container-orgc150b8e" class="outline-2">
+<h2 id="orgc150b8e"><span class="section-number-2">4</span> Как сдавать</h2>
 <div class="outline-text-2" id="text-4">
 <p>
 Результаты можно присылать в виде sql скриптов, ссылок на GIST или github репозиторий<br />
+</p>
+
+
+<p>
+TODO: заполнить таблицу разными кодами<br />
+TODO: Проверка в виде тестов<br />
 </p>
 </div>
 </div>
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: M. Surmashev @muradbei</p>
-<p class="date">Created: 2021-03-02 Tue 21:06</p>
+<p class="date">Created: 2021-03-03 Wed 20:00</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>
 </body>

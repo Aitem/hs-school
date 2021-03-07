@@ -6,6 +6,8 @@
   - [[#lists][Lists]]
   - [[#tables][Tables]]
 - [[#code-block][Code block]]
+- [[#fooooo][fooooo]]
+  - [[#some-sob][Some sob]]
 - [[#headers][Headers]]
   - [[#head-2][Head 2]]
     - [[#head-3][Head 3]]
@@ -58,6 +60,10 @@
 |  2 | Value 2 | Desc for value 3 |
 
 * Code block
+
+* fooooo
+** Some sob
+  dfsdf
 * Headers
 ** Head 2
 *** Head 3
