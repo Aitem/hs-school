@@ -20,22 +20,6 @@
 |  5 | A.1.02.1 | Some sub sub vlaue 2.1 |
 
 
-~fo sdfasdf sadfo~ k; =asldfkj=
-| =df sdf= | =dfdf=                             | *fooo* |
-|--------+----------------------------------+------|
-|      1 | s;ldkfj;asl kdfja;sldkfja;sdlkfj |      |
-|   8888 | sdfasdf                          |      |
-
-#+BEGIN_SRC bash :results value drawer
-python -c "print('hello my ')"
-#+END_SRC
-
-#+RESULTS:
-:results:
-hello my
-:end:
-
-
 В данном случае это иерархический семантический справочник в котором иерархия зашита в семантику самих кодов.
 
 ** Таблица ~items~

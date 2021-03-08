@@ -33,6 +33,7 @@
 - [[#class-work][Class work]]
   - [[#task-1][Task 1]]
   - [[#task-2][Task 2]]
+    - [[#ansver][Ansver]]
 
 * Install
 
@@ -340,10 +341,31 @@ Extract database usage statistics for all tables in single JSONB object
 
 ** Task 2
 
-Extract jsonb oject keys usuage statistics
+Extract jsonb oject keys usuage statistics (skip arrays)
 
+*** Ansver
 
 #+BEGIN_SRC sql
-select *
-from value
+with recursive
+keys as
+(
+  select jsonb_build_array(key) pth, value
+  from "organization", jsonb_each(resource)
+
+  union
+
+  select pth || jsonb_build_array(k), v
+  from keys , jsonb_each(value) t(k, v)
+  where jsonb_typeof(value) = 'object'
+
+)
+, total as
+(
+  select count(*) ttl from "organization"
+)
+
+select pth, (count(*)/ttl::float) persent
+from keys, total
+group by pth, ttl
+order by persent desc
 #+END_SRC
