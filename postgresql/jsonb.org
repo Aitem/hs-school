@@ -101,7 +101,7 @@
 
 ** Create JSONB
 
-  - =Cast=
+  =Cast= - cast string as json/jsonb type
 
 #+BEGIN_SRC sql
     select '{"name": "Bob"}'::JSONB;
@@ -112,7 +112,7 @@
    |-----------------|
    | {"name": "Bob"} |
 
-  - =jsonb_build_array=
+  =jsonb_build_array= - create json/jsonb contains array
 
 #+BEGIN_SRC sql
      select jsonb_build_array(1, 2, 3, 'Bob');
@@ -123,7 +123,7 @@
    |-------------------|
    | [1, 2, 3, "Bob"]  |
 
-  - ~jsonb_build_object~
+  ~jsonb_build_object~ - create json/jsonb object
 
    #+BEGIN_SRC sql
      select jsonb_build_object('name', 'Bob', 'family', 'Smith');
