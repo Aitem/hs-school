@@ -62,7 +62,7 @@
 
    [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - data types are for storing JSON
 
-:zap: [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
+⚡ [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
 
 ** JSON vs JSONB
 
