@@ -326,12 +326,12 @@
       select '{"name": "Bob", "family": "Smith"}'::jsonb @@ ('name = Bob')::jsquery
     #+END_SRC
 
-    ~$ @> [4, 5]~ - the JSON document is an array containing values ~4, 5 and "zzz"~;
+    ~$ @> [4, 5]~ - the JSON document is an array containing values ~4, 5~;
     #+BEGIN_SRC sql
       select '[1, 2, 3, 4, 5, 6, 7]'::jsonb @@ ('$ @> [1, 4, 8]')::jsquery
     #+END_SRC
 
-    ~abc >= 10~ - value of key ~"abc"~ is greater than or equal to ~10~;
+    ~abc >= 10~ - value of key ~abc~ is greater than or equal to ~10~;
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('age > 15')::jsquery
     #+END_SRC
@@ -343,12 +343,12 @@
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('age IS NUMERIC')::jsquery
     #+END_SRC
 
-    ~foo = *~ - key "foo" exists in object.
+    ~foo = *~ - key ~foo~ exists in object.
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('name = *')::jsquery
     #+END_SRC
 
-    ~*.color = "red"~ - there is object somewhere which key "color" has value "red".
+    ~*.color = red~ - there is object somewhere which key "color" has value "red".
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55, "contact": [{"phone": 911}]}'::jsonb @@ ('*.phone = 911')::jsquery
     #+END_SRC
@@ -358,7 +358,7 @@
       select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.@# > 1')::jsquery
     #+END_SRC
 
-    ~similar_product_ids.# = "0684824396"~ - array ~"similar_product_ids"~ contains string ~"0684824396"~.
+    ~similar_product_ids.# = 0684824396~ - array ~similar_product_ids~ contains string ~0684824396~;
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('age > 15')::jsquery
     #+END_SRC
