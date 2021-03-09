@@ -72,6 +72,8 @@
    - All keys unique
    - All keys sorted
 
+*Exmaple:*
+
   #+name: Cast to JSON
   #+BEGIN_SRC sql
     select '{"name": "Bob", "name": "John"}'::json
