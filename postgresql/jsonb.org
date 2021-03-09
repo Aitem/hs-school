@@ -24,9 +24,8 @@
     - [[#path-select][Path select]]
 - [[#jsonpath][JsonPath]]
   - [[#sqljson-path-language][SQL/JSON Path Language]]
-    - [[#sqljson-path-language-1][SQL/JSON Path Language]]
-    - [[#strict-and-lax-modes][Strict And Lax Modes]]
-    - [[#operators-and-methods][Operators and Methods]]
+  - [[#strict-and-lax-modes][Strict And Lax Modes]]
+  - [[#operators-and-methods][Operators and Methods]]
 - [[#json-knife][Json knife]]
   - [[#functions][Functions]]
 - [[#class-work][Class work]]
@@ -102,22 +101,12 @@
     select '{"name": "Bob"}'::JSONB;
   #+END_SRC
 
-  #+RESULTS:
-  | jsonb           |
-  |-----------------|
-  | {"name": "Bob"} |
-
 
   =jsonb_build_array= - create json/jsonb contains array
 
   #+BEGIN_SRC sql
     select jsonb_build_array(1, 2, 3, 'Bob');
   #+END_SRC
-
-  #+RESULTS:
-  | jsonb_build_array |
-  |-------------------|
-  | [1, 2, 3, "Bob"]  |
 
 
   =jsonb_build_object= - create json/jsonb object
@@ -133,21 +122,11 @@
     select '{"name": "Bob"}'::JSONB ? 'name';
   #+END_SRC
 
-    #+RESULTS:
-    | ?column? |
-    |----------|
-    | t        |
-
   =@>= - Does the left JSON value contain the right JSON
   #+BEGIN_SRC sql
     select '{"name": "Bob", "family": "Smith"}'::jsonb
 	     @> '{"name": "Bob"}'::jsonb ;
   #+END_SRC
-
-   #+RESULTS:
-   | ?column? |
-   |----------|
-   | t        |
 
 ** Mutate jsonb
 
@@ -156,20 +135,10 @@
     select '{"name": "Bob"}'::JSONB || '{"family": "Smith"}'::JSONB;
   #+END_SRC
 
-  #+RESULTS:
-  | ?column?                           |
-  |------------------------------------|
-  | {"name": "Bob", "family": "Smith"} |
-
   =-= - Delete key/value pair or string element from left operand
   #+BEGIN_SRC sql
     select '{"name": "Bob", "family": "Smith"}'::jsonb - 'name'
   #+END_SRC
-
-  #+RESULTS:
-  | ?column?            |
-  |---------------------|
-  | {"family": "Smith"} |
 
   =jsonb_set= - Insert new value by path
   #+BEGIN_SRC sql
@@ -202,13 +171,6 @@
        from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x) ;
    #+END_SRC
 
-   #+RESULTS:
-   | ->              | ->>             | ->>   | ->>  |
-   |-----------------+-----------------+-------+------|
-   | {"name": "Bob"} | {"name": "Bob"} | "Joe" | Joe  |
-   | ->              | ->>             | ->>   | ->>  |
-   | jsonb           | text            | jsonb | text |
-
 ** Iterators
 
    =jsonb_array_elements= - populate records from json/jsonb array
@@ -216,36 +178,16 @@
      select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb) itm
    #+END_SRC
 
-   #+RESULTS:
-   | itm |
-   |-----|
-   |   1 |
-   |   2 |
-   |   3 |
-   |   4 |
-   |   5 |
-
    #+BEGIN_SRC sql
      select sum(x::int)
        from (select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb)) t(x)
    #+END_SRC
-
-   #+RESULTS:
-   | sum |
-   |-----|
-   |  15 |
 
    =jsonb_each= - populate key/value records from jsonb object
    #+BEGIN_SRC sql
      select *
        from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
    #+END_SRC
-
-   #+RESULTS:
-   | key    | value   |
-   |--------+---------|
-   | name   | "Joe"   |
-   | family | "Smith" |
 
 ** Aggregates
 
@@ -255,27 +197,11 @@
        from generate_series(1, 5) t(x)
    #+END_SRC
 
-   #+RESULTS:
-   | jsonb_agg       |
-   |-----------------|
-   | [1, 2, 3, 4, 5] |
-
    =jsonb_object_agg= - aggregate new jsonb object
    #+BEGIN_SRC sql
      select jsonb_pretty(jsonb_object_agg(x, x))
        from generate_series(1,
    #+END_SRC
-
-   #+RESULTS:
-   | jsonb_pretty |
-   |--------------|
-   | {            |
-   | "1": 1,      |
-   | "2": 2,      |
-   | "3": 3,      |
-   | "4": 4,      |
-   | "5": 5       |
-   | }            |
 
 * Jsquery
 
@@ -301,19 +227,9 @@
     select '{"name": "Bob"}'::jsonb @@ ('name = Bob')::jsquery
   #+END_SRC
 
-  #+RESULTS:
-  | ?column? |
-  |----------|
-  | t        |
-
   #+BEGIN_SRC sql
     select '[{"name": "Bob"}, {"name": "John"}]'::jsonb @@ ('#(name = Bob)')::jsquery
   #+END_SRC
-
-  #+RESULTS:
-  | ?column? |
-  |----------|
-  | t        |
 
 
 ** Jsquery syntax
@@ -405,111 +321,152 @@
     select jsonb_path_query('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
   #+END_SRC
 
-  #+RESULTS:
-  | jsonb_path_query |
-  |------------------|
-  |                2 |
-  |                3 |
-  |                4 |
-
   Does left part contains in ~a~ values between 2 and 5
   #+BEGIN_SRC sql
     select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
   #+END_SRC
 
-  #+RESULTS:
-  | ?column? |
-  |----------|
-  | t        |
 
 ** SQL/JSON Path Language
 
-*** SQL/JSON Path Language
+   Prepare playground
+   #+BEGIN_SRC sql
+     create table jsonbsample (resource jsonb);
+   #+END_SRC
 
-*** Strict And Lax Modes
+   #+BEGIN_SRC sql
+     insert into jsonbsample (resource)
+     values ('{
+       "name": "ГКБ 1",
+       "type": [
+	   {
+	       "text": "Амбулаторный",
+	       "coding": [
+		   {
+		       "code": "1",
+		       "system": "urn:CodeSystem:frmo.structure-type",
+		       "display": "Амбулаторный"
+		   },
+		   {
+		       "code": "B034",
+		       "system": "urn:CodeSystem:snomed",
+		       "display": "Ambulatory"
+		   }
+	       ]
+	   }
+       ],
+       "identifier": [
+	   {
+	       "value": "46da1f9f-608f-11e3-a70e-e4115baf3989",
+	       "system": "urn:source:rf:Organization"
+	   },
+	   {
+	       "value": "e4115baf3989-608f-11e3-a70e-46da1f9f",
+	       "system": "urn:source:mis:Organization"
+	   }
+       ]}')
+     #+END_SRC
 
-    =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
-    Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
 
-    #+BEGIN_SRC sql
-      select jsonb_path_query(resource, 'lax $.name.given')
-	from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
-    #+END_SRC
+   To retrieve the available track segments, you need to use the ~.key~ accessor operator to descend through surrounding JSON objects:
+   ~$.track.segments~
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    | ["Bob"]          |
+   To retrieve the contents of an array, you typically use the ~[*]~ operator. For example, the following path will return the location coordinates for all the available track segments:
+   ~$.track.segments[*].location~
+
+   To return the coordinates of the first segment only, you can specify the corresponding subscript in the ~[]~ accessor operator. Recall that JSON array indexes are 0-relative:
+   ~$.track.segments[0].location~
+
+   The result of each path evaluation step can be processed by one or more jsonpath operators and methods listed in Section 9.16.2.2.
+   Each method name must be preceded by a dot. For example, you can get the size of an array:
+   ~$.track.segments.size()~
 
 
-    =strict= — if a structural error occurs, an error is raised.
+   When defining a path, you can also use one or more filter expressions that work similarly to the WHERE clause in SQL.
+   A filter expression begins with a question mark and provides a condition in parentheses:
+   ~? (condition)~
 
-    #+BEGIN_SRC sql
-      select jsonb_path_query(resource, 'strict $.name[*].given')
-	from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
-    #+END_SRC
+   Filter expressions must be written just after the path evaluation step to which they should apply.
+   The result of that step is filtered to include only those items that satisfy the provided condition.
+   SQL/JSON defines three-valued logic, so the condition can be true, false, or unknown.
+   The unknown value plays the same role as SQL NULL and can be tested for with the is unknown predicate.
+   Further path evaluation steps use only those items for which the filter expression returned true.
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    | ["Bob"]          |
+   Within a filter expression, the ~@~ variable denotes the value being filtered (i.e., one result of the preceding path step).
+   You can write accessor operators after ~@~ to retrieve component items.
 
-*** Operators and Methods
+   For example, suppose you would like to retrieve all heart rate values higher than 130. You can achieve this using the following expression:
+   ~$.track.segments[*].HR ? (@ > 130)~
 
-    ~==~ - Equality operator
-    #+BEGIN_SRC sql
-      select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ == 2)')
-    #+END_SRC
+   To get the start times of segments with such values, you have to filter out irrelevant segments before returning the start times,
+   so the filter expression is applied to the previous step, and the path used in the condition is different:
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    |                2 |
-    |                2 |
+   ~$.track.segments[*] ? (@.HR > 130)."start time"~
+   You can use several filter expressions in sequence, if required.
+   For example, the following expression selects start times of all segments that contain locations with relevant coordinates and high heart rate values:
 
-    ~!= < <= >= > <>~  - Non-equality operator
-    #+BEGIN_SRC sql
-      select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ <> 2)')
-    #+END_SRC
+   ~$.track.segments[*] ? (@.location[1] < 13.4) ? (@.HR > 130)."start time"~
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    |                1 |
-    |                3 |
+   Using filter expressions at different nesting levels is also allowed.
+   The following example first filters all segments by location, and then returns high heart rate values for these segments, if available:
 
-    ~&& || !~ - Boolean ~AND NOT OR~
-    #+BEGIN_SRC sql
-      select jsonb_path_query('[1,2,3,4]', '$[*] ? (@ > 1 &&  @ < 4)')
-    #+END_SRC
+   ~$.track.segments[*] ? (@.location[1] < 13.4).HR ? (@ > 130)~
+   You can also nest filter expressions within each other:
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    |                2 |
-    |                3 |
+   ~$.track ? (exists(@.segments[*] ? (@.HR > 130))).segments.size()~
+   This expression returns the size of the track if it contains any segments with high heart rate values, or an empty sequence otherwise.
 
-    ~+ - / * % floor abs~ - Some math operators
-    #+BEGIN_SRC sql
-      select jsonb_path_query('[1,2,3,4]', '$[*] ? ((@ + 1) > 1 &&  (@+1) < 4)')
-    #+END_SRC
+   PostgreSQL's implementation of the SQL/JSON path language has the following deviations from the SQL/JSON standard:
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    |                1 |
-    |                2 |
+   A path expression can be a Boolean predicate, although the SQL/JSON standard allows predicates only in filters.
+   This is necessary for implementation of the @@ operator. For example, the following jsonpath expression is valid in PostgreSQL:
 
-    ~like_regex, starts with~ - Regexp and text strt operators
-    #+BEGIN_SRC sql
-      select jsonb_path_query('["M", "Ma", "Mar", "ara", "rat", "at", "t"]', '$[*] ? (@ starts with "Ma")')
-    #+END_SRC
+   ~$.track.segments[*].HR < 70~
 
-    #+RESULTS:
-    | jsonb_path_query |
-    |------------------|
-    | "Ma"             |
-    | "Mar"            |
+** Strict And Lax Modes
+
+   =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
+   Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
+
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, 'lax $.name.given')
+       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+   #+END_SRC
+
+
+   =strict= — if a structural error occurs, an error is raised.
+
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, 'strict $.name[*].given')
+       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+   #+END_SRC
+
+** Operators and Methods
+
+   ~==~ - Equality operator
+   #+BEGIN_SRC sql
+     select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ == 2)')
+   #+END_SRC
+
+   ~!= < <= >= > <>~  - Non-equality operator
+   #+BEGIN_SRC sql
+     select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ <> 2)')
+   #+END_SRC
+
+   ~&& || !~ - Boolean ~AND NOT OR~
+   #+BEGIN_SRC sql
+     select jsonb_path_query('[1,2,3,4]', '$[*] ? (@ > 1 &&  @ < 4)')
+   #+END_SRC
+
+   ~+ - / * % floor abs~ - Some math operators
+   #+BEGIN_SRC sql
+     select jsonb_path_query('[1,2,3,4]', '$[*] ? ((@ + 1) > 1 &&  (@+1) < 4)')
+   #+END_SRC
+
+   ~like_regex, starts with~ - Regexp and text strt operators
+   #+BEGIN_SRC sql
+     select jsonb_path_query('["M", "Ma", "Mar", "ara", "rat", "at", "t"]', '$[*] ? (@ starts with "Ma")')
+   #+END_SRC
 
 
 * Json knife
