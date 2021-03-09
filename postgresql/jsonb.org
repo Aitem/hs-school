@@ -60,7 +60,7 @@
 
 * JSONB
 
-   [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - data types are for storing JSON
+   [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - JSON data types are for storing JSON (JavaScript Object Notation) data, as specified in [[https://tools.ietf.org/html/rfc7159?lang=en][RFC 7159]] .
 
 ⚡ [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
 
@@ -101,20 +101,38 @@
 
 ** Create JSONB
 
-  - =Cast=
+  * =Cast=
+
    #+BEGIN_SRC sql
      select '{"name": "Bob"}'::JSONB;
    #+END_SRC
 
-  - =jsonb_build_array=
+   #+RESULTS:
+   | jsonb           |
+   |-----------------|
+   | {"name": "Bob"} |
+
+  * =jsonb_build_array=
+
    #+BEGIN_SRC sql
      select jsonb_build_array(1, 2, 3, 'Bob');
    #+END_SRC
 
-  - =jsonb_build_object=
+   #+RESULTS:
+   | jsonb_build_array |
+   |-------------------|
+   | [1, 2, 3, "Bob"]  |
+
+  * =jsonb_build_object=
+
    #+BEGIN_SRC sql
      select jsonb_build_object('name', 'Bob', 'family', 'Smith');
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_build_object                 |
+   |------------------------------------|
+   | {"name": "Bob", "family": "Smith"} |
 
 ** Predicates
 
