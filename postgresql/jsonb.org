@@ -211,38 +211,78 @@
    | ->              | ->>             | ->>   | ->>  |
    | jsonb           | text            | jsonb | text |
 
-
 ** Iterators
 
-  - =jsonb_array_elements=
-    #+BEGIN_SRC sql
-      select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb) itm
-    #+END_SRC
+   =jsonb_array_elements= - populate records from json/jsonb array
+   #+BEGIN_SRC sql
+     select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb) itm
+   #+END_SRC
 
-    #+BEGIN_SRC sql
-      select sum(x::int)
-      from (select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb)) t(x)
-    #+END_SRC
+   #+RESULTS:
+   | itm |
+   |-----|
+   |   1 |
+   |   2 |
+   |   3 |
+   |   4 |
+   |   5 |
 
-  - =jsonb_each=
-    #+BEGIN_SRC sql
-      select *
-      from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
-    #+END_SRC
+   #+BEGIN_SRC sql
+     select sum(x::int)
+       from (select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb)) t(x)
+   #+END_SRC
+
+   #+RESULTS:
+   | sum |
+   |-----|
+   |  15 |
+
+   =jsonb_each= - populate key/value records from jsonb object
+   #+BEGIN_SRC sql
+     select *
+       from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
+   #+END_SRC
+
+   #+RESULTS:
+   | key    | value   |
+   |--------+---------|
+   | name   | "Joe"   |
+   | family | "Smith" |
 
 ** Aggregates
 
-  - =jsonb_agg=
-    #+BEGIN_SRC sql
-      select jsonb_agg(x)
-      from generate_series(1, 10) t(x)
-    #+END_SRC
+   =jsonb_agg= - aggregate tuples into jsonb array
+   #+BEGIN_SRC sql
+     select jsonb_agg(x)
+       from generate_series(1, 10) t(x)
+   #+END_SRC
 
-  - =jsonb_object_agg=
-    #+BEGIN_SRC sql
-      select jsonb_pretty(jsonb_object_agg(x, x))
-      from generate_series(1, 10) t(x)
-    #+END_SRC
+   #+RESULTS:
+   | jsonb_agg                       |
+   |---------------------------------|
+   | [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] |
+
+   =jsonb_object_agg= - aggregate new jsonb object
+   #+BEGIN_SRC sql
+     select jsonb_pretty(jsonb_object_agg(x, x))
+       from generate_series(1, 10) t(x)
+   #+END_SRC
+
+   #+RESULTS:
+   | jsonb_pretty |
+   |--------------|
+   | {            |
+   | "1": 1,      |
+   | "2": 2,      |
+   | "3": 3,      |
+   | "4": 4,      |
+   | "5": 5,      |
+   | "6": 6,      |
+   | "7": 7,      |
+   | "8": 8,      |
+   | "9": 9,      |
+   | "10": 10     |
+   | }            |
 
 * Jsquery
 
