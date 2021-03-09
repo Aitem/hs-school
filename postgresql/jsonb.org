@@ -23,8 +23,9 @@
     - [[#simple-expression][Simple expression]]
     - [[#path-select][Path select]]
 - [[#jsonpath][JsonPath]]
-  - [[#sqljson-path-language][SQL/JSON Path Language]]
+  - [[#playground][Playground]]
   - [[#strict-and-lax-modes][Strict And Lax Modes]]
+  - [[#sqljson-path-language][SQL/JSON Path Language]]
   - [[#operators-and-methods][Operators and Methods]]
 - [[#json-knife][Json knife]]
   - [[#functions][Functions]]
@@ -326,8 +327,7 @@
     select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
   #+END_SRC
 
-
-** SQL/JSON Path Language
+** Playground
 
    Prepare playground
    #+BEGIN_SRC sql
@@ -367,19 +367,52 @@
        ]}')
      #+END_SRC
 
+** Strict And Lax Modes
 
-   To retrieve the available track segments, you need to use the ~.key~ accessor operator to descend through surrounding JSON objects:
-   ~$.track.segments~
+   =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
+   Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
 
-   To retrieve the contents of an array, you typically use the ~[*]~ operator. For example, the following path will return the location coordinates for all the available track segments:
-   ~$.track.segments[*].location~
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, 'lax $.name.given')
+       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+   #+END_SRC
 
-   To return the coordinates of the first segment only, you can specify the corresponding subscript in the ~[]~ accessor operator. Recall that JSON array indexes are 0-relative:
-   ~$.track.segments[0].location~
 
-   The result of each path evaluation step can be processed by one or more jsonpath operators and methods listed in Section 9.16.2.2.
-   Each method name must be preceded by a dot. For example, you can get the size of an array:
-   ~$.track.segments.size()~
+   =strict= — if a structural error occurs, an error is raised.
+
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, 'strict $.name[*].given')
+       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+   #+END_SRC
+
+** SQL/JSON Path Language
+
+   The ~.key~ accessor operator to descend through surrounding JSON objects:
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, '$.type.coding.code')
+       from jsonbsample
+   #+END_SRC
+
+
+   To retrieve the contents of an array, you typically use the ~[*]~ operator:
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, 'strict $.type[*].coding[*].code')
+       from jsonbsample
+   #+END_SRC
+
+
+   Get specified array element ~[N]~
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, 'strict $.type[0].coding[0].code')
+       from jsonbsample
+   #+END_SRC
+
+
+   The result of each path evaluation step can be processed by one or more jsonpath operators and methods.
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, '$.type.coding.size()')
+       from jsonbsample
+   #+END_SRC
 
 
    When defining a path, you can also use one or more filter expressions that work similarly to the WHERE clause in SQL.
@@ -423,23 +456,6 @@
 
    ~$.track.segments[*].HR < 70~
 
-** Strict And Lax Modes
-
-   =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
-   Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
-
-   #+BEGIN_SRC sql
-     select jsonb_path_query(resource, 'lax $.name.given')
-       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
-   #+END_SRC
-
-
-   =strict= — if a structural error occurs, an error is raised.
-
-   #+BEGIN_SRC sql
-     select jsonb_path_query(resource, 'strict $.name[*].given')
-       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
-   #+END_SRC
 
 ** Operators and Methods
 
