@@ -287,27 +287,19 @@
 
   [[https://github.com/postgrespro/jsquery][JsQuery]] - json query language with ~GIN~ indexing support
 
-  #+BEGIN_QUOTE
- ⚡ ~JsQuery~ - only as predicate
-  #+END_QUOTE
-
-
   JSquey not default extension, and need to be installed
 
   #+BEGIN_SRC sql
     create extension if not exists jsquery;
   #+END_SRC
 
-  #+RESULTS:
-  | CREATE EXTENSION |
-  |------------------|
-
-
   JSquey use ~@@~ operator
 
   #+BEGIN_QUOTE
  ⚡ In PG12 ~jsonpath~ use the same operator ~@@~
     For this reason you should explicitly cast to =::jsqury=
+
+ ⚡ ~JsQuery~ - only as predicate
   #+END_QUOTE
 
   *Example:*
