@@ -444,8 +444,7 @@
 
 *** Operators and Methods
 
-    * ~==~ - Equality operator
-
+    ~==~ - Equality operator
     #+BEGIN_SRC sql
       select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ == 2)')
     #+END_SRC
@@ -456,9 +455,7 @@
     |                2 |
     |                2 |
 
-
-    * ~!= < <= >= > <>~  - Non-equality operator
-
+    ~!= < <= >= > <>~  - Non-equality operator
     #+BEGIN_SRC sql
       select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ <> 2)')
     #+END_SRC
@@ -469,9 +466,7 @@
     |                1 |
     |                3 |
 
-
-    * ~&& || !~ - Boolean ~AND NOT OR~
-
+    ~&& || !~ - Boolean ~AND NOT OR~
     #+BEGIN_SRC sql
       select jsonb_path_query('[1,2,3,4]', '$[*] ? (@ > 1 &&  @ < 4)')
     #+END_SRC
@@ -482,9 +477,7 @@
     |                2 |
     |                3 |
 
-
-    * ~+ - / * % floor abs~ - Some math operators
-
+    ~+ - / * % floor abs~ - Some math operators
     #+BEGIN_SRC sql
       select jsonb_path_query('[1,2,3,4]', '$[*] ? ((@ + 1) > 1 &&  (@+1) < 4)')
     #+END_SRC
@@ -495,9 +488,7 @@
     |                1 |
     |                2 |
 
-
-    * ~like_regex, starts with~ - Regexp and text strt operators
-
+    ~like_regex, starts with~ - Regexp and text strt operators
     #+BEGIN_SRC sql
       select jsonb_path_query('["M", "Ma", "Mar", "ara", "rat", "at", "t"]', '$[*] ? (@ starts with "Ma")')
     #+END_SRC
@@ -507,8 +498,6 @@
     |------------------|
     | "Ma"             |
     | "Mar"            |
-
-
 
 
 *** Filter Expression
