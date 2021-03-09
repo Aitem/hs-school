@@ -365,29 +365,29 @@
 
 *** Path select
 
- * ~#~ - any index of array;
- * ~#:~ - every index of array;
-   #+BEGIN_SRC sql
-     select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#.phone = 911')::jsquery
-   #+END_SRC
+    ~#~ - any index of array;
+    ~#:~ - every index of array;
+    #+BEGIN_SRC sql
+      select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#.phone = 911')::jsquery
+    #+END_SRC
 
- * ~#N~ - Nth index of array;
-   #+BEGIN_SRC sql
-     select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#1.phone = 911')::jsquery
-   #+END_SRC
+    ~#N~ - Nth index of array;
+    #+BEGIN_SRC sql
+      select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#1.phone = 911')::jsquery
+    #+END_SRC
 
- * ~%~ - any key of object;
- * ~%:~ - every key of object;
-   #+BEGIN_SRC sql
-     select '{"name": "Bob", "age": 55}'::jsonb @@ ('% = Bob')::jsquery
-   #+END_SRC
+    ~%~ - any key of object;
+    ~%:~ - every key of object;
+    #+BEGIN_SRC sql
+      select '{"name": "Bob", "age": 55}'::jsonb @@ ('% = Bob')::jsquery
+    #+END_SRC
 
- * ~*~ - any sequence of array indexes and object keys;
- * ~*:~ - every sequence of array indexes and object keys.
- * ~$~ - the whole JSON document as single value, could be only the whole path.
-   #+BEGIN_SRC sql
-     select '{"name": "Bob", "age": 55}'::jsonb @@ ('*($ IS STRING OR $ IS NUMERIC)')::jsquery
-   #+END_SRC
+    ~*~ - any sequence of array indexes and object keys;
+    ~*:~ - every sequence of array indexes and object keys.
+    ~$~ - the whole JSON document as single value, could be only the whole path.
+    #+BEGIN_SRC sql
+      select '{"name": "Bob", "age": 55}'::jsonb @@ ('*($ IS STRING OR $ IS NUMERIC)')::jsquery
+    #+END_SRC
 
 * JsonPath
 
