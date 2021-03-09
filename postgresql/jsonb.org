@@ -95,7 +95,6 @@
   | {"name": "John"} |
 
 * Basic operators and functions
-
 ** Create JSONB
 
   =::JSONB= - cast string as json/jsonb type
@@ -286,21 +285,49 @@
 
 * Jsquery
 
-   [[https://github.com/postgrespro/jsquery][JsQuery]] - json query language with ~GIN~ indexing support
+  [[https://github.com/postgrespro/jsquery][JsQuery]] - json query language with ~GIN~ indexing support
 
-:zap: ~JsQuery~ - only as predicate
+  #+BEGIN_QUOTE
+ ⚡ ~JsQuery~ - only as predicate
+  #+END_QUOTE
 
-   #+BEGIN_SRC sql
-     create extension jsquery;
-   #+END_SRC
 
-   #+BEGIN_SRC sql
-     select '{"name": "Bob"}'::jsonb @@ ('name = Bob')::jsquery
-   #+END_SRC
+  JSquey not default extension, and need to be installed
 
-   #+BEGIN_SRC sql
-     select '[{"name": "Bob"}, {"name": "John"}]'::jsonb @@ ('#(name = Bob)')::jsquery
-   #+END_SRC
+  #+BEGIN_SRC sql
+    create extension if not exists jsquery;
+  #+END_SRC
+
+  #+RESULTS:
+  | CREATE EXTENSION |
+  |------------------|
+
+
+  JSquey use ~@@~ operator
+
+  #+BEGIN_QUOTE
+ ⚡ In PG12 ~jsonpath~ use the same operator ~@@~
+    For this reason you should explicitly cast to =::jsqury=
+  #+END_QUOTE
+
+  *Example:*
+  #+BEGIN_SRC sql
+    select '{"name": "Bob"}'::jsonb @@ ('name = Bob')::jsquery
+  #+END_SRC
+
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
+
+  #+BEGIN_SRC sql
+    select '[{"name": "Bob"}, {"name": "John"}]'::jsonb @@ ('#(name = Bob)')::jsquery
+  #+END_SRC
+
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
 
 
 ** Jsquery syntax
