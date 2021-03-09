@@ -106,21 +106,23 @@
  Great clouds overhead
  Tiny black birds rise and fall
  Snow covers Emacs
+ verse
 
-    ---AlexSchroeder
 #+END_VERSE
 
 #+BEGIN_QUOTE
 Everything should be made as simple as possible,
 but not any simpler ---Albert Einstein
+quote
 #+END_QUOTE
 
 #+BEGIN_CENTER
 Everything should be made as simple as possible, \\
 but not any simpler
+center
 #+END_CENTER
 
-  =Cast= - cast string as json/jsonb type
+  =::JSONB= - cast string as json/jsonb type
 
   #+BEGIN_SRC sql
     select '{"name": "Bob"}'::JSONB;
