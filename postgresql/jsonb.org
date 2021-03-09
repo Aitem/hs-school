@@ -101,39 +101,19 @@
 
 ** Create JSONB
 
-
-#+BEGIN_VERSE
- Great clouds overhead
- Tiny black birds rise and fall
- Snow covers Emacs
- verse
-
-#+END_VERSE
-
-#+BEGIN_QUOTE
-Everything should be made as simple as possible,
-but not any simpler ---Albert Einstein
-quote
-#+END_QUOTE
-
-#+BEGIN_CENTER
-Everything should be made as simple as possible, \\
-but not any simpler
-center
-#+END_CENTER
-
   =::JSONB= - cast string as json/jsonb type
 
   #+BEGIN_SRC sql
     select '{"name": "Bob"}'::JSONB;
   #+END_SRC
-
+  \\
 
   =jsonb_build_array= - create json/jsonb contains array
 
   #+BEGIN_SRC sql
     select jsonb_build_array(1, 2, 3, 'Bob');
   #+END_SRC
+  \\
 
 
   =jsonb_build_object= - create json/jsonb object
@@ -141,6 +121,8 @@ center
   #+BEGIN_SRC sql
     select jsonb_build_object('name', 'Bob', 'family', 'Smith');
   #+END_SRC
+
+  \\
 
 ** Predicates
 
