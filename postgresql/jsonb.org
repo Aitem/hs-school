@@ -123,16 +123,26 @@
 
 ** Predicates
 
-  - =?=
+  =?= - Does the string exist as a top-level key within the JSON value
     #+BEGIN_SRC sql
      select '{"name": "Bob"}'::JSONB ? 'name';
     #+END_SRC
 
-  - =@>=
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
+
+  =@>= - Does the left JSON value contain the right JSON
    #+BEGIN_SRC sql
      select '{"name": "Bob", "family": "Smith"}'::jsonb
             @> '{"name": "Bob"}'::jsonb ;
    #+END_SRC
+
+   #+RESULTS:
+   | ?column? |
+   |----------|
+   | t        |
 
 
 ** Mutate jsonb
