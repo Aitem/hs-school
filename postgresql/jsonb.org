@@ -106,14 +106,13 @@
   #+BEGIN_SRC sql
     select '{"name": "Bob"}'::JSONB;
   #+END_SRC
-  \\
+
 
   =jsonb_build_array= - create json/jsonb contains array
 
   #+BEGIN_SRC sql
     select jsonb_build_array(1, 2, 3, 'Bob');
   #+END_SRC
-  \\
 
 
   =jsonb_build_object= - create json/jsonb object
@@ -121,8 +120,6 @@
   #+BEGIN_SRC sql
     select jsonb_build_object('name', 'Bob', 'family', 'Smith');
   #+END_SRC
-
-  \\
 
 ** Predicates
 
