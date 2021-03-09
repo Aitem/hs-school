@@ -1,6 +1,5 @@
 #+TITLE: JSONB
 #+AUTHOR: M. Surmashev @muradbei
-#+OPTIONS: \n:t
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
@@ -75,9 +74,9 @@
 *Exmaple:*
 
   #+name: Cast to JSON
-#+BEGIN_SRC sql
-  select '{"name": "Bob", "name": "John"}'::json
-#+END_SRC
+  #+BEGIN_SRC sql
+    select '{"name": "Bob", "name": "John"}'::json
+  #+END_SRC
 
   #+RESULTS: Cast to JSON
   | json                            |
@@ -85,9 +84,9 @@
   | {"name": "Bob", "name": "John"} |
 
   #+name: Cast to JSONB
-#+BEGIN_SRC sql
-  select '{"name": "Bob", "name": "John"}'::jsonb
-#+END_SRC
+  #+BEGIN_SRC sql
+    select '{"name": "Bob", "name": "John"}'::jsonb
+  #+END_SRC
 
   #+RESULTS: Cast to JSONB
   | jsonb            |
