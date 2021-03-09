@@ -415,46 +415,21 @@
    #+END_SRC
 
 
-   When defining a path, you can also use one or more filter expressions that work similarly to the WHERE clause in SQL.
-   A filter expression begins with a question mark and provides a condition in parentheses:
-   ~? (condition)~
+   When defining a path, you can also use one or more filter using ~?~ expressions that work similarly to the WHERE clause in SQL.
+   Within a filter expression, the ~@~ variable denotes the value being filtered.
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource, '$.identifier ? (@.system == "urn:source:rf:Organization").value')
+       from jsonbsample
+   #+END_SRC
 
-   Filter expressions must be written just after the path evaluation step to which they should apply.
-   The result of that step is filtered to include only those items that satisfy the provided condition.
-   SQL/JSON defines three-valued logic, so the condition can be true, false, or unknown.
-   The unknown value plays the same role as SQL NULL and can be tested for with the is unknown predicate.
-   Further path evaluation steps use only those items for which the filter expression returned true.
 
-   Within a filter expression, the ~@~ variable denotes the value being filtered (i.e., one result of the preceding path step).
-   You can write accessor operators after ~@~ to retrieve component items.
-
-   For example, suppose you would like to retrieve all heart rate values higher than 130. You can achieve this using the following expression:
-   ~$.track.segments[*].HR ? (@ > 130)~
-
-   To get the start times of segments with such values, you have to filter out irrelevant segments before returning the start times,
-   so the filter expression is applied to the previous step, and the path used in the condition is different:
-
-   ~$.track.segments[*] ? (@.HR > 130)."start time"~
    You can use several filter expressions in sequence, if required.
-   For example, the following expression selects start times of all segments that contain locations with relevant coordinates and high heart rate values:
-
-   ~$.track.segments[*] ? (@.location[1] < 13.4) ? (@.HR > 130)."start time"~
-
    Using filter expressions at different nesting levels is also allowed.
-   The following example first filters all segments by location, and then returns high heart rate values for these segments, if available:
-
-   ~$.track.segments[*] ? (@.location[1] < 13.4).HR ? (@ > 130)~
-   You can also nest filter expressions within each other:
-
-   ~$.track ? (exists(@.segments[*] ? (@.HR > 130))).segments.size()~
-   This expression returns the size of the track if it contains any segments with high heart rate values, or an empty sequence otherwise.
-
-   PostgreSQL's implementation of the SQL/JSON path language has the following deviations from the SQL/JSON standard:
-
-   A path expression can be a Boolean predicate, although the SQL/JSON standard allows predicates only in filters.
-   This is necessary for implementation of the @@ operator. For example, the following jsonpath expression is valid in PostgreSQL:
-
-   ~$.track.segments[*].HR < 70~
+   #+BEGIN_SRC sql
+     select jsonb_path_query(resource,
+            '$.type ? (@.coding.system starts with "urn:CodeSystem").coding ? (@.code == "1")')
+       from jsonbsample
+   #+END_SRC
 
 
 ** Operators and Methods
@@ -499,6 +474,7 @@
    ~knife_extract_min_timestamptz~
    ~knife_extract_max_timestamptz~
    ~knife_date_bound~
+
 
 * Class work
 
