@@ -35,19 +35,19 @@
 
 * Install
 
-  Run container vith PostgreSQL 12
+  Run docker container vith PostgreSQL 12:
   #+name: Run db
   #+BEGIN_SRC bash
     docker-compose up -d
   #+END_SRC
 
-  Check connection
+  Check connection:
   #+name: Check connection
   #+BEGIN_SRC bash :results value drawer
     psql -h localhost -p 5400 -U postgres -c 'select 1';
   #+END_SRC
 
-  Ensure connection via psql
+  Ensure connection via psql:
   #+name: Check connection and list databases
   #+BEGIN_SRC sql
     \l
@@ -151,7 +151,6 @@
    |----------|
    | t        |
 
-
 ** Mutate jsonb
 
   =||= - Concatenate two jsonb values into a new jsonb value
@@ -179,39 +178,38 @@
     select jsonb_set('{"f1":1,"f2":null}', '{f1}', '[2,3,4]') ;
   #+END_SRC
 
-
 ** Extract value
 
-  - =-> ->> #> #>>=
+   =-> ->> #> #>>= - Default value extractors
 
-| *Operator* | *Argument*      | *Result* |
-|----------+---------------+--------|
-| ~->~       | integer, text | jsonb  |
-| ~->>~      | integer, text | text   |
-| ~#>~       | text[]        | jsonb  |
-| ~#>>~      | text[]        | text   |
+   | *Operator* | *Argument*      | *Result* |
+   |----------+---------------+--------|
+   | ~->~       | integer, text | jsonb  |
+   | ~->>~      | integer, text | text   |
+   | ~#>~       | text[]        | jsonb  |
+   | ~#>>~      | text[]        | text   |
 
-    #+BEGIN_SRC sql
-      select
-	  x -> 1 as "->"
-	, x->> 1 as "->>"
-	, x#> '{0, name}' as "->>"
-	, x#>> '{0, name}' as "->>"
-      from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x);
-      select
-	  pg_typeof(x -> 1) as "->"
-	, pg_typeof(x->> 1) as "->>"
-	, pg_typeof(x#> '{0, name}') as "->>"
-	, pg_typeof(x#>> '{0, name}') as "->>"
-      from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x) ;
-    #+END_SRC
+   #+BEGIN_SRC sql
+     select
+       x -> 1 as "->"
+       , x->> 1 as "->>"
+       , x#> '{0, name}' as "->>"
+       , x#>> '{0, name}' as "->>"
+       from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x);
+     select
+       pg_typeof(x -> 1) as "->"
+       , pg_typeof(x->> 1) as "->>"
+       , pg_typeof(x#> '{0, name}') as "->>"
+       , pg_typeof(x#>> '{0, name}') as "->>"
+       from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x) ;
+   #+END_SRC
 
-    #+RESULTS:
-    | ->              | ->>             | ->>   | ->>  |
-    |-----------------+-----------------+-------+------|
-    | {"name": "Bob"} | {"name": "Bob"} | "Joe" | Joe  |
-    | ->              | ->>             | ->>   | ->>  |
-    | jsonb           | text            | jsonb | text |
+   #+RESULTS:
+   | ->              | ->>             | ->>   | ->>  |
+   |-----------------+-----------------+-------+------|
+   | {"name": "Bob"} | {"name": "Bob"} | "Joe" | Joe  |
+   | ->              | ->>             | ->>   | ->>  |
+   | jsonb           | text            | jsonb | text |
 
 
 ** Iterators
