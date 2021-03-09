@@ -40,23 +40,10 @@
      docker-compose up -d
    #+END_SRC
 
-   #+RESULTS: Run db
-
    #+name: Check connection and list databases
    #+BEGIN_SRC sql
      \l
    #+END_SRC
-
-   #+RESULTS: Check connection and list databases
-   | List of databases     |          |          |                 |             |                   |
-   |-----------------------+----------+----------+-----------------+-------------+-------------------|
-   | Name                  | Owner    | Encoding | Collate         | Ctype       | Access privileges |
-   | hs                    | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
-   | postgres              | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
-   | template0             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
-   | postgres=CTc/postgres |          |          |                 |             |                   |
-   | template1             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
-   | postgres=CTc/postgres |          |          |                 |             |                   |
 
 * JSONB
 
