@@ -391,19 +391,37 @@
 
 * JsonPath
 
-   [[https://www.postgresql.org/docs/13/functions-json.html][JsonPath]] - SQL json standard realization
+  [[https://www.postgresql.org/docs/13/functions-json.html][JsonPath]] - SQL json standard realization
 
-:zap:Unlike ~JsQuery~, ~JsonPath~ can =extract= and =predicate=
+  Set of ~jsonb_path_query*~ functions and ~@@~ operator
 
-   Set of ~jsonb_path_query*~ functions and ~@@~ operator
+  #+BEGIN_QUOTE
+  ⚡Unlike ~JsQuery~, ~JsonPath~ can =extract= and =predicate=
+  #+END_QUOTE
 
-   #+BEGIN_SRC sql
-     select jsonb_path_query_first('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
-   #+END_SRC
+  *Example:*
 
-   #+BEGIN_SRC sql
-     select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
-   #+END_SRC
+  Get all values from ~a~ between 2 and 4
+  #+BEGIN_SRC sql
+    select jsonb_path_query('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
+  #+END_SRC
+
+  #+RESULTS:
+  | jsonb_path_query |
+  |------------------|
+  |                2 |
+  |                3 |
+  |                4 |
+
+  Does left part contains in ~a~ values between 2 and 5
+  #+BEGIN_SRC sql
+    select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
+  #+END_SRC
+
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
 
 
 ** SQL/JSON Path Language
