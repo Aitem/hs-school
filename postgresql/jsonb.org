@@ -31,7 +31,7 @@
 - [[#json-knife][Json knife]]
   - [[#functions][Functions]]
 - [[#class-work][Class work]]
-  - [[#ansver][Ansver]]
+  - [[#answer][Answer]]
 
 * Install
 
@@ -468,9 +468,29 @@
 
 * Class work
 
-Extract jsonb oject keys usuage statistics
+  Extract jsonb oject keys path usuage statistics from table with jsonb column
 
-** Ansver
+  *Exmaple:*
+
+  #+BEGIN_SRC sql
+    select ...
+      from my_table;
+  #+END_SRC
+
+  #+RESULTS:
+  | pth                                          |                persent |
+  |----------------------------------------------+------------------------|
+  | ["identifier"]                               |     0.9977859778597786 |
+  | ["name"]                                     |     0.6190405904059041 |
+  | ["partOf"]                                   |    0.13756457564575647 |
+  | ["partOf", "identifier", "value"]            |    0.13535055350553504 |
+  | ["partOf", "identifier"]                     |    0.13535055350553504 |
+  | ["activityPeriod"]                           |    0.05180811808118081 |
+  | ["activityPeriod", "start"]                  |    0.04206642066420664 |
+  | ["address"]                                  |     0.0188929889298893 |
+
+
+** Answer
 
 #+BEGIN_SRC sql
   with recursive
@@ -496,3 +516,37 @@ Extract jsonb oject keys usuage statistics
   group by pth, ttl
   order by persent desc
 #+END_SRC
+
+#+RESULTS:
+| pth                                          |                persent |
+|----------------------------------------------+------------------------|
+| ["identifier"]                               |     0.9977859778597786 |
+| ["name"]                                     |     0.6190405904059041 |
+| ["partOf"]                                   |    0.13756457564575647 |
+| ["partOf", "identifier", "value"]            |    0.13535055350553504 |
+| ["partOf", "identifier"]                     |    0.13535055350553504 |
+| ["activityPeriod"]                           |    0.05180811808118081 |
+| ["activityPeriod", "start"]                  |    0.04206642066420664 |
+| ["address"]                                  |     0.0188929889298893 |
+| ["mainOrganization"]                         |   0.015793357933579336 |
+| ["alias"]                                    |   0.015645756457564577 |
+| ["mainOrganization", "identifier", "value"]  |   0.014464944649446495 |
+| ["mainOrganization", "identifier"]           |   0.014464944649446495 |
+| ["contact"]                                  |   0.014169741697416974 |
+| ["telecom"]                                  |   0.012103321033210332 |
+| ["meta"]                                     |   0.002804428044280443 |
+| ["meta", "versionId"]                        |   0.002804428044280443 |
+| ["meta", "lastUpdated"]                      |   0.002804428044280443 |
+| ["meta", "createdAt"]                        |  0.0023616236162361626 |
+| ["partOf", "id"]                             |   0.002214022140221402 |
+| ["activityPeriod", "end"]                    |  0.0016236162361623616 |
+| ["mainOrganization", "display"]              |  0.0013284132841328412 |
+| ["mainOrganization", "id"]                   |  0.0013284132841328412 |
+| ["type"]                                     |  0.0013284132841328412 |
+| ["active"]                                   | 0.00044280442804428045 |
+| ["mainOrganization", "identifier", "system"] |  0.0002952029520295203 |
+| ["partOf", "identifier", "system"]           |  0.0002952029520295203 |
+| ["mainOrganization", "resourceType"]         | 0.00014760147601476016 |
+| ["isTmkPerformer"]                           | 0.00014760147601476016 |
+| ["partOf", "resourceType"]                   | 0.00014760147601476016 |
+| ["isTmkRequester"]                           | 0.00014760147601476016 |
