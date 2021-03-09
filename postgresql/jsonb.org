@@ -35,15 +35,44 @@
 
 * Install
 
-   #+name: Run db
-   #+BEGIN_SRC bash
-     docker-compose up -d
-   #+END_SRC
+  Run container vith PostgreSQL 12
+  #+name: Run db
+  #+BEGIN_SRC bash
+    docker-compose up -d
+  #+END_SRC
 
-   #+name: Check connection and list databases
-   #+BEGIN_SRC sql
-     \l
-   #+END_SRC
+  Check connection
+  #+name: Check connection
+  #+BEGIN_SRC bash :results value drawer
+    psql -h localhost -p 5400 -U postgres -c 'select 1';
+  #+END_SRC
+
+  #+RESULTS: Check connection
+  :results:
+   ?column?
+  ----------
+	  1
+  (1 row)
+
+  :end:
+
+
+  Ensure connection via psql
+  #+name: Check connection and list databases
+  #+BEGIN_SRC sql
+    \l
+  #+END_SRC
+
+  #+RESULTS: Check connection and list databases
+  | List of databases     |          |          |                 |             |                   |
+  |-----------------------+----------+----------+-----------------+-------------+-------------------|
+  | Name                  | Owner    | Encoding | Collate         | Ctype       | Access privileges |
+  | hs                    | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
+  | postgres              | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
+  | template0             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
+  | postgres=CTc/postgres |          |          |                 |             |                   |
+  | template1             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
+  | postgres=CTc/postgres |          |          |                 |             |                   |
 
 * JSONB
 
