@@ -423,26 +423,24 @@
   |----------|
   | t        |
 
-
 ** SQL/JSON Path Language
 *** Strict And Lax Modes
 
- - =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
-   Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
+    - =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
+      Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
 
-#+BEGIN_SRC sql
-  select jsonb_path_query(resource, 'lax $.name.given')
-  from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
-#+END_SRC
+    #+BEGIN_SRC sql
+      select jsonb_path_query(resource, 'lax $.name.given')
+	from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+    #+END_SRC
 
 
- - =strict= — if a structural error occurs, an error is raised.
+    - =strict= — if a structural error occurs, an error is raised.
 
-#+BEGIN_SRC sql
-  select jsonb_path_query(resource, 'strict $.name[*].given')
-  from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
-#+END_SRC
-
+    #+BEGIN_SRC sql
+      select jsonb_path_query(resource, 'strict $.name[*].given')
+	from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+    #+END_SRC
 
 *** Operators and Methods
 **** TODO More samples
@@ -477,17 +475,20 @@
       from my_table;
   #+END_SRC
 
+  Should return
+
   #+RESULTS:
-  | pth                                          |                persent |
-  |----------------------------------------------+------------------------|
-  | ["identifier"]                               |     0.9977859778597786 |
-  | ["name"]                                     |     0.6190405904059041 |
-  | ["partOf"]                                   |    0.13756457564575647 |
-  | ["partOf", "identifier", "value"]            |    0.13535055350553504 |
-  | ["partOf", "identifier"]                     |    0.13535055350553504 |
-  | ["activityPeriod"]                           |    0.05180811808118081 |
-  | ["activityPeriod", "start"]                  |    0.04206642066420664 |
-  | ["address"]                                  |     0.0188929889298893 |
+  | path                              |             persent |
+  |-----------------------------------+---------------------|
+  | ["identifier"]                    |  0.9977859778597786 |
+  | ["name"]                          |  0.6190405904059041 |
+  | ["partOf"]                        | 0.13756457564575647 |
+  | ["partOf", "identifier", "value"] | 0.13535055350553504 |
+  | ["partOf", "identifier"]          | 0.13535055350553504 |
+  | ["activityPeriod"]                | 0.05180811808118081 |
+  | ....                              |                 ... |
+  | ["activityPeriod", "start"]       | 0.04206642066420664 |
+  | ["address"]                       |  0.0188929889298893 |
 
 
 ** Answer
