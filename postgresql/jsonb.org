@@ -75,9 +75,9 @@
 *Exmaple:*
 
   #+name: Cast to JSON
-  #+BEGIN_SRC sql
-    select '{"name": "Bob", "name": "John"}'::json
-  #+END_SRC
+#+BEGIN_SRC sql
+  select '{"name": "Bob", "name": "John"}'::json
+#+END_SRC
 
   #+RESULTS: Cast to JSON
   | json                            |
@@ -85,9 +85,9 @@
   | {"name": "Bob", "name": "John"} |
 
   #+name: Cast to JSONB
-  #+BEGIN_SRC sql
-    select '{"name": "Bob", "name": "John"}'::jsonb
-  #+END_SRC
+#+BEGIN_SRC sql
+  select '{"name": "Bob", "name": "John"}'::jsonb
+#+END_SRC
 
   #+RESULTS: Cast to JSONB
   | jsonb            |
