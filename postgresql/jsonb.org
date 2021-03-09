@@ -24,10 +24,9 @@
     - [[#path-select][Path select]]
 - [[#jsonpath][JsonPath]]
   - [[#sqljson-path-language][SQL/JSON Path Language]]
+    - [[#sqljson-path-language-1][SQL/JSON Path Language]]
     - [[#strict-and-lax-modes][Strict And Lax Modes]]
     - [[#operators-and-methods][Operators and Methods]]
-    - [[#filter-expression][Filter Expression]]
-    - [[#sqljson-regular-expressions][SQL/JSON Regular Expressions]]
 - [[#json-knife][Json knife]]
   - [[#functions][Functions]]
 - [[#class-work][Class work]]
@@ -424,23 +423,36 @@
   | t        |
 
 ** SQL/JSON Path Language
+
+*** SQL/JSON Path Language
+
 *** Strict And Lax Modes
 
-    * =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
-      Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
+    =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
+    Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
 
     #+BEGIN_SRC sql
       select jsonb_path_query(resource, 'lax $.name.given')
 	from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
     #+END_SRC
 
+    #+RESULTS:
+    | jsonb_path_query |
+    |------------------|
+    | ["Bob"]          |
 
-    * =strict= — if a structural error occurs, an error is raised.
+
+    =strict= — if a structural error occurs, an error is raised.
 
     #+BEGIN_SRC sql
       select jsonb_path_query(resource, 'strict $.name[*].given')
 	from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
     #+END_SRC
+
+    #+RESULTS:
+    | jsonb_path_query |
+    |------------------|
+    | ["Bob"]          |
 
 *** Operators and Methods
 
@@ -499,11 +511,6 @@
     | "Ma"             |
     | "Mar"            |
 
-
-*** Filter Expression
-**** TODO More samples
-*** SQL/JSON Regular Expressions
-**** TODO More samples
 
 * Json knife
 
