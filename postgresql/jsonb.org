@@ -73,6 +73,8 @@
 
 *Exmaple:*
 
+=JSON= can containing duplicate keys
+
   #+name: Cast to JSON
   #+BEGIN_SRC sql
     select '{"name": "Bob", "name": "John"}'::json
@@ -82,6 +84,8 @@
   | json                            |
   |---------------------------------|
   | {"name": "Bob", "name": "John"} |
+
+=JSONB= replace double key
 
   #+name: Cast to JSONB
   #+BEGIN_SRC sql
