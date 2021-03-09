@@ -1,0 +1,93 @@
+#+TITLE: JSONB HW
+#+AUTHOR: M. Surmashev @muradbei
+#+OPTIONS: \n:t
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Database stats
+
+Extract database usage statistics for all tables in single JSONB object
+Structure of this object:
+
+#+BEGIN_SRC json
+  {"<SCHEMA>": {
+     "<TABLENAME>": {
+            "rows": "<ROWS_ESTIMATE>",
+            "index": {
+                "<INDEXNAME>": {
+                    "size": "<INDEX_SIZE>",
+                    "type": "<INDEX_TYPE>"
+                }
+            },
+            "index_size": "<TOTAL_INDEX_SIZE>",
+            "table_size": "<TABLE_SIZE>"
+     }
+  }}
+#+END_SRC
+
+*Example of result:*
+
+#+BEGIN_SRC json
+{
+    "public": {
+        "app": {
+            "rows": 1,
+            "index": {
+                "app_pkey": {
+                    "size": "16 kB",
+                    "type": "btree"
+                }
+            },
+            "index_size": "16 kB",
+            "table_size": "8192 bytes"
+        },
+        "flag": {
+            "rows": 3262,
+            "index": {
+                "flag_pkey": {
+                    "size": "312 kB",
+                    "type": "btree"
+                },
+                "flag_resource_subject": {
+                    "size": "328 kB",
+                    "type": "btree"
+                },
+                "flag_resource_period_end": {
+                    "size": "160 kB",
+                    "type": "btree"
+                },
+                "flag_resource_gin_jsquery": {
+                    "size": "776 kB",
+                    "type": "gin"
+                }
+            },
+            "index_size": "1600 kB",
+            "table_size": "2432 kB"
+        }
+    },
+    "information_schema": {
+        "sql_parts": {
+            "rows": 9,
+            "index": null,
+            "index_size": "0 bytes",
+            "table_size": "8192 bytes"
+        },
+        "parameters": {
+            "rows": 0,
+            "index": {
+                "parameters_pkey": {
+                    "size": "8192 bytes",
+                    "type": "btree"
+                }
+            },
+            "index_size": "8192 bytes",
+            "table_size": "0 bytes"
+        }
+    }
+}
+#+END_SRC
+
+
+* Support array stats on class work task
+
+* Json knife using jsonpath

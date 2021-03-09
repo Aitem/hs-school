@@ -15,9 +15,10 @@
 - [[#basic-operators-and-functions][Basic operators and functions]]
   - [[#create-jsonb][Create JSONB]]
   - [[#predicates][Predicates]]
-  - [[#change-jsonb][Change jsonb]]
+  - [[#mutate-jsonb][Mutate jsonb]]
   - [[#extract-value][Extract value]]
   - [[#iterators][Iterators]]
+  - [[#aggregates][Aggregates]]
 - [[#jsquery][Jsquery]]
   - [[#jsquery-syntax][Jsquery syntax]]
     - [[#simple-expression][Simple expression]]
@@ -31,9 +32,7 @@
 - [[#json-knife][Json knife]]
   - [[#functions][Functions]]
 - [[#class-work][Class work]]
-  - [[#task-1][Task 1]]
-  - [[#task-2][Task 2]]
-    - [[#ansver][Ansver]]
+  - [[#ansver][Ansver]]
 
 * Install
 
@@ -78,23 +77,10 @@
     select '{"name": "Bob", "name": "John"}'::json
   #+END_SRC
 
-  #+RESULTS: Cast to JSON
-  | json                            |
-  |---------------------------------|
-  | {"name": "Bob", "name": "John"} |
-
-
   #+name: Cast to JSONB
   #+BEGIN_SRC sql
     select '{"name": "Bob", "name": "John"}'::jsonb
   #+END_SRC
-
-  #+RESULTS: Cast to JSONB
-  | jsonb            |
-  |------------------|
-  | {"name": "John"} |
-
-
 
 * Basic operators and functions
 
@@ -122,14 +108,14 @@
      select '{"name": "Bob"}'::JSONB ? 'name';
     #+END_SRC
 
-  - =intersect=
+  - =@>=
    #+BEGIN_SRC sql
      select '{"name": "Bob", "family": "Smith"}'::jsonb
             @> '{"name": "Bob"}'::jsonb ;
    #+END_SRC
 
 
-** Change jsonb
+** Mutate jsonb
 
   - =||=
     #+BEGIN_SRC sql
@@ -199,12 +185,19 @@
       from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
     #+END_SRC
 
-    #+RESULTS:
-    | key    | value   |
-    |--------+---------|
-    | name   | "Joe"   |
-    | family | "Smith" |
+** Aggregates
 
+  - =jsonb_agg=
+    #+BEGIN_SRC sql
+      select jsonb_agg(x)
+      from generate_series(1, 10) t(x)
+    #+END_SRC
+
+  - =jsonb_object_agg=
+    #+BEGIN_SRC sql
+      select jsonb_pretty(jsonb_object_agg(x, x))
+      from generate_series(1, 10) t(x)
+    #+END_SRC
 
 * Jsquery
 
@@ -246,35 +239,56 @@
 
  * ~volume IS NUMERIC~ - type of key "volume" is numeric.
                        Also supports ~IS ARRAY~, ~IS OBJECT~, ~IS STRING~ and ~IS BOOLEAN~.
- * ~$ = true~ - the whole JSON document is just a true.
- * ~foo = *~ - key "foo" exists in object.
- * ~*.color = "red"~ - there is object somewhere which key "color" has value "red".
- * ~similar_ids.@# > 5~ - ~similar_ids~ is an array or object of length greater than ~5~;
- * ~similar_product_ids.# = "0684824396"~ - array ~"similar_product_ids"~ contains string ~"0684824396"~.
 
-**** TODO More samples
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55}'::jsonb @@ ('age IS NUMERIC')::jsquery
+   #+END_SRC
+
+ * ~foo = *~ - key "foo" exists in object.
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55}'::jsonb @@ ('name = *')::jsquery
+   #+END_SRC
+
+ * ~*.color = "red"~ - there is object somewhere which key "color" has value "red".
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55, "contact": [{"phone": 911}]}'::jsonb @@ ('*.phone = 911')::jsquery
+   #+END_SRC
+
+ * ~similar_ids.@# > 5~ - ~similar_ids~ is an array or object of length greater than ~5~;
+   #+BEGIN_SRC sql
+     select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.@# > 1')::jsquery
+   #+END_SRC
+
+ * ~similar_product_ids.# = "0684824396"~ - array ~"similar_product_ids"~ contains string ~"0684824396"~.
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55}'::jsonb @@ ('age > 15')::jsquery
+   #+END_SRC
 
 *** Path select
 
  * ~#~ - any index of array;
  * ~#:~ - every index of array;
+   #+BEGIN_SRC sql
+     select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#.phone = 911')::jsquery
+   #+END_SRC
 
  * ~#N~ - Nth index of array;
+   #+BEGIN_SRC sql
+     select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#1.phone = 911')::jsquery
+   #+END_SRC
 
  * ~%~ - any key of object;
  * ~%:~ - every key of object;
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55}'::jsonb @@ ('% = Bob')::jsquery
+   #+END_SRC
 
  * ~*~ - any sequence of array indexes and object keys;
  * ~*:~ - every sequence of array indexes and object keys.
-
- * ~@#~ - length of array or object, could be only used as last component of path;
-
  * ~$~ - the whole JSON document as single value, could be only the whole path.
-
-
-
-
-**** TODO More samples
+   #+BEGIN_SRC sql
+     select '{"name": "Bob", "age": 55}'::jsonb @@ ('*($ IS STRING OR $ IS NUMERIC)')::jsquery
+   #+END_SRC
 
 * JsonPath
 
@@ -288,24 +302,31 @@
      select jsonb_path_query_first('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
    #+END_SRC
 
-   #+RESULTS:
-   | jsonb_path_query_first |
-   |------------------------|
-   |                      2 |
-
    #+BEGIN_SRC sql
      select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
    #+END_SRC
 
-   #+RESULTS:
-   | ?column? |
-   |----------|
-   | t        |
-
 
 ** SQL/JSON Path Language
 *** Strict And Lax Modes
-**** TODO More samples
+
+ - =lax= (default) — the path engine implicitly adapts the queried data to the specified path.
+   Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
+
+#+BEGIN_SRC sql
+  select jsonb_path_query(resource, 'lax $.name.given')
+  from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+#+END_SRC
+
+
+ - =strict= — if a structural error occurs, an error is raised.
+
+#+BEGIN_SRC sql
+  select jsonb_path_query(resource, 'strict $.name[*].given')
+  from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+#+END_SRC
+
+
 *** Operators and Methods
 **** TODO More samples
 *** Filter Expression
@@ -315,7 +336,8 @@
 
 * Json knife
 
-https://github.com/niquola/jsonknife
+  [[https://github.com/niquola/jsonknife][Json Knife GigHub repository]]
+  Useful functions for working with jsonb in PostgreSQL like data extraction, validation & transformation.
 
 ** Functions
    ~knife_extract~
@@ -329,43 +351,31 @@ https://github.com/niquola/jsonknife
 
 * Class work
 
-** Task 1
+Extract jsonb oject keys usuage statistics
 
-Extract database usage statistics for all tables in single JSONB object
- - Rows count
- - Table size
- - Index count
- - Index size
- - Toast size
-
-
-** Task 2
-
-Extract jsonb oject keys usuage statistics (skip arrays)
-
-*** Ansver
+** Ansver
 
 #+BEGIN_SRC sql
-with recursive
-keys as
-(
-  select jsonb_build_array(key) pth, value
-  from "organization", jsonb_each(resource)
+  with recursive
+  keys as
+  (
+    select jsonb_build_array(key) pth, value
+    from "organization", jsonb_each(resource)
 
-  union
+    union
 
-  select pth || jsonb_build_array(k), v
-  from keys , jsonb_each(value) t(k, v)
-  where jsonb_typeof(value) = 'object'
+    select pth || jsonb_build_array(k), v
+    from keys , jsonb_each(value) t(k, v)
+    where jsonb_typeof(value) = 'object'
 
-)
-, total as
-(
-  select count(*) ttl from "organization"
-)
+  )
+  , total as
+  (
+    select count(*) ttl from "organization"
+  )
 
-select pth, (count(*)/ttl::float) persent
-from keys, total
-group by pth, ttl
-order by persent desc
+  select pth, (count(*)/ttl::float) persent
+  from keys, total
+  group by pth, ttl
+  order by persent desc
 #+END_SRC
