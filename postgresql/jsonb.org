@@ -47,38 +47,19 @@
     psql -h localhost -p 5400 -U postgres -c 'select 1';
   #+END_SRC
 
-  #+RESULTS: Check connection
-  :results:
-   ?column?
-  ----------
-	  1
-  (1 row)
-
-  :end:
-
-
   Ensure connection via psql
   #+name: Check connection and list databases
   #+BEGIN_SRC sql
     \l
   #+END_SRC
 
-  #+RESULTS: Check connection and list databases
-  | List of databases     |          |          |                 |             |                   |
-  |-----------------------+----------+----------+-----------------+-------------+-------------------|
-  | Name                  | Owner    | Encoding | Collate         | Ctype       | Access privileges |
-  | hs                    | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
-  | postgres              | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
-  | template0             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
-  | postgres=CTc/postgres |          |          |                 |             |                   |
-  | template1             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
-  | postgres=CTc/postgres |          |          |                 |             |                   |
-
 * JSONB
 
    [[https://postgrespro.ru/docs/postgrespro/10/datatype-json?lang=en][JSON/JSONB]] - JSON data types are for storing JSON (JavaScript Object Notation) data, as specified in [[https://tools.ietf.org/html/rfc7159?lang=en][RFC 7159]] .
 
-⚡ [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
+   #+BEGIN_QUOTE
+   ⚡ [[https://www.postgresql.org/docs/13/functions-json.html][JSON Functions and Operators]] - functions and operators for processing and creating JSON data
+   #+END_QUOTE
 
 ** JSON vs JSONB
 
