@@ -131,17 +131,12 @@
     select jsonb_build_object('name', 'Bob', 'family', 'Smith');
   #+END_SRC
 
-  #+RESULTS:
-  | jsonb_build_object                 |
-  |------------------------------------|
-  | {"name": "Bob", "family": "Smith"} |
-
 ** Predicates
 
   =?= - Does the string exist as a top-level key within the JSON value
-    #+BEGIN_SRC sql
-     select '{"name": "Bob"}'::JSONB ? 'name';
-    #+END_SRC
+  #+BEGIN_SRC sql
+    select '{"name": "Bob"}'::JSONB ? 'name';
+  #+END_SRC
 
     #+RESULTS:
     | ?column? |
@@ -149,10 +144,10 @@
     | t        |
 
   =@>= - Does the left JSON value contain the right JSON
-   #+BEGIN_SRC sql
-     select '{"name": "Bob", "family": "Smith"}'::jsonb
-            @> '{"name": "Bob"}'::jsonb ;
-   #+END_SRC
+  #+BEGIN_SRC sql
+    select '{"name": "Bob", "family": "Smith"}'::jsonb
+	     @> '{"name": "Bob"}'::jsonb ;
+  #+END_SRC
 
    #+RESULTS:
    | ?column? |
@@ -162,20 +157,30 @@
 
 ** Mutate jsonb
 
-  - =||=
-    #+BEGIN_SRC sql
-     select '{"name": "Bob"}'::JSONB || '{"family": "Smith"}'::JSONB;
-    #+END_SRC
+  =||= - Concatenate two jsonb values into a new jsonb value
+  #+BEGIN_SRC sql
+    select '{"name": "Bob"}'::JSONB || '{"family": "Smith"}'::JSONB;
+  #+END_SRC
 
-  - =-=
-    #+BEGIN_SRC sql
-     select '{"name": "Bob", "family": "Smith"}'::jsonb - 'name'
-    #+END_SRC
+  #+RESULTS:
+  | ?column?                           |
+  |------------------------------------|
+  | {"name": "Bob", "family": "Smith"} |
 
-  - =jsonb_set=
-    #+BEGIN_SRC sql
-      select jsonb_set('{"f1":1,"f2":null}', '{f1}', '[2,3,4]') ;
-    #+END_SRC
+  =-= - Delete key/value pair or string element from left operand
+  #+BEGIN_SRC sql
+    select '{"name": "Bob", "family": "Smith"}'::jsonb - 'name'
+  #+END_SRC
+
+  #+RESULTS:
+  | ?column?            |
+  |---------------------|
+  | {"family": "Smith"} |
+
+  =jsonb_set= - Insert new value by path
+  #+BEGIN_SRC sql
+    select jsonb_set('{"f1":1,"f2":null}', '{f1}', '[2,3,4]') ;
+  #+END_SRC
 
 
 ** Extract value
