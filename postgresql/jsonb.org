@@ -321,7 +321,7 @@
 
 *** Simple expression
 
-    ~x = "abc"~ — value of key ~"x"~ is equal ~"abc"~;
+    ~x = abc~ — value of key ~x~ is equal ~abc~;
     #+BEGIN_SRC sql
       select '{"name": "Bob", "family": "Smith"}'::jsonb @@ ('name = Bob')::jsquery
     #+END_SRC
@@ -331,7 +331,7 @@
       select '[1, 2, 3, 4, 5, 6, 7]'::jsonb @@ ('$ @> [1, 4, 8]')::jsquery
     #+END_SRC
 
-    ~"abc" >= 10~ - value of key ~"abc"~ is greater than or equal to ~10~;
+    ~abc >= 10~ - value of key ~"abc"~ is greater than or equal to ~10~;
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('age > 15')::jsquery
     #+END_SRC
