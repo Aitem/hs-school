@@ -465,16 +465,51 @@
   [[https://github.com/niquola/jsonknife][Json Knife GigHub repository]]
   Useful functions for working with jsonb in PostgreSQL like data extraction, validation & transformation.
 
-** Functions
-   ~knife_extract~
-   ~knife_extract_text~
-   ~knife_extract_numeric~
-   ~knife_extract_min_numeric~
-   ~knife_extract_max_numeric~
-   ~knife_extract_min_timestamptz~
-   ~knife_extract_max_timestamptz~
-   ~knife_date_bound~
+  #+BEGIN_SRC sql
+    create extension if not exists jsonknife;
+  #+END_SRC
 
+
+** Functions
+
+   ~knife_extract~, ~knife_extract_text~, ~knife_extract_numeric~
+   Set of functions for extracting values in different formats from jsonb using set of paths
+
+   #+BEGIN_SRC sql
+     select knife_extract(resource, '[["type", "coding", "code"]]')
+       from jsonbsample
+   #+END_SRC
+
+
+   Path can contains nested objects - this wors as filter
+   #+BEGIN_SRC sql
+     select knife_extract(resource, '[["type", "coding", {"system": "urn:CodeSystem:snomed"}, "code"]]')
+       from jsonbsample
+   #+END_SRC
+
+   knife can accept multiple paths
+   #+BEGIN_SRC sql
+     select knife_extract(resource, '[["type", "coding", "code"], ["identifier", "value"]]')
+       from jsonbsample
+   #+END_SRC
+
+   ~knife_date_bound~ - can return lower an upper bound from given date part
+   #+BEGIN_SRC sql
+     select knife_date_bound('2020-01', 'min') min
+          , knife_date_bound('2020-01', 'max') max
+   #+END_SRC
+
+
+   ~knife_extract_min_number~, ~knife_extract_max_number~
+   #+BEGIN_SRC sql
+     select knife_extract_min_munber('{"a": [1,2, 3, 4, 5, 6, 7]}'::jsonb, '[["a"]]'::jsonb);
+   #+END_SRC
+
+   ~knife_extract_min_timestamptz~, ~knife_extract_max_timestamptz~
+
+   #+BEGIN_SRC sql
+     select knife_extract_min_munber('{"a": [1,2, 3, 4, 5, 6, 7]}'::jsonb, '[["a"]]'::jsonb);
+   #+END_SRC
 
 * Class work
 
