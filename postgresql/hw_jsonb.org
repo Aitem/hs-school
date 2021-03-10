@@ -80,7 +80,7 @@
   Extract database usage statistics for all tables in one query that return single JSONB object
 
   Support material:
-  - [[https://postgrespro.ru/docs/postgresql/13/functions-admin#FUNCTIONS-ADMIN-DBSIZE][DB object size functions]] the functions calculate the disk space usage of database objects,
+  - [[https://postgrespro.ru/docs/postgresql/13/functions-admin#FUNCTIONS-ADMIN-DBSIZE][DB object size functions]] - the functions calculate the disk space usage of database objects,
     or assist in presentation of usage results.
   - [[https://postgrespro.ru/docs/postgresql/12/catalog-pg-class?lang=en][pg_class]] - core postgresql table
   - [[https://www.postgresql.org/docs/13/information-schema.html][information-schema]] - db schema with related database information
@@ -169,7 +169,85 @@
 
 * 3) Json knife using jsonpath
 
-  Realize knife_extract function using jsonpath
+  Realize ~knife_extract~ function using ~jsonpath~ with name =jp_knife_extract=
+
+  #+BEGIN_SRC sql
+    CREATE OR REPLACE FUNCTION jp_knife_extract(resource jsonb, paths jsonb) RETURNS jsonb[]
+    AS $$
+      ...
+    $$ LANGUAGE sql
+  #+END_SRC
+
+  *Test case:*
+
+  #+BEGIN_SRC sql
+    select jp_knife_extract(resource, '[["name"]]') smpl
+         , jp_knife_extract(resource, '[["type", "coding", "code"]]') pth
+         , jp_knife_extract(resource, '[["type", "coding", 1, "code"]]') idx
+         , jp_knife_extract(resource, '[["type", "coding", {"system": "urn:CodeSystem:snomed"}, "code"]]') pred
+         , jp_knife_extract(resource, '[["name"], ["type", "coding", "code"], ["type", "coding", {"system": "urn:CodeSystem:snomed"}, "code"]]') cccombo
+    from (values ('
+	{"name": "ГКБ 1",
+	 "type": [
+	    {"text": "Амбулаторный",
+	     "coding": [
+		{"code": "1",
+		 "system": "urn:CodeSystem:frmo.structure-type",
+		 "display": "Амбулаторный"},
+		{"code": "B034",
+		 "system": "urn:CodeSystem:snomed",
+		 "display": "Ambulatory"}]}],
+	 "identifier": [
+	     {"value": "46da1f9f-608f-11e3-a70e-e4115baf3989",
+	      "system": "urn:source:rf:Organization"},
+	     {"value": "e4115baf3989-608f-11e3-a70e-46da1f9f",
+	      "system": "urn:source:mis:Organization"}]}'::jsonb)) t(resource)
+  #+END_SRC
+
+  #+RESULTS:
+  | smpl          | pth                  | idx          | pred         | cccombo                                     |
+  |---------------+----------------------+--------------+--------------+---------------------------------------------|
+  | {"\"ГКБ 1\""} | {"\"1\"","\"B034\""} | {"\"B034\""} | {"\"B034\""} | {"\"ГКБ 1\"","\"1\"","\"B034\"","\"B034\""} |
 
 
 * 4) * Json knife without jsonpath (only sql)
+
+  Realize ~knife_extract~ function !*wihtout!* ~jsonpath~ using only sql and name =sql_knife_extract=
+
+  #+BEGIN_SRC sql
+    CREATE OR REPLACE FUNCTION sql_knife_extract(resource jsonb, paths jsonb) RETURNS jsonb[]
+    AS $$
+      ...
+    $$ LANGUAGE sql
+  #+END_SRC
+
+  *Test case:*
+
+  #+BEGIN_SRC sql
+    select sql_knife_extract(resource, '[["name"]]') smpl
+         , sql_knife_extract(resource, '[["type", "coding", "code"]]') pth
+         , sql_knife_extract(resource, '[["type", "coding", 1, "code"]]') idx
+         , sql_knife_extract(resource, '[["type", "coding", {"system": "urn:CodeSystem:snomed"}, "code"]]') pred
+         , sql_knife_extract(resource, '[["name"], ["type", "coding", "code"], ["type", "coding", {"system": "urn:CodeSystem:snomed"}, "code"]]') cccombo
+    from (values ('
+	{"name": "ГКБ 1",
+	 "type": [
+	    {"text": "Амбулаторный",
+	     "coding": [
+		{"code": "1",
+		 "system": "urn:CodeSystem:frmo.structure-type",
+		 "display": "Амбулаторный"},
+		{"code": "B034",
+		 "system": "urn:CodeSystem:snomed",
+		 "display": "Ambulatory"}]}],
+	 "identifier": [
+	     {"value": "46da1f9f-608f-11e3-a70e-e4115baf3989",
+	      "system": "urn:source:rf:Organization"},
+	     {"value": "e4115baf3989-608f-11e3-a70e-46da1f9f",
+	      "system": "urn:source:mis:Organization"}]}'::jsonb)) t(resource)
+  #+END_SRC
+
+  #+RESULTS:
+  | smpl          | pth                  | idx          | pred         | cccombo                                     |
+  |---------------+----------------------+--------------+--------------+---------------------------------------------|
+  | {"\"ГКБ 1\""} | {"\"1\"","\"B034\""} | {"\"B034\""} | {"\"B034\""} | {"\"ГКБ 1\"","\"1\"","\"B034\"","\"B034\""} |
