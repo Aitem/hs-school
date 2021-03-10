@@ -102,12 +102,22 @@
     select '{"name": "Bob"}'::JSONB;
   #+END_SRC
 
+  #+RESULTS:
+  | jsonb           |
+  |-----------------|
+  | {"name": "Bob"} |
+
 
   =jsonb_build_array= - create json/jsonb contains array
 
   #+BEGIN_SRC sql
     select jsonb_build_array(1, 2, 3, 'Bob');
   #+END_SRC
+
+  #+RESULTS:
+  | jsonb_build_array |
+  |-------------------|
+  | [1, 2, 3, "Bob"]  |
 
 
   =jsonb_build_object= - create json/jsonb object
@@ -116,6 +126,11 @@
     select jsonb_build_object('name', 'Bob', 'family', 'Smith');
   #+END_SRC
 
+  #+RESULTS:
+  | jsonb_build_object                 |
+  |------------------------------------|
+  | {"name": "Bob", "family": "Smith"} |
+
 ** Predicates
 
   =?= - Does the string exist as a top-level key within the JSON value
@@ -123,28 +138,63 @@
     select '{"name": "Bob"}'::JSONB ? 'name';
   #+END_SRC
 
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
+
   =@>= - Does the left JSON value contain the right JSON
   #+BEGIN_SRC sql
-    select '{"name": "Bob", "family": "Smith"}'::jsonb
-	     @> '{"name": "Bob"}'::jsonb ;
+    select '{"name": "Bob", "family": "Smith", "array": [1, 2,  3, 4]}'::jsonb
+	     @> '{"name": "Bob", "array": [2, 4]}'::jsonb ;
   #+END_SRC
+
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
 
 ** Mutate jsonb
 
   =||= - Concatenate two jsonb values into a new jsonb value
   #+BEGIN_SRC sql
-    select '{"name": "Bob"}'::JSONB || '{"family": "Smith"}'::JSONB;
+    select '{"name": "Bob"}'::JSONB || '{"family": "Smith", "name": "111"}'::JSONB;
   #+END_SRC
+
+  #+RESULTS:
+  | ?column?                           |
+  |------------------------------------|
+  | {"name": "111", "family": "Smith"} |
 
   =-= - Delete key/value pair or string element from left operand
   #+BEGIN_SRC sql
     select '{"name": "Bob", "family": "Smith"}'::jsonb - 'name'
   #+END_SRC
 
+  #+RESULTS:
+  | ?column?            |
+  |---------------------|
+  | {"family": "Smith"} |
+
+  =#-= -
+  #+BEGIN_SRC sql
+    select '{"name": {"family": "Smith", "given": "Bob"}}'::jsonb #- '{name, family}'
+  #+END_SRC
+
+  #+RESULTS:
+  | ?column?                   |
+  |----------------------------|
+  | {"name": {"given": "Bob"}} |
+
   =jsonb_set= - Insert new value by path
   #+BEGIN_SRC sql
     select jsonb_set('{"f1":1,"f2":null}', '{f1}', '[2,3,4]') ;
   #+END_SRC
+
+  #+RESULTS:
+  | jsonb_set                     |
+  |-------------------------------|
+  | {"f1": [2, 3, 4], "f2": null} |
 
 ** Extract value
 
@@ -172,23 +222,50 @@
        from (values ('[{"name": "Joe"}, {"name": "Bob"}]'::jsonb)) as t(x) ;
    #+END_SRC
 
+   #+RESULTS:
+   | ->              | ->>             | ->>   | ->>  |
+   |-----------------+-----------------+-------+------|
+   | {"name": "Bob"} | {"name": "Bob"} | "Joe" | Joe  |
+   | ->              | ->>             | ->>   | ->>  |
+   | jsonb           | text            | jsonb | text |
+
 ** Iterators
 
    =jsonb_array_elements= - populate records from json/jsonb array
    #+BEGIN_SRC sql
-     select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb) itm
+     select jsonb_array_elements_text('[1, 2, 3, "4", 5]'::jsonb) itm
    #+END_SRC
+
+   #+RESULTS:
+   | itm |
+   |-----|
+   |   1 |
+   |   2 |
+   |   3 |
+   |   4 |
+   |   5 |
 
    #+BEGIN_SRC sql
      select sum(x::int)
        from (select jsonb_array_elements_text('[1, 2, 3, 4, 5]'::jsonb)) t(x)
    #+END_SRC
 
+   #+RESULTS:
+   | sum |
+   |-----|
+   |  15 |
+
    =jsonb_each= - populate key/value records from jsonb object
    #+BEGIN_SRC sql
      select *
        from jsonb_each('{"name": "Joe", "family": "Smith"}'::jsonb)
    #+END_SRC
+
+   #+RESULTS:
+   | key    | value   |
+   |--------+---------|
+   | name   | "Joe"   |
+   | family | "Smith" |
 
 ** Aggregates
 
@@ -198,11 +275,27 @@
        from generate_series(1, 5) t(x)
    #+END_SRC
 
+   #+RESULTS:
+   | jsonb_agg       |
+   |-----------------|
+   | [1, 2, 3, 4, 5] |
+
    =jsonb_object_agg= - aggregate new jsonb object
    #+BEGIN_SRC sql
      select jsonb_pretty(jsonb_object_agg(x, x))
-       from generate_series(1,
+       from generate_series(1, 5) t(x)
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_pretty |
+   |--------------|
+   | {            |
+   | "1": 1,      |
+   | "2": 2,      |
+   | "3": 3,      |
+   | "4": 4,      |
+   | "5": 5       |
+   | }            |
 
 * Jsquery
 
@@ -213,6 +306,10 @@
   #+BEGIN_SRC sql
     create extension if not exists jsquery;
   #+END_SRC
+
+  #+RESULTS:
+  | CREATE EXTENSION |
+  |------------------|
 
   JSquey use ~@@~ operator
 
@@ -228,9 +325,19 @@
     select '{"name": "Bob"}'::jsonb @@ ('name = Bob')::jsquery
   #+END_SRC
 
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
+
   #+BEGIN_SRC sql
     select '[{"name": "Bob"}, {"name": "John"}]'::jsonb @@ ('#(name = Bob)')::jsquery
   #+END_SRC
+
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
 
 
 ** Jsquery syntax
@@ -242,10 +349,20 @@
       select '{"name": "Bob", "family": "Smith"}'::jsonb @@ ('name = Bob')::jsquery
     #+END_SRC
 
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
+
     ~$ @> [4, 5]~ - the JSON document is an array containing values ~4, 5~;
     #+BEGIN_SRC sql
-      select '[1, 2, 3, 4, 5, 6, 7]'::jsonb @@ ('$ @> [1, 4, 8]')::jsquery
+      select '[1, 2, 3, 4, 5, 6, 7]'::jsonb @@ ('$ @> [1, 4, 7]')::jsquery
     #+END_SRC
+
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
 
     ~abc >= 10~ - value of key ~abc~ is greater than or equal to ~10~;
     #+BEGIN_SRC sql
@@ -259,20 +376,40 @@
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('age IS NUMERIC')::jsquery
     #+END_SRC
 
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
+
     ~foo = *~ - key ~foo~ exists in object.
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('name = *')::jsquery
     #+END_SRC
+
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
 
     ~*.color = red~ - there is object somewhere which key "color" has value "red".
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55, "contact": [{"phone": 911}]}'::jsonb @@ ('*.phone = 911')::jsquery
     #+END_SRC
 
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
+
     ~similar_ids.@# > 5~ - ~similar_ids~ is an array or object of length greater than ~5~;
     #+BEGIN_SRC sql
       select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.@# > 1')::jsquery
     #+END_SRC
+
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
 
     ~similar_product_ids.# = 0684824396~ - array ~similar_product_ids~ contains string ~0684824396~;
     #+BEGIN_SRC sql
@@ -287,10 +424,20 @@
       select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#.phone = 911')::jsquery
     #+END_SRC
 
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
+
     ~#N~ - Nth index of array;
     #+BEGIN_SRC sql
-      select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#1.phone = 911')::jsquery
+      select '{"contact": [{"phone": 911}, {"email": "foo@com"}]}'::jsonb @@ ('contact.#0.phone = 911')::jsquery
     #+END_SRC
+
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
 
     ~%~ - any key of object; \\
     ~%:~ - every key of object;
@@ -298,12 +445,22 @@
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('% = Bob')::jsquery
     #+END_SRC
 
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | f        |
+
     ~*~ - any sequence of array indexes and object keys; \\
     ~*:~ - every sequence of array indexes and object keys. \\
     ~$~ - the whole JSON document as single value, could be only the whole path.
     #+BEGIN_SRC sql
       select '{"name": "Bob", "age": 55}'::jsonb @@ ('*($ IS STRING OR $ IS NUMERIC)')::jsquery
     #+END_SRC
+
+    #+RESULTS:
+    | ?column? |
+    |----------|
+    | t        |
 
 * JsonPath
 
@@ -322,10 +479,22 @@
     select jsonb_path_query('{"a":[1,2,3,4,5]}', '$.a[*] ? (@ >= $min && @ <= $max)', '{"min":2, "max":4}')
   #+END_SRC
 
+  #+RESULTS:
+  | jsonb_path_query |
+  |------------------|
+  |                2 |
+  |                3 |
+  |                4 |
+
   Does left part contains in ~a~ values between 2 and 5
   #+BEGIN_SRC sql
     select '{"a":[1,2,3,4,5]}' @@ '$.a[*] ? (@ >= 2 && @ <= 5)'
   #+END_SRC
+
+  #+RESULTS:
+  | ?column? |
+  |----------|
+  | t        |
 
 ** Playground
 
@@ -373,17 +542,28 @@
    Any remaining structural errors are suppressed and converted to empty SQL/JSON sequences.
 
    #+BEGIN_SRC sql
-     select jsonb_path_query(resource, 'lax $.name.given')
+     select jsonb_path_query(resource, '$.name.given')
        from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   | ["Bob"]          |
 
 
    =strict= — if a structural error occurs, an error is raised.
 
    #+BEGIN_SRC sql
-     select jsonb_path_query(resource, 'strict $.name[*].given')
-       from (values ('{"name": [{"given": ["Bob"]}]}'::jsonb)) t(resource)
+	 select jsonb_path_query_array(resource, 'strict $.name[*].given[0]')
+	   from (values ('{"name": [{"given": [["Bob", "II"]]},
+                                    {"given": ["Alice"]}]}'::jsonb)) t(resource)
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query_array   |
+   |--------------------------|
+   | [["Bob", "II"], "Alice"] |
 
 ** SQL/JSON Path Language
 
@@ -393,12 +573,24 @@
        from jsonbsample
    #+END_SRC
 
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   | "1"              |
+   | "B034"           |
+
 
    To retrieve the contents of an array, you typically use the ~[*]~ operator:
    #+BEGIN_SRC sql
      select jsonb_path_query(resource, 'strict $.type[*].coding[*].code')
        from jsonbsample
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   | "1"              |
+   | "B034"           |
 
 
    Get specified array element ~[N]~
@@ -407,12 +599,22 @@
        from jsonbsample
    #+END_SRC
 
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   | "1"              |
+
 
    The result of each path evaluation step can be processed by one or more jsonpath operators and methods.
    #+BEGIN_SRC sql
      select jsonb_path_query(resource, '$.type.coding.size()')
        from jsonbsample
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   |                2 |
 
 
    When defining a path, you can also use one or more filter using ~?~ expressions that work similarly to the WHERE clause in SQL.
@@ -421,6 +623,11 @@
      select jsonb_path_query(resource, '$.identifier ? (@.system == "urn:source:rf:Organization").value')
        from jsonbsample
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query                       |
+   |----------------------------------------|
+   | "46da1f9f-608f-11e3-a70e-e4115baf3989" |
 
 
    You can use several filter expressions in sequence, if required.
@@ -431,33 +638,69 @@
        from jsonbsample
    #+END_SRC
 
+   #+RESULTS:
+   | jsonb_path_query                                                                         |
+   |------------------------------------------------------------------------------------------|
+   | {"code": "1", "system": "urn:CodeSystem:frmo.structure-type", "display": "Амбулаторный"} |
+
 
 ** Operators and Methods
 
    ~==~ - Equality operator
    #+BEGIN_SRC sql
-     select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ == 2)')
+     select jsonb_path_query('[1,2,2,3]', '$ ? (@ == 2)')
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   |                2 |
+   |                2 |
 
    ~!= < <= >= > <>~  - Non-equality operator
    #+BEGIN_SRC sql
      select jsonb_path_query('[1,2,2,3]', '$[*] ? (@ <> 2)')
    #+END_SRC
 
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   |                1 |
+   |                3 |
+
    ~&& || !~ - Boolean ~AND NOT OR~
    #+BEGIN_SRC sql
      select jsonb_path_query('[1,2,3,4]', '$[*] ? (@ > 1 &&  @ < 4)')
    #+END_SRC
 
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   |                2 |
+   |                3 |
+
    ~+ - / * % floor abs~ - Some math operators
    #+BEGIN_SRC sql
-     select jsonb_path_query('[1,2,3,4]', '$[*] ? ((@ + 1) > 1 &&  (@+1) < 4)')
+     select jsonb_path_query('[1,2,3,4]', '$ ? ((@ + 1) > 1 &&  (@+1) < 4)')
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   |                1 |
+   |                2 |
+
 
    ~like_regex, starts with~ - Regexp and text strt operators
    #+BEGIN_SRC sql
-     select jsonb_path_query('["M", "Ma", "Mar", "ara", "rat", "at", "t"]', '$[*] ? (@ starts with "Ma")')
+     select jsonb_path_query('["M", "Ma", "Mar", "ara", "rat", "at", "t"]', '$ ? (@ starts with "Ma")')
    #+END_SRC
+
+   #+RESULTS:
+   | jsonb_path_query |
+   |------------------|
+   | "Ma"             |
+   | "Mar"            |
 
 
 * Json knife
@@ -480,6 +723,11 @@
        from jsonbsample
    #+END_SRC
 
+   #+RESULTS:
+   | knife_extract        |
+   |----------------------|
+   | {"\"1\"","\"B034\""} |
+
 
    Path can contains nested objects - this wors as filter
    #+BEGIN_SRC sql
@@ -487,18 +735,32 @@
        from jsonbsample
    #+END_SRC
 
+   #+RESULTS:
+   | knife_extract |
+   |---------------|
+   | {"\"B034\""}  |
+
    knife can accept multiple paths
    #+BEGIN_SRC sql
-     select knife_extract(resource, '[["type", "coding", "code"], ["identifier", "value"]]')
+     select knife_extract_text(resource, '[["type", "coding", "code"], ["identifier", "value"]]')
        from jsonbsample
    #+END_SRC
 
+   #+RESULTS:
+   | knife_extract_text                                                                 |
+   |------------------------------------------------------------------------------------|
+   | {1,B034,46da1f9f-608f-11e3-a70e-e4115baf3989,e4115baf3989-608f-11e3-a70e-46da1f9f} |
+
    ~knife_date_bound~ - can return lower an upper bound from given date part
    #+BEGIN_SRC sql
-     select knife_date_bound('2020-01', 'min') min
+     select knife_date_bound('2020', 'min') min
           , knife_date_bound('2020-01', 'max') max
    #+END_SRC
 
+   #+RESULTS:
+   | min                    | max                    |
+   |------------------------+------------------------|
+   | 2020-01-01 00:00:00+00 | 2020-01-31 23:59:59+00 |
 
    ~knife_extract_min_number~, ~knife_extract_max_number~
    #+BEGIN_SRC sql
@@ -506,10 +768,10 @@
    #+END_SRC
 
    ~knife_extract_min_timestamptz~, ~knife_extract_max_timestamptz~
-
    #+BEGIN_SRC sql
      select knife_extract_min_munber('{"a": [1,2, 3, 4, 5, 6, 7]}'::jsonb, '[["a"]]'::jsonb);
    #+END_SRC
+
 
 * Class work
 
@@ -540,27 +802,27 @@
 
 ** Answer
 
-#+BEGIN_SRC sql
-  with recursive
-  keys as
-  (
-    select jsonb_build_array(key) pth, value
-    from "organization", jsonb_each(resource)
+   #+BEGIN_SRC sql
+     with recursive
+       keys as
+	 (
+	   select jsonb_build_array(key) pth, value
+	     from "organization", jsonb_each(resource)
 
-    union
+	    union
 
-    select pth || jsonb_build_array(k), v
-    from keys , jsonb_each(value) t(k, v)
-    where jsonb_typeof(value) = 'object'
+	   select pth || jsonb_build_array(k), v
+	     from keys , jsonb_each(value) t(k, v)
+	    where jsonb_typeof(value) = 'object'
 
-  )
-  , total as
-  (
-    select count(*) ttl from "organization"
-  )
+	 )
+	 , total as
+	 (
+	   select count(*) ttl from "organization"
+	 )
 
-  select pth, (count(*)/ttl::float) persent
-  from keys, total
-  group by pth, ttl
-  order by persent desc
-#+END_SRC
+     select pth, (count(*)/ttl::float) persent
+       from keys, total
+      group by pth, ttl
+      order by persent desc
+   #+END_SRC
