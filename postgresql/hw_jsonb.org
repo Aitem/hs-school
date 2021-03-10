@@ -19,7 +19,7 @@
   | CREATE TABLE |
   |--------------|
 
-  Insert sample dataset from ~./patient.csv~ file
+  Insert sample dataset from ~./patient.csv~ file. Link for this file [[./patient.csv]]
 
   #+BEGIN_SRC sql
     \copy test_patient(resource) from './patient.csv' DELIMITER E'\t' quote '|'  csv
