@@ -77,93 +77,93 @@
 
 * 2) Database stats
 
-  Extract database usage statistics for all tables in one query that return single JSONB object
+Extract database usage statistics for all tables in one query that return single JSONB object
 
-  Support material:
-  - [[https://postgrespro.ru/docs/postgresql/13/functions-admin#FUNCTIONS-ADMIN-DBSIZE][DB object size functions]] the functions calculate the disk space usage of database objects,
-    or assist in presentation of usage results.
-  - [[https://postgrespro.ru/docs/postgresql/12/catalog-pg-class?lang=en][pg_class]] - core postgresql table
-  - [[https://www.postgresql.org/docs/13/information-schema.html][information-schema]] - db schema with related database information
+Support material:
+ - [[https://postgrespro.ru/docs/postgresql/13/functions-admin#FUNCTIONS-ADMIN-DBSIZE][DB object size functions]] the functions calculate the disk space usage of database objects,
+   or assist in presentation of usage results.
+ - [[https://postgrespro.ru/docs/postgresql/12/catalog-pg-class?lang=en][pg_class]] - core postgresql table
+ - [[https://www.postgresql.org/docs/13/information-schema.html][information-schema]] - db schema with related database information
 
 
-  *Structure of this object:*
+*Structure of this object:*
 
   #+BEGIN_SRC json
-    {"<SCHEMA>": {
-	"<TABLENAME>": {
-	    "rows": "<ROWS_ESTIMATE>",
-	    "index_size": "<TOTAL_INDEX_SIZE>",
-	    "table_size": "<TABLE_SIZE>",
-	    "index": {
-		"<INDEXNAME>": {
-		    "size": "<INDEX_SIZE>",
-		    "type": "<INDEX_TYPE>"
-		}
-	    }
-	}
-    }}
+  {"<SCHEMA>": {
+     "<TABLENAME>": {
+            "rows": "<ROWS_ESTIMATE>",
+            "index_size": "<TOTAL_INDEX_SIZE>",
+            "table_size": "<TABLE_SIZE>",
+            "index": {
+                "<INDEXNAME>": {
+                    "size": "<INDEX_SIZE>",
+                    "type": "<INDEX_TYPE>"
+                }
+            }
+     }
+  }}
   #+END_SRC
 
-  *Example of result:*
+*Example of result:*
 
   #+BEGIN_SRC json
-    {
-	"public": {
-	    "app": {
-		"rows": 1,
-		"index": {
-		    "app_pkey": {
-			"size": "16 kB",
-			"type": "btree"
-		    }
-		},
-		"index_size": "16 kB",
-		"table_size": "8192 bytes"
-	    },
-	    "flag": {
-		"rows": 3262,
-		"index": {
-		    "flag_pkey": {
-			"size": "312 kB",
-			"type": "btree"
-		    },
-		    "flag_resource_subject": {
-			"size": "328 kB",
-			"type": "btree"
-		    },
-		    "flag_resource_period_end": {
-			"size": "160 kB",
-			"type": "btree"
-		    },
-		    "flag_resource_gin_jsquery": {
-			"size": "776 kB",
-			"type": "gin"
-		    }
-		},
-		"index_size": "1600 kB",
-		"table_size": "2432 kB"
-	    }
-	},
-	"information_schema": {
-	    "sql_parts": {
-		"rows": 9,
-		"index": null,
-		"index_size": "0 bytes",
-		"table_size": "8192 bytes"
-	    },
-	    "parameters": {
-		"rows": 0,
-		"index": {
-		    "parameters_pkey": {
-			"size": "8192 bytes",
-			"type": "btree"
-		    }
-		},
-		"index_size": "8192 bytes",
-		"table_size": "0 bytes"
-	    }
-	}
-    }
+  {
+      "public": {
+	  "app": {
+	      "rows": 1,
+	      "index": {
+		  "app_pkey": {
+		      "size": "16 kB",
+		      "type": "btree"
+		  }
+	      },
+	      "index_size": "16 kB",
+	      "table_size": "8192 bytes"
+	  },
+	  "flag": {
+	      "rows": 3262,
+	      "index": {
+		  "flag_pkey": {
+		      "size": "312 kB",
+		      "type": "btree"
+		  },
+		  "flag_resource_subject": {
+		      "size": "328 kB",
+		      "type": "btree"
+		  },
+		  "flag_resource_period_end": {
+		      "size": "160 kB",
+		      "type": "btree"
+		  },
+		  "flag_resource_gin_jsquery": {
+		      "size": "776 kB",
+		      "type": "gin"
+		  }
+	      },
+	      "index_size": "1600 kB",
+	      "table_size": "2432 kB"
+	  }
+      },
+      "information_schema": {
+	  "sql_parts": {
+	      "rows": 9,
+	      "index": null,
+	      "index_size": "0 bytes",
+	      "table_size": "8192 bytes"
+	  },
+	  "parameters": {
+	      "rows": 0,
+	      "index": {
+		  "parameters_pkey": {
+		      "size": "8192 bytes",
+		      "type": "btree"
+		  }
+	      },
+	      "index_size": "8192 bytes",
+	      "table_size": "0 bytes"
+	  }
+      }
+  }
   #+END_SRC
 
 
