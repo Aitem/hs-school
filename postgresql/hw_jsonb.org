@@ -3,18 +3,12 @@
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
-* Support array stats on class work task
+* 1) Support array stats on class work task
 
   #+BEGIN_SRC sql
     select ...
       from my_table;
   #+END_SRC
-
-  Should return
-                 pth                  | cnt  |        ?column?
---------------------------------------+------+------------------------
- {identifier}                         | 6760 |     0.9977859778597786
- {name}                               | 4194 |     0.6190405904059041
 
 
   #+RESULTS:
@@ -25,7 +19,7 @@
   | ["identifier", "value"]  | 0.9977859778597786 |
 
 
-* Database stats
+* 2) Database stats
 
 Extract database usage statistics for all tables in single JSONB object
 Structure of this object:
@@ -109,9 +103,9 @@ Structure of this object:
   #+END_SRC
 
 
-* Json knife using jsonpath
+* 3) Json knife using jsonpath
 
   Realize knife_extract function using jsonpath
 
 
-* * Json knife without jsonpath (only sql)
+* 4) * Json knife without jsonpath (only sql)
