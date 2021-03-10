@@ -176,7 +176,7 @@
   |---------------------|
   | {"family": "Smith"} |
 
-  =#-= -
+  =#-= - Remove nested key
   #+BEGIN_SRC sql
     select '{"name": {"family": "Smith", "given": "Bob"}}'::jsonb #- '{name, family}'
   #+END_SRC
