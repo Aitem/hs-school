@@ -339,7 +339,6 @@
   |----------|
   | t        |
 
-
 ** Jsquery syntax
 
 *** Simple expression
@@ -702,7 +701,6 @@
    | "Ma"             |
    | "Mar"            |
 
-
 * Json knife
 
   [[https://github.com/niquola/jsonknife][Json Knife GigHub repository]]
@@ -772,7 +770,6 @@
      select knife_extract_min_munber('{"a": [1,2, 3, 4, 5, 6, 7]}'::jsonb, '[["a"]]'::jsonb);
    #+END_SRC
 
-
 * Class work
 
   Extract jsonb oject keys path usuage statistics from table with jsonb column
@@ -798,7 +795,6 @@
   | ....                              |                 ... |
   | ["activityPeriod", "start"]       | 0.04206642066420664 |
   | ["address"]                       |  0.0188929889298893 |
-
 
 ** Answer
 
@@ -826,3 +822,5 @@
       group by pth, ttl
       order by persent desc
    #+END_SRC
+
+   End
