@@ -5,24 +5,82 @@
 
 * 1) Support array stats on class work task
 
+  Create table ~test_patient~ with two columns =id::int= and =resource::jsonb=
+
   #+BEGIN_SRC sql
-    select ...
-      from my_table;
+    create table test_patient
+      (
+	id serial primary key,
+	resource jsonb
+      )
   #+END_SRC
 
+  #+RESULTS:
+  | CREATE TABLE |
+  |--------------|
+
+  Insert sample dataset from ~./patient.csv~ file
+
+  #+BEGIN_SRC sql
+    \copy test_patient(resource) from './patient.csv' DELIMITER E'\t' quote '|'  csv
+  #+END_SRC
 
   #+RESULTS:
-  | path                     |            persent |
-  |--------------------------+--------------------|
-  | ["identifier"]           | 0.9977859778597786 |
-  | ["identifier", "system"] | 0.9977859778597786 |
-  | ["identifier", "value"]  | 0.9977859778597786 |
+  | COPY 124 |
+  |----------|
+
+  Check results
+  #+BEGIN_SRC sql
+    select count(*) from test_patient;
+  #+END_SRC
+
+  #+RESULTS:
+  | count |
+  |-------|
+  |   124 |
+
+  Write sql query that should return usage stats of all keys/paths including
+  keys in arrays from table ~test_patient~.
+  E.G. should be returned stats for  ~{identifier}~, ~{identifier,value}~, ~{identifier,system}~
+
+  *Exmaple of result:*
+
+  | path                                       | persent |
+  |--------------------------------------------+---------|
+  | {identifier}                               |     557 |
+  | {extension}                                |     439 |
+  | {identifier,value}                         |     357 |
+  | {address,extension,extension}              |     300 |
+  | {name}                                     |     223 |
+  | {address,extension}                        |     200 |
+  | {address}                                  |     200 |
+  | {address,line}                             |     200 |
+  | {address,extension,extension,valueDecimal} |     200 |
+  | {telecom}                                  |     200 |
+  | {name,given}                               |     192 |
+  | {extension,valueDecimal}                   |     164 |
+  | {name,family}                              |     106 |
+  | {extension,valueString}                    |     100 |
+  | {id}                                       |     100 |
+  | {text}                                     |     100 |
+  | {text,div}                                 |     100 |
+  | {telecom,value}                            |     100 |
+  | ....                                       |     ... |
+  | ....                                       |     ... |
+  | {extension,valueAddress}                   |      69 |
+  | {extension,valueAddress,city}              |      69 |
+  | {address,city}                             |      52 |
+  | {address,postalCode}                       |      37 |
+  | {deceased,dateTime}                        |      19 |
+  | {deceased}                                 |      19 |
+  | {extension,valueAddress,state}             |      15 |
 
 
 * 2) Database stats
 
-Extract database usage statistics for all tables in single JSONB object
-Structure of this object:
+Extract database usage statistics for all tables in one query that return single JSONB object
+
+*Structure of this object:*
 
   #+BEGIN_SRC json
   {"<SCHEMA>": {

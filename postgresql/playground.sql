@@ -1,4 +1,5 @@
 ---- db: -h localhost -p 5400 -U postgres postgres
+
 ---- db: -h localhost -p 5439 -U postgres testbox
 with recursive
 items as
@@ -21,7 +22,6 @@ group by pth
 order by cnt desc
 
 ----
-limit 0;
 
 
 ----
