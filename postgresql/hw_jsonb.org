@@ -44,35 +44,81 @@
 
   *Exmaple of result:*
 
-  | path                                       | persent |
-  |--------------------------------------------+---------|
-  | {identifier}                               |     557 |
-  | {extension}                                |     439 |
-  | {identifier,value}                         |     357 |
-  | {address,extension,extension}              |     300 |
-  | {name}                                     |     223 |
-  | {address,extension}                        |     200 |
-  | {address}                                  |     200 |
-  | {address,line}                             |     200 |
-  | {address,extension,extension,valueDecimal} |     200 |
-  | {telecom}                                  |     200 |
-  | {name,given}                               |     192 |
-  | {extension,valueDecimal}                   |     164 |
-  | {name,family}                              |     106 |
-  | {extension,valueString}                    |     100 |
-  | {id}                                       |     100 |
-  | {text}                                     |     100 |
-  | {text,div}                                 |     100 |
-  | {telecom,value}                            |     100 |
-  | ....                                       |     ... |
-  | ....                                       |     ... |
-  | {extension,valueAddress}                   |      69 |
-  | {extension,valueAddress,city}              |      69 |
-  | {address,city}                             |      52 |
-  | {address,postalCode}                       |      37 |
-  | {deceased,dateTime}                        |      19 |
-  | {deceased}                                 |      19 |
-  | {extension,valueAddress,state}             |      15 |
+  | path                                       | count | persent |
+  |--------------------------------------------+-------+---------|
+  | {identifier,value}                         |   443 |     357 |
+  | {address,extension,extension,valueDecimal} |   248 |     200 |
+  | {extension,valueDecimal}                   |   203 |     164 |
+  | {name,family}                              |   131 |     106 |
+  | {address}                                  |   124 |     100 |
+  | {extension,valueString}                    |   124 |     100 |
+  | {telecom,value}                            |   124 |     100 |
+  | {identifier}                               |   124 |     100 |
+  | {address,extension}                        |   124 |     100 |
+  | {text,div}                                 |   124 |     100 |
+  | {extension}                                |   124 |     100 |
+  | {text}                                     |   124 |     100 |
+  | {address,line}                             |   124 |     100 |
+  | {address,extension,extension}              |   124 |     100 |
+  | {name}                                     |   124 |     100 |
+  | {telecom}                                  |   124 |     100 |
+  | {id}                                       |   124 |     100 |
+  | {name,given}                               |   119 |      96 |
+  | {birthDate}                                |   100 |      81 |
+  | {extension,valueAddress}                   |    85 |      69 |
+  | {extension,valueAddress,city}              |    85 |      69 |
+  | {address,city}                             |    65 |      52 |
+  | {address,postalCode}                       |    46 |      37 |
+  | {deceased,dateTime}                        |    24 |      19 |
+  | {deceased}                                 |    24 |      19 |
+  | {extension,valueAddress,state}             |    19 |      15 |
+  | {extension,valueAddress,country}           |    12 |      10 |
+  | {communication,language,text}              |     7 |       6 |
+  | {communication,language,coding,display}    |     7 |       6 |
+  | {communication,language}                   |     7 |       6 |
+  | {extension,url}                            |     7 |       6 |
+  | {communication,language,coding}            |     7 |       6 |
+  | {communication}                            |     7 |       6 |
+  | {communication,language,coding,code}       |     7 |       6 |
+  | {extension,extension}                      |     5 |       4 |
+  | {extension,extension,valueString}          |     5 |       4 |
+  | {identifier,system}                        |     5 |       4 |
+  | {extension,extension,valueCoding,display}  |     5 |       4 |
+  | {extension,extension,valueCoding,code}     |     5 |       4 |
+  | {extension,extension,valueCoding}          |     5 |       4 |
+  | {identifier,type,coding}                   |     4 |       3 |
+  | {identifier,type,coding,display}           |     4 |       3 |
+  | {identifier,type}                          |     4 |       3 |
+  | {identifier,type,text}                     |     4 |       3 |
+  | {identifier,type,coding,code}              |     4 |       3 |
+  | {maritalStatus,coding}                     |     3 |       2 |
+  | {maritalStatus,coding,display}             |     3 |       2 |
+  | {maritalStatus}                            |     3 |       2 |
+  | {maritalStatus,text}                       |     3 |       2 |
+  | {multipleBirth}                            |     3 |       2 |
+  | {name,prefix}                              |     3 |       2 |
+  | {extension,valueCode}                      |     2 |       2 |
+  | {address,extension,extension,url}          |     2 |       2 |
+  | {name,use}                                 |     2 |       2 |
+  | {maritalStatus,coding,code}                |     2 |       2 |
+  | {extension,extension,url}                  |     2 |       2 |
+  | {gender}                                   |     2 |       2 |
+  | {multipleBirth,integer}                    |     2 |       2 |
+  | {meta,lastUpdated}                         |     1 |       1 |
+  | {multipleBirth,boolean}                    |     1 |       1 |
+  | {text,status}                              |     1 |       1 |
+  | {address,extension,url}                    |     1 |       1 |
+  | {maritalStatus,coding,system}              |     1 |       1 |
+  | {address,country}                          |     1 |       1 |
+  | {identifier,type,coding,system}            |     1 |       1 |
+  | {telecom,system}                           |     1 |       1 |
+  | {telecom,use}                              |     1 |       1 |
+  | {address,state}                            |     1 |       1 |
+  | {name,suffix}                              |     1 |       1 |
+  | {extension,extension,valueCoding,system}   |     1 |       1 |
+  | {communication,language,coding,system}     |     1 |       1 |
+  | {meta}                                     |     1 |       1 |
+  | {meta,versionId}                           |     1 |       1 |
 
 
 * 2) Database stats
