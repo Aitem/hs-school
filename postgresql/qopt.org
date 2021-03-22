@@ -1,0 +1,185 @@
+#+TITLE: QOPT
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5437 :dbhost localhost :dbuser postgres :dbpassword postgres :database devbox
+
+* Intro                                                            :noexport:
+
+  [[./qopt.jpg]]
+
+
+* Table of Contents                                                   :TOC_3:
+- [[#install-aidbox-dev][Install Aidbox Dev]]
+- [[#query][Query]]
+- [[#seq-scan][SEQ scan]]
+- [[#index-scan][Index scan]]
+- [[#bitmap-index-scan][Bitmap Index scan]]
+- [[#gin-index][GIN index]]
+- [[#join][JOIN]]
+  - [[#nested-loop][Nested loop]]
+  - [[#hash-join][Hash join]]
+  - [[#merge-join][Merge join]]
+
+* Install Aidbox Dev
+
+  1. Register on [[https://license-ui.aidbox.app/][License Server]]
+  2. Install [[git clone https://github.com/Aidbox/devbox.git][DevBox]]
+
+     #+BEGIN_SRC bash
+       git clone https://github.com/Aidbox/devbox.git
+       cd devbox
+     #+END_SRC
+
+  3. Copy ~.env.tpl~ to ~.env~
+  4. Insert your =AIDBOX_LICENSE_ID= and =AIDBOX_LICENSE_KEY= in ~.env~ file
+  5. Run ~AidboxDev~
+
+     #+BEGIN_SRC bash
+       docker-compose up -d
+     #+END_SRC
+
+  6. Check http://localhost:8888  *Login:* admin *Password:* secret
+  7. Load test data in [[http://localhost:8888/static/console.html?#/rest][RestConsole]]
+
+  #+BEGIN_SRC
+POST /fhir/$load
+
+source: 'https://storage.googleapis.com/aidbox-public/school/synthea_all_4.ndjson.gz'
+  #+END_SRC
+
+  8. Check upload status in [[http://localhost:878/static/console.html?#/db][DBConsole]]
+
+     #+BEGIN_SRC sql
+       SELECT pid, age(clock_timestamp(), query_start), query_start , query
+	 FROM pg_stat_activity
+	WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' and "state" = 'active';
+
+     #+END_SRC
+
+  9. Check connection
+
+     #+BEGIN_SRC sql
+       select jsonb_pretty(resource->'box') from _box;
+     #+END_SRC
+
+
+
+* Query
+
+ Разбор
+   parse string -> AST
+   debug_print_parse print_debug_parse (запись в журнале)
+
+ Переписывание (трансформация)
+   rewrite
+
+ Планирование (оптимизация)
+   Мы говорим что хотим, а как он это сделает - решает сам планировщик (using stats)
+   plan -> another AST
+
+ Выполненеи execute
+   dfexecute -> return rows
+
+
+extended protocol
+ prepare (save ast after revrite) -> execute (plan execute) -> (cursor -> fetch batched data)
+
+#+BEGIN_SRC sql
+  alter system set log_parser_stats = on;
+#+END_SRC
+
+#+BEGIN_SRC sql
+  alter system set log_planner_stats = on;
+#+END_SRC
+
+#+BEGIN_SRC sql
+  alter system set log_executor_stats = on;
+#+END_SRC
+
+#+BEGIN_SRC sql
+select pg_reload_conf();
+#+END_SRC
+
+#+BEGIN_SRC sql
+  explain (analyze)
+  select id from test_patient;
+#+END_SRC
+
+#+BEGIN_SRC bash :results value pp
+  docker logs -n 60 hs-db 2>&1 | egrep 'LOG|elapsed'
+#+END_SRC
+
+
+prepare
+pg_prepared_statements view
+
+
+query planning
+
+-> перебор планов -> оценка стоимости -> селективность -> статистика
+
+* SEQ scan
+seq scan
+
+ буфферное кольцо
+
+parallel seq scan
+
+ gather worker process
+
+
+max_parallel_workers_per_gather = 2
+max_parallel_workers = 8
+max_worker_processes = 8
+
+* Index scan
+
+  index scan
+  parallel index scan
+    min_parallel_index_scan
+    parallel_workers (for table)
+  index only scan
+
+* Bitmap Index scan
+
+
+  Bitmap index scan
+   where select from index return too many rows
+   and data order by random
+  Parallel Bitmap Heap Scan
+
+  BitmapOr
+  BitmapAnd
+
+* GIN index
+
+  Gin index scan
+  recheck and filter
+
+  jsonpath / gin and > >=
+
+
+* JOIN
+
+  not left/right/inner BUT join methods
+
+
+  always pair
+
+
+** Nested loop
+   JOIN cost N*M
+   Nested loop
+   Nested loop Left Join
+   Nested loop anti join
+     jeft join is null (not exists)
+   Nested loop semi join
+     (exists)
+
+  + No prepare actions
+  + Good for less data
+  + Depends on join order
+  + Any condition (also <>)
+
+** Hash join
+** Merge join
