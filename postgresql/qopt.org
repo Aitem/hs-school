@@ -22,24 +22,28 @@
 
 * Install Aidbox Dev
 
-  1. Register on [[https://license-ui.aidbox.app/][License Server]]
-  2. Install [[git clone https://github.com/Aidbox/devbox.git][DevBox]]
+  Register on [[https://license-ui.aidbox.app/][License Server]]
+
+  Install [[git clone https://github.com/Aidbox/devbox.git][DevBox]]
 
      #+BEGIN_SRC bash
        git clone https://github.com/Aidbox/devbox.git
        cd devbox
      #+END_SRC
 
-  3. Copy ~.env.tpl~ to ~.env~
-  4. Insert your =AIDBOX_LICENSE_ID= and =AIDBOX_LICENSE_KEY= in ~.env~ file
-  5. Run ~AidboxDev~
+  Copy ~.env.tpl~ to ~.env~
+
+  Insert your =AIDBOX_LICENSE_ID= and =AIDBOX_LICENSE_KEY= in ~.env~ file
+
+  Run ~AidboxDev~
 
      #+BEGIN_SRC bash
        docker-compose up -d
      #+END_SRC
 
-  6. Check http://localhost:8888  *Login:* admin *Password:* secret
-  7. Load test data in [[http://localhost:8888/static/console.html?#/rest][RestConsole]]
+  Check http://localhost:8888  *Login:* admin *Password:* secret
+
+  Load test data in [[http://localhost:8888/static/console.html?#/rest][RestConsole]]
 
   #+BEGIN_SRC
 POST /fhir/$load
@@ -47,16 +51,15 @@ POST /fhir/$load
 source: 'https://storage.googleapis.com/aidbox-public/school/synthea_all_4.ndjson.gz'
   #+END_SRC
 
-  8. Check upload status in [[http://localhost:878/static/console.html?#/db][DBConsole]]
+  Check upload status in [[http://localhost:878/static/console.html?#/db][DBConsole]]
 
      #+BEGIN_SRC sql
        SELECT pid, age(clock_timestamp(), query_start), query_start , query
 	 FROM pg_stat_activity
 	WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' and "state" = 'active';
-
      #+END_SRC
 
-  9. Check connection
+  Check connection
 
      #+BEGIN_SRC sql
        select jsonb_pretty(resource->'box') from _box;
