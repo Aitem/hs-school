@@ -60,11 +60,6 @@ source: 'https://storage.googleapis.com/aidbox-public/school/synthea_all_1000.nd
 	WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' and "state" = 'active';
      #+END_SRC
 
-     #+RESULTS:
-     | query                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-     |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-     | with _txid AS (   select nextval('transaction_id_seq') txid ), _inserted AS ( insert into "observation" (id, status, ts, txid, resource) select   distinct on((resource->>'id'))   resource->>'id' as id,   'created' as _status,   current_timestamp as _ts,   (select txid from _txid limit 1) as _txid,   (resource - ARRAY['resourceType', 'id']) as _resource   FROM _import_all   WHERE resource->>'resourceType' = 'Observation'   ON CONFLICT (id)    DO UPDATE SET      resource = EXCLUDED.resource - ARRAY['resourceType', 'id'],                 txid = EXCLUDED.txid,                 status = 'updated',                 ts = EXCLUdED.ts returning id) SELECT count(*) from _inserted |
-
 
   Check connection
 
