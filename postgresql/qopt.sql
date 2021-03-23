@@ -54,6 +54,30 @@ from observation
 order by random()
 limit 1;
 ----
+select right ('urn:uuid:2a43b8f7-f7a4-a5ce-3ead-5fbae7748840', 36)
+----
+\x
+\a
+select c.id cid, p.id pid
+from condition c
+join patient p
+on p.id = right(c.resource#>>'{subject,uri}', 36)
+limit 10;
+----
+select count(*) from condition;
+----
+\x
+\a
+select jsonb_pretty(resource)
+from condition
+limit 1;
+----
+select id
+from patient
+where id =
+urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d
+;
+----
 
   #+BEGIN_SRC sql :results value drawer
 ----
