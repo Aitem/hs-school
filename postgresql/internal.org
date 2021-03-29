@@ -5,17 +5,20 @@
 
 * Intro                                                            :noexport:
 
+[[./internal.png]]
+
 * Table of Contents                                                   :TOC_3:
-- [[#install-aidbox-dev][Install Aidbox Dev]]
-- [[#query][Query]]
-- [[#seq-scan][SEQ scan]]
-- [[#index-scan][Index scan]]
-- [[#bitmap-index-scan][Bitmap Index scan]]
-- [[#gin-index][GIN index]]
-- [[#join][JOIN]]
-  - [[#nested-loop][Nested loop]]
-  - [[#hash-join][Hash join]]
-  - [[#merge-join][Merge join]]
+- [[#install][Install]]
+- [[#pg-architecture][PG architecture]]
+- [[#acid][ACID]]
+- [[#base-concepts][Base concepts]]
+- [[#mvcc][MVCC]]
+- [[#isolation-levels][Isolation levels]]
+- [[#cache-wal-checkpoint][Cache Wal CheckPoint]]
+- [[#checkpoint][Checkpoint]]
+- [[#create-database][Create database]]
+  - [[#table-spaces][Table spaces]]
+  - [[#toast][Toast]]
 
 * Install
 
@@ -40,69 +43,99 @@
 
 * PG architecture
 
-  - Protocol
-    <Client>  <-- protocol --> <PG server>
-    libpq
+  ~<Client> =<-- protocol -->= ~<PG Server>~
 
-  ACID
-  A - all or nothing
-  C - Consistency before and after
-  I - mvcc
-  D - wal
+  [[https://postgrespro.ru/docs/postgrespro/13/protocol?lang=en][Protocol]] - Postgres uses a message-based protocol for communication
+             between frontends and backends (clients and servers).
+
+  [[https://www.postgresql.org/docs/13/external-interfaces.html][Interfaces]] - language interfaces are external projects ([[https://www.postgresql.org/docs/13/libpq.html][libpq]] included)
 
 
-  =postmaster= - Main process - postmaster
+* ACID
+
+  =Atomicity=   - all or nothing
+  =Consistency= - Consistency before and after
+  =Isolation=   - MVCC
+  =Durability=  - WAL
+
+
+* Base concepts
+
+  =postmaster= - Main process
     - Create and manage all processes
     - Create connections/backends
-      local buffer + work_mem (local process memory)
+      - local buffer + work_mem (local process memory)
 
   =Shared memory=
 
   Parallel = locsk
-  Not good
   Too many connection bad
-  Most usefull - connection pool
-
-  =MVCC= as solution
+  Most useful - connection pool
 
   Communication with disc via operating system + os cache
-  Durability -> write ahead log
+
+ +------------+
+ | Postmaster |------+
+ +------------+      |
+     |               |
+ +------------+  +--------------------+
+ | Backend    |	 | Background process |
+ +------------+	 +--------------------+
+     |               |
+ +----------------------+
+ |    Shared memory     |
+ +----------------------+
+       ||
++------+---------------------+
+|      ||               OS   |
+| +----------------------+   |
+| |   OS cashe           |   |
+| +----------------------+   |
+|      ||                    |
+| +----------------------+   |
+| |      Disc            |   |
+| +----------------------+   |
++----------------------------+
 
 
 * MVCC
 
-  2 time marks
-  Create time (txid) and delete time (txid)
+  =MVCC= as solution for concurrency
+    - 2 time marks: Create time (xmin) and delete time (xmax)
 
-  select txid_current();
-  xmin
-  xmax
+  #+BEGIN_SRC sql
+    create table mvcc_test (id int);
+  #+END_SRC
 
+  #+BEGIN_SRC sql
+    insert into mvcc_test (id) values (1);
+  #+END_SRC
 
-  on update
-  delete previous and create new record (with create txid and close txid)
+  #+BEGIN_SRC sql
+    select id, xmin, xmax from mvcc_test;
+  #+END_SRC
 
+  #+BEGIN_SRC sql
+    update mvcc_test set id = 2 where id = 1;
+  #+END_SRC
 
-  Data shanpshot
-  Current txid and all current working txid
-
-  Row locks
+  =On update= - delete previous and create new record (with create ~xmin~ and close ~xmax~)
+  =Data shanpshot= - all committed data before this transaction
+    - Current ~txid~ and all current working txid
+  =Row locks=
     - read never lock
     - row write lock only for another write, read never lock
-
-  Bloat table and index
-
-  Vacuum / Autovacuum
+  =Bloat= table and index
+  =Vacuum= / =Autovacuum=
   - Remove deleted rows
-  - 2 process
-    Autovacuum launcher
-    Autovacuum worker
+  - 2 process:
+    - Autovacuum launcher
+    - Autovacuum worker
+  - Vacuum full
+    - Lock table
 
-  Vacuum full
-  - Lock table
 
 * Isolation levels
-
 
   =Read uncommitted= - +not supporting+
     read not committed rows
@@ -111,52 +144,54 @@
     data shaphot for each operator/command
     read only committed rows
 
+    #+BEGIN_SRC sql
+      BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+      -- Get data shanpshot
+      SELECT count(*) from patient;
+      -- Get data shanpshot
+      SELECT count(*) from patient;
+      -- Get data shanpshot
+      SELECT count(*) from patient;
+      END;
+    #+END_SRC
+
   =Repeatable read=
     Data shaphot for first operator
+    #+BEGIN_SRC sql
+      BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+      -- Get data shanpshot
+      SELECT count(*) from patient;
+      SELECT count(*) from patient;
+      END;
+    #+END_SRC
 
   =Serializable=
     Full isolation (one each other)
+    ~SERIALIZABLE~ is the default transaction isolation level in the ~standard~
 
 * Cache Wal CheckPoint
 
-  WAL - journal, write first (fsync)
-  not for temp and unlogged tables
-
-  =Sync=
-  =Async=
+  =WAL= ~write-ahead log~ - journal, write first (fsync)
+      not for temp and unlogged tables
+  =Sync= / =Async=
+  =Wal Levels=
+   - Minimal
+   - Replica
+   - Logical
 
   #+BEGIN_SRC sql
     select pg_current_wal_lsn();
   #+END_SRC
 
-  #+RESULTS:
-  | pg_current_wal_lsn |
-  |--------------------|
-  | 1/661785B0         |
-
   #+BEGIN_SRC sql
     select * from pg_ls_waldir() limit 10;
   #+END_SRC
 
-  #+RESULTS:
-  |                     name |     size | modification           |
-  |--------------------------+----------+------------------------|
-  | 000000010000000100000066 | 16777216 | 2021-03-29 12:00:03+00 |
-  | 000000010000000100000067 | 16777216 | 2021-03-29 09:08:08+00 |
-  | 000000010000000100000068 | 16777216 | 2021-03-29 09:08:12+00 |
-  | 000000010000000100000069 | 16777216 | 2021-03-29 09:08:17+00 |
-  | 00000001000000010000006A | 16777216 | 2021-03-29 09:08:41+00 |
-  | 00000001000000010000006B | 16777216 | 2021-03-29 09:08:42+00 |
-  | 00000001000000010000006C | 16777216 | 2021-03-29 09:08:42+00 |
-  | 00000001000000010000006D | 16777216 | 2021-03-29 09:08:43+00 |
-  | 00000001000000010000006E | 16777216 | 2021-03-29 09:08:43+00 |
-  | 00000001000000010000006F | 16777216 | 2021-03-29 09:12:54+00 |
-
 * Checkpoint
 
   =Checkpointer process=
-  Restore all wals too expensive =(
-  Make checkpoint and dump all buffers to disc
+    Restore all wals too expensive
+    Make checkpoint and dump all buffers to disc
 
 
   #+BEGIN_SRC
