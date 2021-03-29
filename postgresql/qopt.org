@@ -916,3 +916,21 @@ vacuum analyze condition
 #+RESULTS:
 | VACUUM |
 |--------|
+
+
+* HW
+
+  #+BEGIN_SRC json
+    {"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}
+  #+END_SRC
+
+#+BEGIN_SRC sql
+ '{value,Quantity,value}'
+#+END_SRC
+
+
+ *  Максимально эффективно найти ссамого тяжелого пациента
+
+Показания веса находятся в таблице Observation
+Закодированы так ~{"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}~
+Само значение веса находится в ~'{value,Quantity,value}'~

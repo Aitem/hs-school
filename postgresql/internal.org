@@ -1,0 +1,296 @@
+#+TITLE: PG internal
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5437 :dbhost localhost :dbuser postgres :dbpassword postgres :database devbox
+
+* Intro                                                            :noexport:
+
+* Table of Contents                                                   :TOC_3:
+- [[#install-aidbox-dev][Install Aidbox Dev]]
+- [[#query][Query]]
+- [[#seq-scan][SEQ scan]]
+- [[#index-scan][Index scan]]
+- [[#bitmap-index-scan][Bitmap Index scan]]
+- [[#gin-index][GIN index]]
+- [[#join][JOIN]]
+  - [[#nested-loop][Nested loop]]
+  - [[#hash-join][Hash join]]
+  - [[#merge-join][Merge join]]
+
+* Install
+
+  Run docker container vith PostgreSQL 12:
+  #+name: Run db
+  #+BEGIN_SRC bash
+    docker-compose up -d
+  #+END_SRC
+
+  Check connection:
+  #+name: Check connection
+  #+BEGIN_SRC bash :results value drawer
+    psql -h localhost -p 5400 -U postgres -c 'select 1';
+  #+END_SRC
+
+  Ensure connection via psql:
+  #+name: Check connection and list databases
+  #+BEGIN_SRC sql
+    \l
+  #+END_SRC
+
+
+* PG architecture
+
+  - Protocol
+    <Client>  <-- protocol --> <PG server>
+    libpq
+
+  ACID
+  A - all or nothing
+  C - Consistency before and after
+  I - mvcc
+  D - wal
+
+
+  =postmaster= - Main process - postmaster
+    - Create and manage all processes
+    - Create connections/backends
+      local buffer + work_mem (local process memory)
+
+  =Shared memory=
+
+  Parallel = locsk
+  Not good
+  Too many connection bad
+  Most usefull - connection pool
+
+  =MVCC= as solution
+
+  Communication with disc via operating system + os cache
+  Durability -> write ahead log
+
+
+* MVCC
+
+  2 time marks
+  Create time (txid) and delete time (txid)
+
+  select txid_current();
+  xmin
+  xmax
+
+
+  on update
+  delete previous and create new record (with create txid and close txid)
+
+
+  Data shanpshot
+  Current txid and all current working txid
+
+  Row locks
+    - read never lock
+    - row write lock only for another write, read never lock
+
+  Bloat table and index
+
+  Vacuum / Autovacuum
+  - Remove deleted rows
+  - 2 process
+    Autovacuum launcher
+    Autovacuum worker
+
+  Vacuum full
+  - Lock table
+
+* Isolation levels
+
+
+  =Read uncommitted= - +not supporting+
+    read not committed rows
+
+  =Read committed= - ~default~
+    data shaphot for each operator/command
+    read only committed rows
+
+  =Repeatable read=
+    Data shaphot for first operator
+
+  =Serializable=
+    Full isolation (one each other)
+
+* Cache Wal CheckPoint
+
+  WAL - journal, write first (fsync)
+  not for temp and unlogged tables
+
+  =Sync=
+  =Async=
+
+  #+BEGIN_SRC sql
+    select pg_current_wal_lsn();
+  #+END_SRC
+
+  #+RESULTS:
+  | pg_current_wal_lsn |
+  |--------------------|
+  | 1/661785B0         |
+
+  #+BEGIN_SRC sql
+    select * from pg_ls_waldir() limit 10;
+  #+END_SRC
+
+  #+RESULTS:
+  |                     name |     size | modification           |
+  |--------------------------+----------+------------------------|
+  | 000000010000000100000066 | 16777216 | 2021-03-29 12:00:03+00 |
+  | 000000010000000100000067 | 16777216 | 2021-03-29 09:08:08+00 |
+  | 000000010000000100000068 | 16777216 | 2021-03-29 09:08:12+00 |
+  | 000000010000000100000069 | 16777216 | 2021-03-29 09:08:17+00 |
+  | 00000001000000010000006A | 16777216 | 2021-03-29 09:08:41+00 |
+  | 00000001000000010000006B | 16777216 | 2021-03-29 09:08:42+00 |
+  | 00000001000000010000006C | 16777216 | 2021-03-29 09:08:42+00 |
+  | 00000001000000010000006D | 16777216 | 2021-03-29 09:08:43+00 |
+  | 00000001000000010000006E | 16777216 | 2021-03-29 09:08:43+00 |
+  | 00000001000000010000006F | 16777216 | 2021-03-29 09:12:54+00 |
+
+* Checkpoint
+
+  =Checkpointer process=
+  Restore all wals too expensive =(
+  Make checkpoint and dump all buffers to disc
+
+
+  #+BEGIN_SRC
+   checkpoint                checkpoint         fail
+  .....|.........................|................X......
+       |                         | == wal logs == |
+  #+END_SRC
+
+
+* Create database
+
+
+  =DBMS= -> =Database= -> =Schema= -> =Table= -> =Column=
+
+  =DBMS= (Cluster) - ~my.super.instance~
+    =Database= - ~project~
+      =Schema= - ~public~
+        =Table= - ~sample~
+          =Column= -  ~id~ (type)
+
+  By ~default~ - copy =template1=
+
+  #+BEGIN_SRC sql
+    \l
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select * from public.user
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select * from user
+  #+END_SRC
+
+
+  #+BEGIN_SRC sql
+    show search_path;
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select * from pg_catalog.pg_database;
+  #+END_SRC
+
+  =pg_catalog= - implicit
+  =pg_temp_N= - for temp and unlogged tables
+
+  #+BEGIN_SRC sql
+    select pg_size_pretty(pg_database_size('devbox'));
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    \db
+  #+END_SRC
+
+  #+RESULTS:
+  | List of tablespaces |          |             |
+  |---------------------+----------+-------------|
+  | Name                | Owner    | Location    |
+  | pg_default          | root     |             |
+  | pg_global           | root     |             |
+  | pgtbsp              | postgres | /tmp/pgtbsp |
+
+
+  #+BEGIN_SRC sql
+select oid, datname from pg_database;
+  #+END_SRC
+
+  #+RESULTS:
+  |    oid | datname   |
+  |--------+-----------|
+  |  12662 | postgres  |
+  |  16385 | devbox    |
+  |      1 | template1 |
+  |  12661 | template0 |
+  |  16387 | root      |
+  | 593837 | demo      |
+
+  #+BEGIN_SRC sql
+    select pg_relation_filepath('patient');
+  #+END_SRC
+
+  #+RESULTS:
+  | pg_relation_filepath |
+  |----------------------|
+  | base/16385/18017     |
+
+  #+BEGIN_SRC sql
+\d+ patient
+  #+END_SRC
+
+
+  #+BEGIN_SRC sql
+    select pg_relation_filepath('patient_pkey');
+  #+END_SRC
+
+
+  #+RESULTS:
+  | pg_relation_filepath |
+  |----------------------|
+  | base/16385/18026     |
+
+** Table spaces
+
+
+   =pg_global=  -> ~$PGDATA/global~
+   =pg_default= -> ~$PGDATA/base~
+
+   #+BEGIN_SRC sql
+     select * from pg_tablespace
+   #+END_SRC
+
+
+   #+BEGIN_SRC sql
+     create tablespace pgtbsp location '/tmp/pgtbsp';
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     \db
+   #+END_SRC
+
+
+   #+BEGIN_SRC sql
+     create database demo tablespace pgtbsp;
+   #+END_SRC
+
+
+** Toast
+
+   ~Toast~ - The Oversized-Attribute Storage Technique
+
+   Schema =pg_toast=
+
+   1. Zip value untill 8 kb
+   2. Move to another table, and slice
+   3. Move to another table, and slice and zip
+
+   No new version on row update

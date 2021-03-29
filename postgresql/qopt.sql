@@ -1,5 +1,52 @@
 ---- db: -h localhost -p 5437 -U postgres devbox
 
+
+explain (analyze, costs off)
+  select o.resource #>> '{value, Quantity, value}' weight
+         , p.resource #>>'{name, 0, family}' "family"
+    from observation o
+    join patient p
+      on p.id = right(o.resource#>>'{subject, uri}', 36)
+   where o.resource  @> '{"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}'
+order by o.resource #>> '{value, Quantity, value}' desc
+   limit 1
+----
+  create index observation_resource_gin
+  on observation
+  using gin (resource) ;
+
+----
+    "period": {
+        "end": "1983-04-02T15:13:59+04:00",
+        "start": "1983-04-02T14:58:59+04:00"
+    },
+----
+create index e
+----
+select count(*) from encounter;
+----
+select count(*)
+from encounter
+where resource#>>'{period,start}' < '1983-04-03T15:13:59+04:00'
+  and resource#>>'{period,end}'   > '1983-04-01T15:13:59+04:00'
+----
+........|..=.....|........=.....
+----
+\x
+\a
+select jsonb_pretty(resource)
+from  encounter
+order by random()
+limit 1;
+----
+
+  create index observation_resource_gist
+  on observation
+  using gist (resource) ;
+----
+vacuum analyze observation;
+----
+
 ---- Standart protocol
 select count(*) from patient;
 ----
