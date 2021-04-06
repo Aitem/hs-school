@@ -1,4 +1,97 @@
+---- db: -h localhost -p 5400 -U postgres postgres
 ---- db: -h localhost -p 5437 -U postgres devbox
+
+select * from pg_replication_slots;
+
+
+SELECT
+*
+--pid ,wait_event, age(clock_timestamp(), query_start) ,query
+FROM pg_stat_activity
+WHERE
+  query != '<IDLE>'
+  AND query NOT ILIKE '%pg_stat_activity%'
+  AND "state" = 'active'
+ORDER BY query_start  nulls last;
+
+
+
+----
+SELECT
+pg_l.objid,
+pg_l.pid,
+pg_sa.application_name,
+pg_sa.backend_start,
+age(clock_timestamp(), pg_sa.backend_start) as "process_time",
+age(clock_timestamp(), pg_sa.query_start) as "qeury_time"
+
+FROM pg_locks as pg_l
+left join  pg_stat_activity as pg_sa
+on pg_sa.pid = pg_l.pid
+WHERE locktype = 'advisory';
+----
+
+select ....
+
+
+where <left> OP <right>
+
+btree
+= > <
+text
+int
+
+int > int
+text = text
+
+on diagnosticreport using gin ((resource) jsonb_path_value_ops);
+jsonb @@ jsquery
+
+on diagnosticreport using gin ((resource));
+jsonb @> jsonb
+----
+\d+ flag
+----
+drop index flag_resource;
+----
+create index flag_resource
+on flag
+using gin (resource jsonb_path_value_ops);
+----
+select count(*) from flag;
+----
+select jsonb_pretty(resource)
+from flag
+limit 1;
+----
+explain analyze
+select resource #>> '{period,end}', count(*)
+from flag
+limit 1
+
+----
+explain analyze
+select resource #>> '{period,end}',  count(*)
+from flag
+where resource #>> '{period,end}' > '2020-11-10'
+group by resource #>> '{period,end}'
+order by resource #>> '{period,end}' desc
+-- nulls last
+limit 1
+
+----
+\d+ flag
+----
+
+1 2 3 4 5 6 null null null null
+
+----
+explain analyze
+select count(*)
+from flag
+where resource ? 'period'
+--where resource @> '{"period": {"start": "2019-10-15"}}';
+----
 
 
 explain (analyze, costs off)

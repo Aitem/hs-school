@@ -1,0 +1,119 @@
+#+TITLE: DBA
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Intro                                                            :noexport:
+* Table of Contents                                                   :TOC_3:
+- [[#install-aidbox-dev][Install Aidbox Dev]]
+- [[#query][Query]]
+- [[#seq-scan][SEQ scan]]
+- [[#index-scan][Index scan]]
+- [[#bitmap-index-scan][Bitmap Index scan]]
+- [[#gin-index][GIN index]]
+- [[#join][JOIN]]
+  - [[#nested-loop][Nested loop]]
+  - [[#hash-join][Hash join]]
+  - [[#merge-join][Merge join]]
+
+* Install
+
+   #+name: Run db
+   #+BEGIN_SRC bash
+     docker-compose up -d
+   #+END_SRC
+
+   #+name: Check connection and list databases
+   #+BEGIN_SRC sql
+     \l
+   #+END_SRC
+
+
+* Configuration
+
+ - set
+ - postgresql.conf overview
+ - write settings
+
+
+* Backups
+
+ - Logical
+   just sql file
+
+ - Physical
+   just file system snapshot
+
+PG                     > new instance
+
+1) conn replication protocol
+2) wal
+3) copy
+4) next wal
+5) copy wal
+
+         pg_base_backup   cpt         cpt
+--------------|=|----------|-----------|------|=|-------------> t
+          open repl con
+                wal_1   wal_2   wal_3   wal_4
+
+
+DEMO
+
+pg_base_backup instance <-> instance
+  - one thread
+  - not incremental
+
+pg_probackup
+  - parallel
+  - incremental
+
+barman
+  - incremental
+pg_back_rest
+  - incremental
+
+wal-g/wal-e
+  - s3 backups + wal
+  - incremental
+  - parallel
+
+* Replication
+
+ - Stream / Restore_command
+ - Chain
+ - Sync / Async
+
+* Monitoring
+
+** UI
+
+  - Grafana
+  - Kibana
+
+** RAW pg metrics (current time snapshot)
+
+  - Доступность
+  - Доступность replicas
+  - Replicas delay
+  - QPS/TPS
+  - Table space
+  - Connections
+  - Vacuum
+  - Oldest transaction
+  - pg_stat_statements
+  - pg_stat_activity (long query)
+
+** Time destribution
+
+  - PG exporter
+  - PMM
+  - CPU / MEM / HDD
+  - Node exporter
+
+** Logs
+
+  - Audit logs
+    - Elastic
+    - Click House
+  - ELK

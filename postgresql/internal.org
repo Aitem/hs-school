@@ -7,6 +7,7 @@
 
 [[./internal.png]]
 
+From heroku
 * Table of Contents                                                   :TOC_3:
 - [[#install][Install]]
 - [[#pg-architecture][PG architecture]]
@@ -115,9 +116,33 @@
     select id, xmin, xmax from mvcc_test;
   #+END_SRC
 
+  #+RESULTS:
+  | id | xmin | xmax |
+  |----+------+------|
+  |  2 | 1021 |    0 |
+
   #+BEGIN_SRC sql
-    update mvcc_test set id = 2 where id = 1;
+    update mvcc_test set id = 3 where id = 2;
   #+END_SRC
+
+  #+RESULTS:
+  | UPDATE 1 |
+  |----------|
+
+
+  #+BEGIN_SRC sql
+    select id, xmin, xmax from mvcc_test;
+  #+END_SRC
+
+  #+RESULTS:
+  | id | xmin | xmax |
+  |----+------+------|
+  |  6 | 1027 |    0 |
+  |    |      |      |
+  |  3 | 1023 |    0 |
+  | -4 | 1024 |    0 |
+  | -5 | 1024 |    0 |
+
 
   =On update= - delete previous and create new record (with create ~xmin~ and close ~xmax~)
   =Data shanpshot= - all committed data before this transaction
@@ -145,10 +170,10 @@
     read only committed rows
 
     #+BEGIN_SRC sql
-      BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+      BEGIN;
       -- Get data shanpshot
       SELECT count(*) from patient;
-      -- Get data shanpshot
+      -- Get data shanpshot               <-    inser into patient ; commit;
       SELECT count(*) from patient;
       -- Get data shanpshot
       SELECT count(*) from patient;
@@ -161,7 +186,11 @@
       BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ;
       -- Get data shanpshot
       SELECT count(*) from patient;
+      -- <-    inser into patient ; commit;
       SELECT count(*) from patient;
+      -- <-    inser into patient ; commit;
+      SELECT count(*) from patient;
+
       END;
     #+END_SRC
 
@@ -183,9 +212,28 @@
     select pg_current_wal_lsn();
   #+END_SRC
 
+  #+RESULTS:
+  | pg_current_wal_lsn |
+  |--------------------|
+  | 1/661A4660         |
+
   #+BEGIN_SRC sql
     select * from pg_ls_waldir() limit 10;
   #+END_SRC
+
+  #+RESULTS:
+  |                     name |     size | modification           |
+  |--------------------------+----------+------------------------|
+  | 000000010000000100000066 | 16777216 | 2021-03-29 16:55:53+00 |
+  | 000000010000000100000067 | 16777216 | 2021-03-29 09:08:08+00 |
+  | 000000010000000100000068 | 16777216 | 2021-03-29 09:08:12+00 |
+  | 000000010000000100000069 | 16777216 | 2021-03-29 09:08:17+00 |
+  | 00000001000000010000006A | 16777216 | 2021-03-29 09:08:41+00 |
+  | 00000001000000010000006B | 16777216 | 2021-03-29 09:08:42+00 |
+  | 00000001000000010000006C | 16777216 | 2021-03-29 09:08:42+00 |
+  | 00000001000000010000006D | 16777216 | 2021-03-29 09:08:43+00 |
+  | 00000001000000010000006E | 16777216 | 2021-03-29 09:08:43+00 |
+  | 00000001000000010000006F | 16777216 | 2021-03-29 09:12:54+00 |
 
 * Checkpoint
 
@@ -193,14 +241,20 @@
     Restore all wals too expensive
     Make checkpoint and dump all buffers to disc
 
-
   #+BEGIN_SRC
    checkpoint                checkpoint         fail
-  .....|.........................|................X......
-       |                         | == wal logs == |
+  .....|.........................|................X.............+......
+       |+++++++++++++++++++++++++| == wal logs == |++++++++++++++
   #+END_SRC
 
 
+On update
+
+- fsync wal log
+- update on mem table page 8k
+
+on checkpoint
+- dump mem to disc
 * Create database
 
 
@@ -222,14 +276,29 @@
     select * from public.user
   #+END_SRC
 
+  #+RESULTS:
+  | id    | txid | cts                           | ts                            | resource_type | status  | resource                                                                                                                |
+  |-------+------+-------------------------------+-------------------------------+---------------+---------+-------------------------------------------------------------------------------------------------------------------------|
+  | admin |    0 | 2021-03-29 08:23:59.389413+00 | 2021-03-29 08:23:59.389413+00 | User          | updated | {"password": "$s0$f0801$wQ8ZxzZycFnYhw4Q+ImR3g==$u3MeQsgFg3AlaEOidHz8e2Fw0UkyNH43NcB/FEgZWn0=", "resourceType": "User"} |
+
   #+BEGIN_SRC sql
     select * from user
   #+END_SRC
+
+  #+RESULTS:
+  | user     |
+  |----------|
+  | postgres |
 
 
   #+BEGIN_SRC sql
     show search_path;
   #+END_SRC
+
+  #+RESULTS:
+  | search_path     |
+  |-----------------|
+  | "$user", public |
 
   #+BEGIN_SRC sql
     select * from pg_catalog.pg_database;
@@ -256,37 +325,57 @@
 
 
   #+BEGIN_SRC sql
-select oid, datname from pg_database;
+    select oid, datname from pg_database;
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select pg_relation_filepath('mvcc_test');
+  #+END_SRC
+
+#+BEGIN_SRC sql
+vacuum analyze mvcc_test;
+#+END_SRC
+
+
+  #+RESULTS:
+  | VACUUM |
+  |--------|
+
+  #+BEGIN_SRC sql
+insert into mvcc_test (id )
+select id from generate_series(4, 3000) id;
   #+END_SRC
 
   #+RESULTS:
-  |    oid | datname   |
-  |--------+-----------|
-  |  12662 | postgres  |
-  |  16385 | devbox    |
-  |      1 | template1 |
-  |  12661 | template0 |
-  |  16387 | root      |
-  | 593837 | demo      |
+  | INSERT 0 2997 |
+  |---------------|
+
+
+#+BEGIN_SRC sql
+select count(*) from mvcc_test;
+#+END_SRC
+
+  #+RESULTS:
+  | count |
+  |-------|
+  |     6 |
 
   #+BEGIN_SRC sql
-    select pg_relation_filepath('patient');
+CHECKPOINT
   #+END_SRC
 
   #+RESULTS:
-  | pg_relation_filepath |
-  |----------------------|
-  | base/16385/18017     |
+  | CHECKPOINT |
+  |------------|
 
   #+BEGIN_SRC sql
-\d+ patient
+    \d+ patient
   #+END_SRC
 
 
   #+BEGIN_SRC sql
     select pg_relation_filepath('patient_pkey');
   #+END_SRC
-
 
   #+RESULTS:
   | pg_relation_filepath |
