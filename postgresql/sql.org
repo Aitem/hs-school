@@ -49,6 +49,7 @@
     - [[#task][Task]]
 - [[#out-of-scope][Out of scope]]
 - [[#sql-trainers][SQL trainers]]
+- [[#home-work][Home Work]]
 
 * Plan
 
@@ -335,7 +336,6 @@
       ADD column ts timestamptz;
     #+END_SRC
 
-    #+name: Describe table
     #+BEGIN_SRC sql
       \d+ sample
     #+END_SRC
@@ -431,6 +431,10 @@
     #+END_SRC
 
     #+BEGIN_SRC sql
+      select * from sample;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
       truncate sample;
     #+END_SRC
 
@@ -449,9 +453,19 @@
 
     #+BEGIN_SRC sql
       CREATE or replace FUNCTION my_summ(a int, b int) RETURNS int AS $$
-	SELECT a + b;
+	SELECT a + b +1;
       $$ LANGUAGE sql;
     #+END_SRC
+
+
+    #+BEGIN_SRC sql
+    select every(my_summ(a, b) = res)
+    from (values (1, 2, 3)
+	        ,(2, 2, 4)
+		,(5, 2, 7)
+                ,(2, 2, 4)) t(a,b, res)
+    #+END_SRC
+
 
 *** Select
 
@@ -575,7 +589,6 @@
       REVOKE ALL PRIVILEGES ON sample FROM samurai;
     #+END_SRC
 
-    #+name: Check privileges
     #+BEGIN_SRC sql
       SELECT grantee, privilege_type
       FROM information_schema.role_table_grants
@@ -883,7 +896,7 @@
 :zap: [[https://www.postgresql.org/docs/13/functions-array.html][Array Functions and Operators]]
 
     #+BEGIN_SRC sql
-      select ARRAY[1, 2,3];
+      select ARRAY[1, 2, 3];
     #+END_SRC
 
     #+BEGIN_SRC sql
@@ -1018,8 +1031,7 @@
    [[https://postgrespro.ru/docs/postgrespro/13/queries-with?lang=en][Common Table Expressions]] - provides a way to write auxiliary statements for use in a larger query.
 
     #+BEGIN_SRC sql
-      with
-	numbers as (
+      with numbers as (
 	  select generate_series(1, 5) x)
       select * from numbers;
     #+END_SRC
@@ -1076,6 +1088,14 @@
 	 ,(6, 2, 'Хирургия')
 #+END_SRC
 
+
+#+BEGIN_SRC sql
+select * from organization;
+#+END_SRC
+
+
+
+
 **** Answer
 
 #+BEGIN_SRC sql
@@ -1097,13 +1117,7 @@
   join organization o
     on o.id = orgs.head
   order by lvl desc
-  limit 1
 #+END_SRC
-
-#+RESULTS:
-| deepest_org | dpth |
-|-------------+------|
-| ГКБ 1       |    4 |
 
 * Out of scope
 
@@ -1117,3 +1131,21 @@
   [[https://sql-academy.org/][SQL academy]] - interactive ui, rating, complex tasks
   [[https://sql-ex.ru/][SQL-ex]] - very old site
   [[https://pgexercises.com/][PostgreSQL Exercises]] - Good ui
+
+* Home Work
+
+  Find all gaps in table:
+
+#+BEGIN_SRC sql
+  create table gaps (id integer primary key);
+  insert into gaps (id) select x from generate_series(1, 10000) x;
+  delete from gaps where id between 102 and 105;
+  delete from gaps where id between 134 and 176;
+#+END_SRC
+
+  Result:
+
+| from |  to |
+|------+-----|
+|  102 | 105 |
+|  134 | 176 |

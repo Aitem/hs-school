@@ -1,0 +1,24 @@
+#+TITLE: Structured Query Language - HW day 1
+#+AUTHOR: M. Surmashev @muradbei
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Find gaps
+
+  Дана таблица с числовой последовательностью из которой были удалены некоторые последовательности значений
+  Задача - найти все удаленные последовательности
+
+** Входные данные
+
+   #+BEGIN_SRC sql
+     create table gaps (id integer primary key);
+     insert into gaps (id) select x from generate_series(1, 10000) x;
+     delete from gaps where id between 102 and 105;
+     delete from gaps where id between 134 and 176;
+   #+END_SRC
+
+** Ожидаемый результат
+
+| from |  to |
+|------+-----|
+|  102 | 105 |
+|  134 | 176 |
