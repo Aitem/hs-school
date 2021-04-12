@@ -84,6 +84,11 @@ wal-g/wal-e
  - Chain
  - Sync / Async
 
+pg_logical
+bdr
+
+second kvadrant
+
 * Monitoring
 
 ** UI
@@ -103,6 +108,7 @@ wal-g/wal-e
   - Oldest transaction
   - pg_stat_statements
   - pg_stat_activity (long query)
+  _ pg_stat_replication
 
 ** Time destribution
 
