@@ -56,7 +56,6 @@
     - Query types
     - Data types
     - Aggregates
-    - JOINS
     - CTE
 
   - =JSON/JSONB=
@@ -76,7 +75,7 @@
       - [[#hash-join][Hash join]]
       - [[#merge-join][Merge join]]
     - [[#gin-index][GIN index]]
-    - Index variation
+    - Index variations
       - MultiColumnt
       - Partial
       - Functional
@@ -106,7 +105,6 @@
    #+BEGIN_SRC bash
      docker-compose up -d
    #+END_SRC
-
 
    #+name: Check connection bash psql
    #+BEGIN_SRC bash :results value drawer
@@ -259,13 +257,16 @@
       );
     #+END_SRC
 
-
     #+BEGIN_SRC sql
       \d+ person
     #+END_SRC
 
     #+BEGIN_SRC sql
       select * from pg_indexes where tablename = 'person';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      \ds
     #+END_SRC
 
     #+BEGIN_SRC sql
@@ -325,7 +326,7 @@
 
     #+name: Describe table
     #+BEGIN_SRC sql
-      \d sample
+      \d+ sample
     #+END_SRC
 
     #+name: Add column
@@ -447,17 +448,15 @@
      Create test suite for function ~my_summ~ that summ two integers
 
     #+BEGIN_SRC sql
-      CREATE or replace FUNCTION my_summ(i int) RETURNS int AS $$
-	SELECT i + 1;
+      CREATE or replace FUNCTION my_summ(a int, b int) RETURNS int AS $$
+	SELECT a + b;
       $$ LANGUAGE sql;
     #+END_SRC
 
-
-
 *** Select
 
-    [[https://postgrespro.ru/docs/postgresql/13/sql-select?lang=en][SELECT]] — retrieve rows from a table or view
-    [[https://postgrespro.ru/docs/postgresql/13/sql-selectinto?lang=en][SELECT INTO]] — define a new table from the results of a query
+   - [[https://postgrespro.ru/docs/postgresql/13/sql-select?lang=en][SELECT]] — retrieve rows from a table or view
+   - [[https://postgrespro.ru/docs/postgresql/13/sql-selectinto?lang=en][SELECT INTO]] — define a new table from the results of a query
 
     #+BEGIN_SRC sql
       select * from sample;
