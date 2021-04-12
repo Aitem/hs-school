@@ -19,13 +19,13 @@
     - [[#alter][Alter]]
     - [[#drop][Drop]]
   - [[#dml][DML]]
-    - [[#insert][=Insert=]]
-    - [[#select][=Select=]]
-    - [[#update][=Update=]]
-    - [[#delete][=Delete=]]
+    - [[#inser][Inser]]
+    - [[#select][Select]]
+    - [[#update][Update]]
+    - [[#delete][Delete]]
   - [[#dcl][DCL]]
-    - [[#grant][=Grant=]]
-    - [[#revoke][=Revoke=]]
+    - [[#grant][Grant]]
+    - [[#revoke][Revoke]]
   - [[#tcl][TCL]]
   - [[#pgsql][PGSQL]]
     - [[#samples][Samples]]
@@ -382,7 +382,7 @@
     - [[https://postgrespro.ru/docs/postgresql/13/sql-droptype?lang=en][DROP TYPE]] — remove a data type
     - [[https://postgrespro.ru/docs/postgresql/13/sql-dropuser?lang=en][DROP USER]] — remove a database role
     - [[https://postgrespro.ru/docs/postgresql/13/sql-dropusermapping?lang=en][DROP USER MAPPING]] — remove a user mapping for a foreign server
-    [[https://postgrespro.ru/docs/postgresql/13/sql-dropview?lang=en][DROP VIEW]] — remove a view
+    - [[https://postgrespro.ru/docs/postgresql/13/sql-dropview?lang=en][DROP VIEW]] — remove a view
 
 **** Sample
 
@@ -404,7 +404,7 @@
   ~Data Manipulation Language~ - used for adding (inserting), deleting,
   selecting, and modifying (updating) data in a database.
 
-*** =Insert=
+*** Inser
 
     [[https://postgrespro.ru/docs/postgresql/13/sql-insert?lang=en][INSERT]] — create new rows in a table
 
@@ -430,21 +430,28 @@
       truncate sample;
     #+END_SRC
 
-   ⚡  [[https://postgrespro.ru/docs/postgresql/13/sql-values?lang=en][VALUES]] — compute a set of rows
+    #+BEGIN_QUOTE
+    ⚡  [[https://postgrespro.ru/docs/postgresql/13/sql-values?lang=en][VALUES]] — compute a set of rows
+    #+END_QUOTE
 
     #+BEGIN_SRC sql
       values (1) ,(2) ,(3);
     #+END_SRC
 
-    #+BEGIN_SRC sql
-      values (now()), (current_timestamp);
-    #+END_SRC
+
+**** Task
+
+     Create test suite for function ~my_summ~ that summ two integers
 
     #+BEGIN_SRC sql
-      select now();
+      CREATE or replace FUNCTION my_summ(i int) RETURNS int AS $$
+	SELECT i + 1;
+      $$ LANGUAGE sql;
     #+END_SRC
 
-*** =Select=
+
+
+*** Select
 
     [[https://postgrespro.ru/docs/postgresql/13/sql-select?lang=en][SELECT]] — retrieve rows from a table or view
     [[https://postgrespro.ru/docs/postgresql/13/sql-selectinto?lang=en][SELECT INTO]] — define a new table from the results of a query
@@ -461,7 +468,7 @@
       select * from sample_big;
     #+END_SRC
 
-*** =Update=
+*** Update
 
     [[https://postgrespro.ru/docs/postgresql/13/sql-update?lang=en][UPDATE]] — update rows of a table
 
@@ -477,7 +484,7 @@
       select * from sample
     #+END_SRC
 
-*** =Delete=
+*** Delete
 
     [[https://postgrespro.ru/docs/postgresql/13/sql-delete?lang=en][DELETE]] — delete rows of a table
 
@@ -491,11 +498,47 @@
 
     ⚡ [[https://postgrespro.ru/docs/postgresql/13/sql-truncate?lang=en][TRUNCATE]] — empty a table or set of tables
 
+     [ RESTART IDENTITY | CONTINUE IDENTITY ]
+
+    #+BEGIN_SRC sql
+      create table seq_sample (
+        id serial,
+        t text
+      );
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql
+      \d+ seq_sample
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select nextval('seq_sample_id_seq')
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      insert into seq_sample (t)
+      values ('one'), ('two');
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select * from seq_sample;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      truncate seq_sample;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      truncate seq_sample RESTART IDENTITY;
+    #+END_SRC
+
+
 ** DCL
 
   ~Data Control Language~ - defines the control over the data in the database.
 
-*** =Grant=
+*** Grant
 
     [[https://postgrespro.ru/docs/postgresql/13/sql-grant?lang=en][GRANT]] — define access privileges
 
@@ -521,7 +564,7 @@
       WHERE table_name='sample'
     #+END_SRC
 
-*** =Revoke=
+*** Revoke
 
     [[https://postgrespro.ru/docs/postgresql/13/sql-revoke?lang=en][REVOKE]] — remove access privileges
 
