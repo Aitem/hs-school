@@ -19,3 +19,6 @@ delete from sample;
 select * from sample;
 rollback;
 ----
+\x
+show all
+----

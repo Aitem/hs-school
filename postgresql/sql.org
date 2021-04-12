@@ -35,18 +35,20 @@
   - [[#datetime-types][Date/Time Types]]
   - [[#jsonjsonb][JSON/JSONB]]
   - [[#boolean-type][Boolean Type]]
+  - [[#null][NULL]]
   - [[#geometric-types][Geometric Types]]
   - [[#arrays][Arrays]]
-  - [[#null][NULL]]
   - [[#other-types][Other Types]]
+  - [[#postgresql-forks][PostgreSQL forks]]
 - [[#aggregates][Aggregates]]
-  - [[#sorting-and-filtering][Sorting and Filtering]]
+  - [[#sorting-and-filtering-in-aggregates][Sorting and Filtering in aggregates]]
   - [[#window-functions][Window Functions]]
 - [[#joins][Joins]]
 - [[#cte-and-recursive][CTE and RECURSIVE]]
   - [[#recursive][Recursive]]
+    - [[#task][Task]]
+- [[#out-of-scope][Out of scope]]
 - [[#sql-trainers][SQL trainers]]
-- [[#home-work][Home Work]]
 
 * Plan
 
@@ -248,6 +250,7 @@
       \d+ sample
     #+END_SRC
 
+    ⚡ Serial and Unique
 
     #+BEGIN_SRC sql
       create table person (
@@ -717,10 +720,11 @@
       select (1.5)::integer
     #+END_SRC
 
-   #+BEGIN_SRC sql
-     create table sample_serial (
+    #+BEGIN_SRC sql
+      create table sample_serial (
 	id serial,
-	name varchar(10))
+	name varchar(10)
+      )
    #+END_SRC
 
     #+BEGIN_SRC sql
@@ -764,6 +768,7 @@
       select now();
     #+END_SRC
 
+
     #+BEGIN_SRC sql
       select EXTRACT(hours from now());
     #+END_SRC
@@ -792,7 +797,7 @@
 ** Boolean Type
 
    [[https://postgrespro.ru/docs/postgrespro/10/datatype-boolean?lang=en][Boolean Type]] - can have several states: ~true~, ~false~, and a third
-                  state, ~unknown~, which is represented by the SQL null value.
+                  state, ~unknown~, which is represented by the SQL ~null~ value.
 
     #+BEGIN_SRC sql
       select 1 > 2;
@@ -800,6 +805,44 @@
 
     #+BEGIN_SRC sql
       select false;
+    #+END_SRC
+
+** NULL
+
+   #+BEGIN_SRC sql
+     select true = true;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select true = null;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select false = null;
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     select null is null;
+   #+END_SRC
+
+    #+BEGIN_SRC sql
+      select 5 + null;
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select 5 + coalesce(null, 0);
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+    select 'Hello' || ' ' || 'world';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select 'Hello' || null || ' ' || 'world';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select concat('Hello', null, ' ', 'world')
     #+END_SRC
 
 ** Geometric Types
@@ -845,6 +888,10 @@
     #+END_SRC
 
     #+BEGIN_SRC sql
+      select ARRAY[1, 2, 'ups'];
+    #+END_SRC
+
+    #+BEGIN_SRC sql
       select '{1, 2, 3}'::int[];
     #+END_SRC
 
@@ -852,43 +899,14 @@
       select ARRAY['{"name": "Joe"}', '{"name": "Bob"}'];
     #+END_SRC
 
-** NULL
-
-   #+BEGIN_SRC sql
-     select true = true;
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-     select true = null;
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-     select false = null;
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-     select null is null;
-   #+END_SRC
-
     #+BEGIN_SRC sql
-      select 5 + null;
+      select ARRAY['{"name": "Joe"}'::jsonb, '{"name": "Bob"}'::jsonb];
     #+END_SRC
 
     #+BEGIN_SRC sql
-      select 5 + coalesce(null, 0);
+      select ARRAY['[{"name": "Joe"}]'::jsonb, '[{"name": "Bob"}]'::jsonb];
     #+END_SRC
 
-    #+BEGIN_SRC sql
-    select 'Hello' || ' ' || 'world';
-    #+END_SRC
-
-    #+BEGIN_SRC sql
-      select 'Hello' || null || ' ' || 'world';
-    #+END_SRC
-
-    #+BEGIN_SRC sql
-      select concat('Hello', null, ' ', 'world')
-    #+END_SRC
 
 ** Other Types
 
@@ -906,8 +924,15 @@
                   A pseudo-type cannot be used as a column data type, but it can be
                   used to declare a function's argument or result type.
 
-* Aggregates
+** PostgreSQL forks
 
+   [[https://www.timescale.com/][Timescale DB]] - PostgreSQL for time-series.
+   [[https://postgis.net/][PostGIS]] - adds support for geographic objects allowing location queries to be run in SQL.
+   [[https://www.postgres-xl.org/][Postgres-XL]] - Postgres-XL is an all-purpose fully ACID open source scale-out SQL database solution.
+   [[https://greenplum.org/][Greenplum]] - Massively Parallel Postgres for Analytics.
+   [[https://github.com/pipelinedb/pipelinedb][PipelineDB]] - PostgreSQL extension for high-performance time-series aggregation, designed to power realtime reporting and analytics applications.
+
+* Aggregates
 
   [[https://www.postgresql.org/docs/9.5/functions-aggregate.html][Aggregate Functions]] - compute a single result from a set of input values.
 
@@ -919,7 +944,7 @@
     from  generate_series(0, 5) x
   #+END_SRC
 
-** Sorting and Filtering
+** Sorting and Filtering in aggregates
 
   #+BEGIN_SRC sql
     select array_agg(x)
@@ -946,29 +971,48 @@
 
 ** Window Functions
 
-  [[https://www.postgresql.org/docs/9.1/tutorial-window.html][Window Functions]] - performs a calculation across a set of table rows that are somehow related to the current row.
+   [[https://www.postgresql.org/docs/12/functions-window.html][Window Functions]] - performs a calculation across a set of table rows that are somehow related to the current row.
 
   #+BEGIN_SRC sql
     select EXTRACT(YEAR from d), v
           , lag(v, -1) over (order by d desc) prev
           , v - lag(v, -1) over (order by d desc)  inc
-    from (values ('2021-01-01'::timestamp, 10)
-               , ('2020-01-01'::timestamp, 8)
-               , ('2019-01-01'::timestamp, 10)
-               , ('2018-01-01'::timestamp, 5))  t(d, v)
+    from (values ('2021-01-01'::date, 10)
+               , ('2020-01-01'::date, 8)
+               , ('2019-01-01'::date, 10)
+               , ('2018-01-01'::date, 5))  t(d, v)
   #+END_SRC
-
-  #+RESULTS:
-  | date_part |  v | prev | inc |
-  |-----------+----+------+-----|
-  |      2021 | 10 |    8 |   2 |
-  |      2020 |  8 |   10 |  -2 |
-  |      2019 | 10 |    5 |   5 |
-  |      2018 |  5 |      |     |
 
 * Joins
 
-  WIP
+  #+BEGIN_SRC sql
+    create table j_a (
+      id serial,
+      t text);
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    insert into j_a (t)
+    values ('odin'), ('dwa');
+  #+END_SRC
+
+#+BEGIN_SRC sql
+  create table j_b (
+    id serial,
+    t text)
+#+END_SRC
+
+  #+BEGIN_SRC sql
+    insert into j_b (t)
+    values ('one'), ('two');
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    select *
+      from j_a a
+      join j_b b
+	on a.id = b.id
+  #+END_SRC
 
 * CTE and RECURSIVE
 
@@ -976,20 +1020,20 @@
 
     #+BEGIN_SRC sql
       with
-      numbers as (
+	numbers as (
 	  select generate_series(1, 5) x)
       select * from numbers;
     #+END_SRC
 
     #+BEGIN_SRC sql
-    with
-    numbers as (
-	select generate_series(1, 5) x
-    ),
-    odd as (
-	select * from numbers where (x % 2) = 1
-    )
-    select x as "odd" from odd;
+      with
+	numbers as (
+	  select generate_series(1, 5) x
+	),
+	odd as (
+	  select * from numbers where (x % 2) = 1
+	)
+      select x as "odd" from odd;
     #+END_SRC
 
 ** Recursive
@@ -1011,62 +1055,66 @@
       SELECT * FROM r;
     #+END_SRC
 
+*** Task
+
+    Find deepest organization
 
     #+BEGIN_SRC sql
-      CREATE TABLE geo (
-	  id int not null primary key,
-	  parent_id int references geo(id),
-	  name varchar(1000)
+      create table organization (
+	id int,
+	parent int,
+	name text
       );
     #+END_SRC
 
-    #+BEGIN_SRC sql
-      INSERT INTO geo
-        (id, parent_id, name)
-      VALUES
-	(1, null, 'Планета Земля'),
-	(2, 1, 'Континент Евразия'),
-	(3, 1, 'Континент Северная Америка'),
-	(4, 2, 'Европа'),
-	(5, 4, 'Россия'),
-	(6, 4, 'Германия'),
-	(7, 5, 'Москва'),
-	(8, 5, 'Санкт-Петербург'),
-	(9, 6, 'Берлин');
-    #+END_SRC
+#+BEGIN_SRC sql
+  insert into organization (id, parent, name)
+  values (1, null, 'ГКБ 1')
+	 ,(2, null, 'ГКБ 2')
+	 ,(3, 1, 'Детское отделение')
+	 ,(4, 3, 'Правое крыло')
+	 ,(5, 4, 'Кабинет педиатора')
+	 ,(6, 2, 'Хирургия')
+#+END_SRC
 
-    #+RESULTS:
-    |   |
+**** Answer
 
+#+BEGIN_SRC sql
+  with recursive orgs as
+  (
+     select *, 1 lvl, id head
+     from organization
+     where parent is null
 
-    #+BEGIN_SRC sql
-      WITH RECURSIVE r AS (
-	SELECT id, parent_id, name
-	FROM geo
-	WHERE parent_id = 4
+     union
 
-	UNION
+     select o.*, orgs.lvl + 1 lvl, orgs.head head
+     from orgs as orgs
+     join organization as o
+       on o.parent = orgs.id
+  )
+  select o.name as deepest_org, orgs.lvl dpth
+  from orgs orgs
+  join organization o
+    on o.id = orgs.head
+  order by lvl desc
+  limit 1
+#+END_SRC
 
-	SELECT geo.id, geo.parent_id, geo.name
-	FROM geo
-	JOIN r ON geo.parent_id = r.id
-      )
+#+RESULTS:
+| deepest_org | dpth |
+|-------------+------|
+| ГКБ 1       |    4 |
 
-      SELECT * FROM r;
-    #+END_SRC
+* Out of scope
+
+  - Views and Materialized views
+  - Roles and permissions
+  - Triggers
 
 * SQL trainers
 
   [[https://learndb.ru/][LearnDB]] - modern UI, theory and practic
   [[https://sql-academy.org/][SQL academy]] - interactive ui, rating, complex tasks
   [[https://sql-ex.ru/][SQL-ex]] - very old site
-
-
-https://pgexercises.com/
-https://postgrespro.ru/education/university/sqlprimer
-
-* Home Work
-
-  [[./hw.org][Home work]]
- - Recursive
- - Duplicates
+  [[https://pgexercises.com/][PostgreSQL Exercises]] - Good ui
