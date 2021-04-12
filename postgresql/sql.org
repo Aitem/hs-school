@@ -1,6 +1,5 @@
 #+TITLE: Structured Query Language
 #+AUTHOR: M. Surmashev @muradbei
-#+OPTIONS: \n:t
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 

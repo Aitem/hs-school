@@ -1,65 +1,79 @@
-#+TITLE: PG basics
-#+PROPERTY: header-args:sql :engine postgresql :dbport 5439 :dbhost localhost :dbuser postgres :dbpassword postgres :database testbox
+#+TITLE: HS SCHOOL
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 
-* List databases
 
-#+BEGIN_SRC shell :results value drawer
-  docker ps
-#+END_SRC
+* Table of Contents                                                   :TOC_3:
+- [[#postgresql-intensive][PostgreSQL intensive]]
+  - [[#sql][SQL]]
+  - [[#jsonjsonb][JSON/JSONB]]
+  - [[#qopt][QOPT]]
+  - [[#postgresql-internal][PostgreSQL internal]]
+  - [[#administration][Administration]]
+- [[#devops][DevOps]]
+- [[#clojureclojurescript][Clojure/ClojureScript]]
 
+* PostgreSQL intensive
+
+PostgreSQL intensive Crash Course by Healt-Samurai
 
 ** SQL
 
-#+BEGIN_SRC sql
-select id, resource->'name' patient_name
-from patient
-limit 1 ;
-#+END_SRC
+  - Query types
+  - Data types
+  - Aggregates
+  - JOINS
+  - CTE
 
-#+RESULTS:
-| id                                   | patient_name                                                                |
-|--------------------------------------+-----------------------------------------------------------------------------|
-| 5cc4a9ca-c3ed-46d0-a654-29ff17421854 | [{"use": "official", "given": ["ВЛАДИМИР", "ЮРЬЕВИЧ"], "family": "ПАВЛОВ"}] |
+** JSON/JSONB
+
+  - [[#basic-operators-and-functions][Basic operators and functions]]
+  - [[#jsquery][Jsquery]]
+  - [[#jsonpath][JsonPath]]
+  - [[#json-knife][Json knife]]
+
+** QOPT
+
+  - [[#query][Query]]
+  - Access Methods
+    - [[#seq-scan][SEQ scan]]
+    - [[#index-scan][Index scan]]
+    - [[#bitmap-index-scan][Bitmap Index scan]]
+  - [[#join][JOIN]]
+    - [[#nested-loop][Nested loop]]
+    - [[#hash-join][Hash join]]
+    - [[#merge-join][Merge join]]
+  - [[#gin-index][GIN index]]
+  - Index variation
+    - MultiColumnt
+    - Partial
+    - Functional
+
+** PostgreSQL internal
+
+  - MVCC
+  - Isolation
+  - Toast
+  - Storage
+  - Checkpoints
+  - Wal
+
+** Administration
+
+  - Replication
+  - Backup and resotre
+  - Monitoring
 
 
-** Explain
+* DevOps
 
-#+BEGIN_SRC sql
-  explain analyze
-  select id , ts , cts
-  from patient
-  where id = '5cc4a9ca-c3ed-46d0-a654-29ff17421854';
-#+END_SRC
-
-#+RESULTS:
-| QUERY PLAN                                                                                                            |
-|-----------------------------------------------------------------------------------------------------------------------|
-| Index Scan using patient_pkey on patient  (cost=0.43..8.45 rows=1 width=53) (actual time=4.726..4.742 rows=1 loops=1) |
-| Index Cond: (id = '5cc4a9ca-c3ed-46d0-a654-29ff17421854'::text)                                                       |
-| Planning Time: 21.190 ms                                                                                              |
-| Execution Time: 4.830 ms                                                                                              |
+   #+BEGIN_QUOTE
+   ⚡ Work In Progress
+   #+END_QUOTE
 
 
+* Clojure/ClojureScript
 
-* Aggregates
-
-
-#+BEGIN_SRC sql
-  select count(*) as practitioner
-    from practitioner;
-#+END_SRC
-
-#+RESULTS:
-| practitioner |
-|--------------|
-|        23033 |
-
-
-
-#+name: my-query
-#+BEGIN_SRC sql
-  select count(*)
-  from organization;
-#+END_SRC
-
-#+RESULTS: my-query
+   #+BEGIN_QUOTE
+   ⚡ Work In Progress
+   #+END_QUOTE
