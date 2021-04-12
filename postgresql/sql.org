@@ -208,7 +208,6 @@
     - ... - mean that the preceding element can be repeated
     - , ... - mean that the preceding element can be repeated with separator ~,~
 
-   #+BEGIN_QUOTE
     ~CREATE~ =[ [= ~GLOBAL~ | ~LOCAL~ =]= ={= ~TEMPORARY~ | ~TEMP~ =}= | ~UNLOGGED~ =]= ~TABLE~
     =[= ~IF NOT EXISTS~ =]= *table_name*
     (=[{= *column_name* *data_type* =[= ~COLLATE~ *collation* =] [= *column_constraint* =[ ... ]= ] |
@@ -221,7 +220,6 @@
     =[= ~WITH~ ( *storage_parameter* =[= value =] [=, ... =]= ) | ~WITHOUT OIDS~ =]=
     =[= ~ON COMMIT~ ={= ~PRESERVE ROWS~ | ~DELETE ROWS~ | ~DROP~ =}= =]=
     =[= ~TABLESPACE~ *tablespace_name* =]=
-   #+END_QUOTE
 
 ***** Example
 
