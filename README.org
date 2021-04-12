@@ -53,8 +53,8 @@ PostgreSQL intensive Crash Course by Healt-Samurai
 
   - MVCC
   - Isolation
-  - Toast
   - Storage
+  - Toast
   - Checkpoints
   - Wal
 

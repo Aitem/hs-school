@@ -7,45 +7,108 @@
 
  [[./blackhole.png]]
 
+
+* Table of Contents                                                   :TOC_3:
+- [[#intro][Intro]]
+- [[#plan][Plan]]
+- [[#install][Install]]
+- [[#what-is-sql][What is SQL?]]
+- [[#query-types][Query types]]
+  - [[#ddl][DDL]]
+    - [[#create][Create]]
+    - [[#alter][Alter]]
+    - [[#drop][Drop]]
+  - [[#dml][DML]]
+    - [[#insert][=Insert=]]
+    - [[#select][=Select=]]
+    - [[#update][=Update=]]
+    - [[#delete][=Delete=]]
+  - [[#dcl][DCL]]
+    - [[#grant][=Grant=]]
+    - [[#revoke][=Revoke=]]
+  - [[#tcl][TCL]]
+  - [[#pgsql][PGSQL]]
+    - [[#samples][Samples]]
+- [[#data-types][Data Types]]
+  - [[#numeric-types][Numeric Types]]
+  - [[#character-types][Character Types]]
+  - [[#datetime-types][Date/Time Types]]
+  - [[#jsonjsonb][JSON/JSONB]]
+  - [[#boolean-type][Boolean Type]]
+  - [[#geometric-types][Geometric Types]]
+  - [[#arrays][Arrays]]
+  - [[#null][NULL]]
+  - [[#other-types][Other Types]]
+- [[#aggregates][Aggregates]]
+  - [[#sorting-and-filtering][Sorting and Filtering]]
+  - [[#window-functions][Window Functions]]
+- [[#joins][Joins]]
+- [[#cte-and-recursive][CTE and RECURSIVE]]
+  - [[#recursive][Recursive]]
+- [[#sql-trainers][SQL trainers]]
+- [[#home-work][Home Work]]
+
 * Plan
 
-** SQL
+  - =SQL=
+    - Query types
+    - Data types
+    - Aggregates
+    - JOINS
+    - CTE
 
-  - Query types
-  - Data types
-  - Aggregates
-  - JOINS
-  - CTE
+  - =JSON/JSONB=
+    - [[#basic-operators-and-functions][Basic operators and functions]]
+    - [[#jsquery][Jsquery]]
+    - [[#jsonpath][JsonPath]]
+    - [[#json-knife][Json knife]]
 
-** JSON/JSONB
+  - =QOPT=
+    - [[#query][Query]]
+    - Access Methods
+      - [[#seq-scan][SEQ scan]]
+      - [[#index-scan][Index scan]]
+      - [[#bitmap-index-scan][Bitmap Index scan]]
+    - [[#join][JOIN]]
+      - [[#nested-loop][Nested loop]]
+      - [[#hash-join][Hash join]]
+      - [[#merge-join][Merge join]]
+    - [[#gin-index][GIN index]]
+    - Index variation
+      - MultiColumnt
+      - Partial
+      - Functional
 
-** Indexes
+  - =PostgreSQL Internal=
+    - MVCC
+    - Isolation
+    - Storage
+    - Toast
+    - Checkpoints
+    - Wal
 
-  - Explain
-  - BTREE
-  - GIN
-  - GIST
-
-** PostgreSQL internal
-
-  - Storage
-  - MVCC
-  - Isolation
-  - Toast
-  - Checkpoints
-  - Wal
-
-** Administration
-
-  - Replication
-  - Backup and resotre
-  - Monitoring
+  - =Administration=
+    - Configuration
+    - Replication
+    - Backup and resotre
+    - Monitoring
 
 * Install
+
+   #+name: docker-compose.yaml
+  #+BEGIN_SRC bash :results value drawer
+    cat ./docker-compose.yaml
+  #+END_SRC
 
    #+name: Run db
    #+BEGIN_SRC bash
      docker-compose up -d
+   #+END_SRC
+
+
+   #+name: Check connection bash psql
+   #+BEGIN_SRC bash :results value drawer
+     psql -h localhost -p 5400 -U postgres -c '\l'
    #+END_SRC
 
    #+name: Check connection and list databases
@@ -86,52 +149,52 @@
   ~Data Definition Language~ - is a syntax for creating and modifying
   database objects such as =table=, =index=, =user= and etc.
 
-*** =Create=
+*** Create
 
     PostgreSQL =Create= commans list
 
-    [[https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en][CREATE ACCESS METHOD]] — define a new access method
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en][CREATE AGGREGATE]] — define a new aggregate function
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en][CREATE CAST]] — define a new cast
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createcollation?lang=en][CREATE COLLATION]] — define a new collation
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createconversion?lang=en][CREATE CONVERSION]] — define a new encoding conversion
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createdatabase?lang=en][CREATE DATABASE]] — create a new database
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createdomain?lang=en][CREATE DOMAIN]] — define a new domain
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createeventtrigger?lang=en][CREATE EVENT TRIGGER]] — define a new event trigger
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createextension?lang=en][CREATE EXTENSION]] — install an extension
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createforeigndatawrapper?lang=en][CREATE FOREIGN DATA WRAPPER]] — define a new foreign-data wrapper
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createforeigntable?lang=en][CREATE FOREIGN TABLE]] — define a new foreign table
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createfunction?lang=en][CREATE FUNCTION]] — define a new function
-    [[https://postgrespro.ru/docs/postgresql/13/sql-creategroup?lang=en][CREATE GROUP]] — define a new database role
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createindex?lang=en][CREATE INDEX]] — define a new index
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createlanguage?lang=en][CREATE LANGUAGE]] — define a new procedural language
-    [[https://postgrespro.ru/docs/postgresql/13/sql-creatematerializedview?lang=en][CREATE MATERIALIZED VIEW]] — define a new materialized view
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createoperator?lang=en][CREATE OPERATOR]] — define a new operator
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createopclass?lang=en][CREATE OPERATOR CLASS]] — define a new operator class
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createopfamily?lang=en][CREATE OPERATOR FAMILY]] — define a new operator family
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createpolicy?lang=en][CREATE POLICY]] — define a new row level security policy for a table
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createprocedure?lang=en][CREATE PROCEDURE]] — define a new procedure
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createpublication?lang=en][CREATE PUBLICATION]] — define a new publication
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createrole?lang=en][CREATE ROLE]] — define a new database role
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createrule?lang=en][CREATE RULE]] — define a new rewrite rule
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createschema?lang=en][CREATE SCHEMA]] — define a new schema
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createsequence?lang=en][CREATE SEQUENCE]] — define a new sequence generator
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createserver?lang=en][CREATE SERVER]] — define a new foreign server
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createstatistics?lang=en][CREATE STATISTICS]] — define extended statistics
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createsubscription?lang=en][CREATE SUBSCRIPTION]] — define a new subscription
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtable?lang=en][CREATE TABLE]] — define a new table
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtableas?lang=en][CREATE TABLE AS]] — define a new table from the results of a query
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtablespace?lang=en][CREATE TABLESPACE]] — define a new tablespace
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsconfig?lang=en][CREATE TEXT SEARCH CONFIGURATION]] — define a new text search configuration
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsdictionary?lang=en][CREATE TEXT SEARCH DICTIONARY]] — define a new text search dictionary
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsparser?lang=en][CREATE TEXT SEARCH PARSER]] — define a new text search parser
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtstemplate?lang=en][CREATE TEXT SEARCH TEMPLATE]] — define a new text search template
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtransform?lang=en][CREATE TRANSFORM]] — define a new transform
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtrigger?lang=en][CREATE TRIGGER]] — define a new trigger
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createtype?lang=en][CREATE TYPE]] — define a new data type
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createuser?lang=en][CREATE USER]] — define a new database role
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createusermapping?lang=en][CREATE USER MAPPING]] — define a new mapping of a user to a foreign server
-    [[https://postgrespro.ru/docs/postgresql/13/sql-createview?lang=en][CREATE VIEW]] — define a new view
+    [[https://postgrespro.ru/docs/postgresql/13/sql-create-access-method?lang=en][CREATE ACCESS METHOD]] — define a new access method \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createaggregate?lang=en][CREATE AGGREGATE]] — define a new aggregate function \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createcast?lang=en][CREATE CAST]] — define a new cast \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createcollation?lang=en][CREATE COLLATION]] — define a new collation \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createconversion?lang=en][CREATE CONVERSION]] — define a new encoding conversion \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createdatabase?lang=en][CREATE DATABASE]] — create a new database \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createdomain?lang=en][CREATE DOMAIN]] — define a new domain \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createeventtrigger?lang=en][CREATE EVENT TRIGGER]] — define a new event trigger \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createextension?lang=en][CREATE EXTENSION]] — install an extension \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createforeigndatawrapper?lang=en][CREATE FOREIGN DATA WRAPPER]] — define a new foreign-data wrapper \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createforeigntable?lang=en][CREATE FOREIGN TABLE]] — define a new foreign table \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createfunction?lang=en][CREATE FUNCTION]] — define a new function \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-creategroup?lang=en][CREATE GROUP]] — define a new database role \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createindex?lang=en][CREATE INDEX]] — define a new index \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createlanguage?lang=en][CREATE LANGUAGE]] — define a new procedural language \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-creatematerializedview?lang=en][CREATE MATERIALIZED VIEW]] — define a new materialized view \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createoperator?lang=en][CREATE OPERATOR]] — define a new operator \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createopclass?lang=en][CREATE OPERATOR CLASS]] — define a new operator class \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createopfamily?lang=en][CREATE OPERATOR FAMILY]] — define a new operator family \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createpolicy?lang=en][CREATE POLICY]] — define a new row level security policy for a table \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createprocedure?lang=en][CREATE PROCEDURE]] — define a new procedure \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createpublication?lang=en][CREATE PUBLICATION]] — define a new publication \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createrole?lang=en][CREATE ROLE]] — define a new database role \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createrule?lang=en][CREATE RULE]] — define a new rewrite rule \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createschema?lang=en][CREATE SCHEMA]] — define a new schema \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createsequence?lang=en][CREATE SEQUENCE]] — define a new sequence generator \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createserver?lang=en][CREATE SERVER]] — define a new foreign server \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createstatistics?lang=en][CREATE STATISTICS]] — define extended statistics \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createsubscription?lang=en][CREATE SUBSCRIPTION]] — define a new subscription \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtable?lang=en][CREATE TABLE]] — define a new table \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtableas?lang=en][CREATE TABLE AS]] — define a new table from the results of a query \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtablespace?lang=en][CREATE TABLESPACE]] — define a new tablespace \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsconfig?lang=en][CREATE TEXT SEARCH CONFIGURATION]] — define a new text search configuration \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsdictionary?lang=en][CREATE TEXT SEARCH DICTIONARY]] — define a new text search dictionary \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtsparser?lang=en][CREATE TEXT SEARCH PARSER]] — define a new text search parser \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtstemplate?lang=en][CREATE TEXT SEARCH TEMPLATE]] — define a new text search template \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtransform?lang=en][CREATE TRANSFORM]] — define a new transform \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtrigger?lang=en][CREATE TRIGGER]] — define a new trigger \\ \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createtype?lang=en][CREATE TYPE]] — define a new data type \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createuser?lang=en][CREATE USER]] — define a new database role \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createusermapping?lang=en][CREATE USER MAPPING]] — define a new mapping of a user to a foreign server \\
+    [[https://postgrespro.ru/docs/postgresql/13/sql-createview?lang=en][CREATE VIEW]] — define a new view \\
 
 **** CREATE TABLE
 
@@ -163,38 +226,51 @@
 
     #+name: Create table without rows
     #+BEGIN_SRC sql
-      CREATE table empty_sample ();
+      CREATE table if not exists empty_sample ();
     #+END_SRC
+
 
     #+name: Describe table
-    #+BEGIN_SRC sql
-      \dt
+    #+BEGIN_SRC sql :results value drawer
+      \d+ empty_sample
     #+END_SRC
 
-    #+RESULTS: Describe table
-    | List of relations |               |       |          |
-    |-------------------+---------------+-------+----------|
-    | Schema            | Name          | Type  | Owner    |
-    | public            | empty_sample  | table | postgres |
-    | public            | sampl_serial  | table | postgres |
-    | public            | sample        | table | postgres |
-    | public            | sample_big    | table | postgres |
-    | public            | sample_serial | table | postgres |
 
     #+name: Create table
     #+BEGIN_SRC sql
-      CREATE table sample (
+      CREATE table if not exists sample (
         id int not null,
         name varchar(256) default 'HS'
       );
     #+END_SRC
 
-    #+name: Describe table
+    #+name: Describe table sample
     #+BEGIN_SRC sql
-      \d sample
+      \d+ sample
     #+END_SRC
 
-*** =Alter=
+
+    #+BEGIN_SRC sql
+      create table person (
+         id serial,
+         name varchar(256) unique
+      );
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql
+      \d+ person
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select * from pg_indexes where tablename = 'person';
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select * from pg_sequences;
+    #+END_SRC
+
+*** Alter
 
     PostgreSQL =Alter= commans list
 
@@ -258,10 +334,10 @@
 
     #+name: Describe table
     #+BEGIN_SRC sql
-      \d sample
+      \d+ sample
     #+END_SRC
 
-*** =Drop=
+*** Drop
 
     PostgreSQL =Drop= commans list
 
@@ -322,6 +398,7 @@
     #+BEGIN_SRC sql
       \dt
     #+END_SRC
+
 
 ** DML
 
