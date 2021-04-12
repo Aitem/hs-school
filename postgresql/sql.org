@@ -12,10 +12,12 @@
 ** SQL
 
   - Query types
-  - JSONB
+  - Data types
   - Aggregates
   - JOINS
   - CTE
+
+** JSON/JSONB
 
 ** Indexes
 
@@ -23,6 +25,7 @@
   - BTREE
   - GIN
   - GIST
+
 ** PostgreSQL internal
 
   - Storage
