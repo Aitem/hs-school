@@ -1078,15 +1078,15 @@
       );
     #+END_SRC
 
-#+BEGIN_SRC sql
-  insert into organization (id, parent, name)
-  values (1, null, 'ГКБ 1')
-	 ,(2, null, 'ГКБ 2')
-	 ,(3, 1, 'Детское отделение')
-	 ,(4, 3, 'Правое крыло')
-	 ,(5, 4, 'Кабинет педиатора')
-	 ,(6, 2, 'Хирургия')
-#+END_SRC
+    #+BEGIN_SRC sql
+      insert into organization (id, parent, name)
+      values (1, null, 'ГКБ 1')
+	     ,(2, null, 'ГКБ 2')
+	     ,(3, 1, 'Детское отделение')
+	     ,(4, 3, 'Правое крыло')
+	     ,(5, 4, 'Кабинет педиатора')
+	     ,(6, 2, 'Хирургия')
+    #+END_SRC
 
 
 #+BEGIN_SRC sql
@@ -1117,6 +1117,7 @@ select * from organization;
   join organization o
     on o.id = orgs.head
   order by lvl desc
+  limit 1;
 #+END_SRC
 
 * Out of scope
