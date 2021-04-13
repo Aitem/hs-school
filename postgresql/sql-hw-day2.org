@@ -2,7 +2,7 @@
 #+AUTHOR: M. Surmashev @muradbei
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
-* Largest Organization
+* Task 1 - Largest Organization
 
   В таблице со списком огранизаций, найти головную организацию с наибольшим числом отделений.
 
@@ -36,7 +36,7 @@
    | ГКБ 2 |   5 |
 
 
-* Materialized path
+* Task 2 - Materialized path
 
   Для таблицы ~organization~ добавть колонку ~pth~ с типом ~int[]~
 
@@ -84,7 +84,7 @@
    |  9 |      6 | Кабинет 3         | {2,6}   |
 
 
-* Use materialized path
+* Task 3 - Use materialized path
 
   Используя материализованный путь, найти все отделения принадлежащие =ГКБ 2=
 
