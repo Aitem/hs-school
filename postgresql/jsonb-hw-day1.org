@@ -1,0 +1,130 @@
+#+TITLE: JSONB - HW day 1
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Support array stats on class work task
+
+** Входные данные
+
+   Create table ~test_patient~ with two columns =id::int= and =resource::jsonb=
+
+   #+BEGIN_SRC sql
+     create table test_patient
+       (
+	 id serial primary key,
+	 resource jsonb
+       )
+   #+END_SRC
+
+   Insert sample dataset from ~./patient.csv~ file. Link for this file [[./patient.csv]]
+
+   #+BEGIN_SRC sql
+     \copy test_patient(resource) from './patient.csv' DELIMITER E'\t' quote '|'  csv
+   #+END_SRC
+
+   Check results
+   #+BEGIN_SRC sql
+     select count(*) from test_patient;
+   #+END_SRC
+
+   Write sql query that should return usage stats of all keys/paths including keys in arrays from table ~test_patient~. \\
+   E.G. should be returned stats for  ~{identifier}~, ~{identifier,value}~, ~{identifier,system}~
+
+   *Exmaple:*
+
+   For sample JSON
+
+   #+BEGIN_SRC json
+     {"identifier": [{"system": "frmr", "value": "12"},
+		     {"system": "snomed", "value": "E12"}],
+      "name": "Sample"}
+   #+END_SRC
+
+   *Should return:*
+
+   | path                     | count |
+   |--------------------------+-------|
+   | ["identifier"]           |     1 |
+   | ["identifier", "system"] |     2 |
+   | ["identifier", "value"]  |     2 |
+   | ["name"]                 |     1 |
+
+
+** Ожидаемый результат
+
+   | path                                       | count | persent |
+   |--------------------------------------------+-------+---------|
+   | {extension,url}                            |   868 |     700 |
+   | {identifier,system}                        |   568 |     458 |
+   | {identifier,value}                         |   568 |     458 |
+   | {extension,extension,url}                  |   496 |     400 |
+   | {identifier,type,text}                     |   444 |     358 |
+   | {identifier,type,coding}                   |   444 |     358 |
+   | {identifier,type,coding,display}           |   444 |     358 |
+   | {identifier,type,coding,system}            |   444 |     358 |
+   | {identifier,type}                          |   444 |     358 |
+   | {identifier,type,coding,code}              |   444 |     358 |
+   | {extension,extension,valueCoding,display}  |   248 |     200 |
+   | {extension,extension,valueCoding}          |   248 |     200 |
+   | {extension,valueDecimal}                   |   248 |     200 |
+   | {extension,extension,valueString}          |   248 |     200 |
+   | {extension,extension}                      |   248 |     200 |
+   | {address,extension,extension,valueDecimal} |   248 |     200 |
+   | {extension,extension,valueCoding,code}     |   248 |     200 |
+   | {address,extension,extension,url}          |   248 |     200 |
+   | {extension,extension,valueCoding,system}   |   248 |     200 |
+   | {name,family}                              |   152 |     123 |
+   | {name,given}                               |   152 |     123 |
+   | {name,use}                                 |   152 |     123 |
+   | {name,prefix}                              |   128 |     103 |
+   | {meta,lastUpdated}                         |   124 |     100 |
+   | {address,extension,extension}              |   124 |     100 |
+   | {communication,language,coding}            |   124 |     100 |
+   | {address,state}                            |   124 |     100 |
+   | {maritalStatus}                            |   124 |     100 |
+   | {communication,language,text}              |   124 |     100 |
+   | {telecom,system}                           |   124 |     100 |
+   | {identifier}                               |   124 |     100 |
+   | {gender}                                   |   124 |     100 |
+   | {telecom,value}                            |   124 |     100 |
+   | {address,city}                             |   124 |     100 |
+   | {extension,valueString}                    |   124 |     100 |
+   | {maritalStatus,text}                       |   124 |     100 |
+   | {telecom,use}                              |   124 |     100 |
+   | {text,div}                                 |   124 |     100 |
+   | {text}                                     |   124 |     100 |
+   | {extension,valueCode}                      |   124 |     100 |
+   | {meta}                                     |   124 |     100 |
+   | {communication,language,coding,system}     |   124 |     100 |
+   | {communication,language,coding,code}       |   124 |     100 |
+   | {maritalStatus,coding,display}             |   124 |     100 |
+   | {address,line}                             |   124 |     100 |
+   | {birthDate}                                |   124 |     100 |
+   | {extension,valueAddress,state}             |   124 |     100 |
+   | {name}                                     |   124 |     100 |
+   | {address,country}                          |   124 |     100 |
+   | {communication}                            |   124 |     100 |
+   | {extension,valueAddress}                   |   124 |     100 |
+   | {address,extension}                        |   124 |     100 |
+   | {id}                                       |   124 |     100 |
+   | {maritalStatus,coding,system}              |   124 |     100 |
+   | {telecom}                                  |   124 |     100 |
+   | {communication,language,coding,display}    |   124 |     100 |
+   | {address,extension,url}                    |   124 |     100 |
+   | {text,status}                              |   124 |     100 |
+   | {extension,valueAddress,country}           |   124 |     100 |
+   | {multipleBirth}                            |   124 |     100 |
+   | {maritalStatus,coding}                     |   124 |     100 |
+   | {extension,valueAddress,city}              |   124 |     100 |
+   | {maritalStatus,coding,code}                |   124 |     100 |
+   | {meta,versionId}                           |   124 |     100 |
+   | {extension}                                |   124 |     100 |
+   | {address}                                  |   124 |     100 |
+   | {communication,language}                   |   124 |     100 |
+   | {multipleBirth,boolean}                    |   121 |      98 |
+   | {address,postalCode}                       |    94 |      76 |
+   | {deceased}                                 |    24 |      19 |
+   | {deceased,dateTime}                        |    24 |      19 |
+   | {multipleBirth,integer}                    |     3 |       2 |
+   | {name,suffix}                              |     1 |       1 |
