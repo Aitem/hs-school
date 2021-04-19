@@ -1,0 +1,53 @@
+#+TITLE: Structured Query Language - HW day 1
+#+AUTHOR: M. Surmashev @muradbei
+
+
+* PlantUML samples
+
+  #+begin_src plantuml :file my-diagram.png
+    title Hello KgOfHedgehogs from @muradbei
+
+    Aitem->KgOfHedgehogs: Authentication Request
+    note right of Aitem: Aitem thinks about it
+    KgOfHedgehogs->Aitem: Authentication Response
+  #+end_src
+
+  #+RESULTS:
+  [[file:my-diagram.png]]
+
+
+
+  #+BEGIN_SRC  plantuml :file ui.png
+
+    @startsalt
+    {
+      Just plain text
+      [This is my button]
+      ()  Unchecked radio
+      (X) Checked radio
+      []  Unchecked box
+      [X] Checked box
+      "Enter text here   "
+      ^This is a droplist^
+    }
+    @endsalt
+
+  #+END_SRC
+
+  #+RESULTS:
+  [[file:ui.png]]
+
+
+#+BEGIN_SRC  plantuml :file mindmap.png
+
+  @startmindmap
+  ,*[#Orange] Hello Pupuska
+  ,**[#lightgreen] Green
+  ,**[#FFBBCC] Rose
+  ,**[#lightblue] Blue
+  @endmindmap
+
+#+END_SRC
+
+#+RESULTS:
+[[file:mindmap.png]]

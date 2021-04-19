@@ -3,7 +3,9 @@
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
-* 1) Support array stats on class work task
+* Task 1
+
+  Support array stats on class work task
 
   Create table ~test_patient~ with two columns =id::int= and =resource::jsonb=
 
@@ -15,34 +17,41 @@
       )
   #+END_SRC
 
-  #+RESULTS:
-  | CREATE TABLE |
-  |--------------|
-
   Insert sample dataset from ~./patient.csv~ file. Link for this file [[./patient.csv]]
 
   #+BEGIN_SRC sql
     \copy test_patient(resource) from './patient.csv' DELIMITER E'\t' quote '|'  csv
   #+END_SRC
 
-  #+RESULTS:
-  | COPY 124 |
-  |----------|
-
   Check results
   #+BEGIN_SRC sql
     select count(*) from test_patient;
   #+END_SRC
 
-  #+RESULTS:
-  | count |
-  |-------|
-  |   124 |
-
   Write sql query that should return usage stats of all keys/paths including keys in arrays from table ~test_patient~. \\
   E.G. should be returned stats for  ~{identifier}~, ~{identifier,value}~, ~{identifier,system}~
 
-  *Exmaple of result:*
+  *Exmaple:*
+
+  For sample JSON
+
+  #+BEGIN_SRC json
+    {"identifier": [{"system": "frmr", "value": "12"},
+		    {"system": "snomed", "value": "E12"}],
+     "name": "Sample"}
+  #+END_SRC
+
+  *Should return:*
+
+  | path                     | count |
+  |--------------------------+-------|
+  | ["identifier"]           |     1 |
+  | ["identifier", "system"] |     2 |
+  | ["identifier", "value"]  |     2 |
+  | ["name"]                 |     1 |
+
+
+  *Final of result:*
 
   | path                                       | count | persent |
   |--------------------------------------------+-------+---------|

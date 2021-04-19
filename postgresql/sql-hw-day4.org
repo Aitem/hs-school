@@ -1,0 +1,9 @@
+#+TITLE: Structured Query Language - HW day 4
+#+AUTHOR: M. Surmashev @muradbei
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+
+* TODO: Format as home work
+
+
+https://docs.google.com/document/d/1vtDRMfUcJP4bf2EW2Ymdk2nlDU1XAOgv7QqS9xDPXLQ/edit?usp=sharing
