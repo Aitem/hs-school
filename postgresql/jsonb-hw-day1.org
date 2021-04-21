@@ -53,7 +53,7 @@
 
 ** Ожидаемый результат
 
-   | path                                       | count | persent |
+   | path                                       | count | percent |
    |--------------------------------------------+-------+---------|
    | {extension,url}                            |   868 |     700 |
    | {identifier,system}                        |   568 |     458 |

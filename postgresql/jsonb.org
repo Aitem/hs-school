@@ -573,7 +573,7 @@
        keys as
 	 (
 	   select jsonb_build_array(key) pth, value
-	     from "organization", jsonb_each(resource)
+	     from "test_patient", jsonb_each(resource)
 
 	    union
 
