@@ -30,29 +30,29 @@
 
   Необходимо в данном объекте поменять все мобильные телефоны с ~+7~ на ~8~.
 
-  Мобильным телефоном считается поле ~value~ в массиве ~telecom~, у которого =use= = ~'mobile'~ и =system= = ~'phone'~
+  Мобильным телефоном считается поле ~value~ в массиве ~telecom~, у которого =use= = ~mobile~ и =system= = ~phone~
 
 
 ** Результат
 
-   | jsonb_pretty                |
-   |-----------------------------|
-   | {                           |
-   | "telecom": [                |
-   | {                           |
-   | "use": "work",              |
-   | "value": "+7555-486-3253",  |
-   | "system": "phone"           |
-   | },                          |
-   | {                           |
-   | "use": "work",              |
-   | "value": "call-me@baby",    |
-   | "system": "emal"            |
-   | },                          |
-   | {                           |
-   | "use": "mobile",            |
-   | "value": "8-981-123-12-01", |
-   | "system": "phone"           |
-   | }                           |
-   | ]                           |
-   | }                           |
+   #+BEGIN_SRC json
+     {   "resourceType": "Patient",
+	 "telecom": [
+	     {
+		 "use": "work",
+		 "value": "+7555-486-3253",
+		 "system": "phone"
+	     },
+	     {
+		 "use": "work",
+		 "value": "call-me@baby",
+		 "system": "emal"
+	     },
+	     {
+		 "use": "mobile",
+		 "value": "8-981-123-12-01",
+		 "system": "phone"
+	     }
+	 ]
+     }
+   #+END_SRC
