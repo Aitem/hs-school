@@ -1,0 +1,58 @@
+#+TITLE: JSONB - HW day 3
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* JSONB migration
+
+  Дан JSONB объект содержащий ресурс ~Patient~ по стандарту [[https://www.hl7.org/fhir/patient.html][FHIR]]
+
+  #+BEGIN_SRC sql
+    select $$
+    {"resourceType": "Patient",
+     "telecom": [
+	{
+	    "use":"work",
+	    "value":"+7555-486-3253",
+	    "system":"phone"
+	},{
+	    "use":"work",
+	    "value":"call-me@baby",
+	    "system":"emal"
+	},{
+	    "use":"mobile",
+	    "value":"+7-981-123-12-01",
+	    "system":"phone"
+	}]
+    }
+    $$::jsonb
+  #+END_SRC
+
+  Необходимо в данном объекте поменять все мобильные телефоны с ~+7~ на ~8~.
+
+  Мобильным телефоном считается поле ~value~ в массиве ~telecom~, у которого =use= = ~'mobile'~ и =system= = ~'phone'~
+
+
+** Результат
+
+   | jsonb_pretty                |
+   |-----------------------------|
+   | {                           |
+   | "telecom": [                |
+   | {                           |
+   | "use": "work",              |
+   | "value": "+7555-486-3253",  |
+   | "system": "phone"           |
+   | },                          |
+   | {                           |
+   | "use": "work",              |
+   | "value": "call-me@baby",    |
+   | "system": "emal"            |
+   | },                          |
+   | {                           |
+   | "use": "mobile",            |
+   | "value": "8-981-123-12-01", |
+   | "system": "phone"           |
+   | }                           |
+   | ]                           |
+   | }                           |
