@@ -54,7 +54,7 @@
 
 ** Fill data
 
-   Download sql dump file with ~Patient~, ~Observation~, ~Condition~, ~Encounter~, ~DocumentReference~ tables.
+   Download [[https://storage.googleapis.com/aidbox-public/school/fhir_data_sample.dump][fhir_data_sample.dump]] file with ~Patient~, ~Observation~, ~Condition~, ~Encounter~, ~DocumentReference~ tables.
 
    #+BEGIN_SRC bash
       pg_restore -p 5400 -h localhost -U postgres -d postgres fhir_data_sample.dump
@@ -68,20 +68,6 @@
      select count(*) docreffs    from documentreference;
    #+END_SRC
 
-   #+RESULTS:
-   :RESULTS:
-   patient
-   1182
-   observation
-   370360
-   condition
-   15257
-   encounter
-   56153
-   docreffs
-   56153
-   :END:
-
 * Optimization
 
  - =Optimize database instance=
@@ -92,17 +78,16 @@
 
 * Query
 
+ =Simple= and =Extended= Query [[https://www.postgresql.org/docs/12/protocol-flow.html][Message Flow]]
+
 ** Standart (simple) protocol
 
-   Query execution states
+   Query execution states:
 
    - ~Parse~ sql string into AST
    - ~Rewrite~ transform query
    - ~Planning~ create exution plan
    - ~Execute~ execute query
-
-   SQL specified what we are want
-   Database - how it should be executed
 
 *** Extrra
 
@@ -111,7 +96,8 @@
     #+END_SRC
 
     #+BEGIN_SRC sql
-      alter system set log_planner_stats = on;
+	    alter
+      system set log_planner_stats = on;
     #+END_SRC
 
     #+BEGIN_SRC sql
@@ -128,13 +114,13 @@
     #+END_SRC
 
     #+BEGIN_SRC bash :results value pp
-      docker logs -n 60 devbox_devbox-db_1 2>&1 | egrep 'LOG|elapsed'
+      docker logs -n 60 hs-db 2>&1 | egrep 'LOG|elapsed'
     #+END_SRC
 
+** Extened protocol
+   The results of preparatory steps can be re-used multiple times for improved efficiency.
 
-** Extended protocol
-
-   =Prepare statements= - save ast after revrite) -> execute (plan execute) ->
+   =Prepare statements= - save ast after revrite
      - ~PREPARE~
      - ~pg_prepared_statements~ view
 
@@ -149,32 +135,80 @@
    - Plan Estimate
      - Selectivity (statistics)
 
+   #+BEGIN_SRC sql
+     select * from pg_stats
+     where tablename = 'patient'
+     limit 10
+   #+END_SRC
+
+* Query Optimization
+
+  Optimization query execution plan
+
+  - =EXPLAIN= - read query execution plan
+  - =DATA ACCESS= adn =DATA JOIN= - seq/index scan, merge/hash join, nested loops ...
+  - =INDEXES= - btree, gin, gist, rum, multicolumn, partial, functional ...
+
+* Explain
+
+   [[https://postgrespro.ru/docs/postgrespro/12/using-explain?lang=en][Using explain]] documentation
+
+   #+BEGIN_SRC sql :results value drawer
+     explain (analyze)
+     select count(id)
+       from patient
+      where resource->>'birthDate' > '2000-01-01'
+   #+END_SRC
+
+   #+BEGIN_SRC sql :results value drawer
+     explain analyze
+     select count(e.id)
+       from patient p
+       join encounter e
+         on e.resource#>>'{subject,id}' = p.id
+      where p.resource->>'birthDate' > '2000-01-01'
+   #+END_SRC
+
 * SEQ scan
 
   =Sequential scan=
 
   #+BEGIN_SRC sql :results value drawer
     explain (analyze, buffers, costs off)
-    select ts from patient
-    order by ts;
+     select id
+       from patient
+      --where resource->>'birthDate' > '2000-01-01'
   #+END_SRC
-
 
   =Parallel seq scan=
 
-  #+BEGIN_SRC sql :results value drawer
-    explain analyze
-    select ts from observation;
-  #+END_SRC
+  Just select very heavy for parallel
 
   #+BEGIN_SRC sql :results value drawer
     explain analyze
-    select count(ts) from observation;
+    select ts
+      from observation
+  #+END_SRC
+
+  Aggregates good for parallel
+
+  #+BEGIN_SRC sql :results value drawer
+    explain analyze
+     select count(*)
+       from observation
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    show  max_parallel_workers_per_gather
   #+END_SRC
 
 
   #+BEGIN_SRC sql
-    show  max_parallel_workers_per_gather
+    show  max_parallel_workers_per_gather;
+    alter system set  max_parallel_workers_per_gather = DEFAULT;
+    select pg_reload_conf();
+    show  max_parallel_workers_per_gather;
+
   #+END_SRC
 
   *Default:*
@@ -187,250 +221,103 @@
 
 * Index scan
 
+  [[https://habr.com/ru/company/postgrespro/blog/330544/][Btree Index]]
+
+  [[./btree.png]]
+
+
   =Index scan= / =Index only scan=
 
-  #+BEGIN_SRC sql :results value
+  #+BEGIN_SRC sql :results value drawer
     \d+ patient
   #+END_SRC
 
-  #+RESULTS:
-  | Table "public.patient"                 |                          |           |          |                   |          |              |             |
-  |----------------------------------------+--------------------------+-----------+----------+-------------------+----------+--------------+-------------|
-  | Column                                 | Type                     | Collation | Nullable | Default           | Storage  | Stats target | Description |
-  | id                                     | text                     |           | not null |                   | extended |              |             |
-  | txid                                   | bigint                   |           | not null |                   | plain    |              |             |
-  | cts                                    | timestamp with time zone |           |          | CURRENT_TIMESTAMP | plain    |              |             |
-  | ts                                     | timestamp with time zone |           |          | CURRENT_TIMESTAMP | plain    |              |             |
-  | resource_type                          | text                     |           |          | 'Patient'::text   | extended |              |             |
-  | status                                 | resource_status          |           | not null |                   | plain    |              |             |
-  | resource                               | jsonb                    |           | not null |                   | extended |              |             |
-  | Indexes:                               |                          |           |          |                   |          |              |             |
-  | "patient_pkey" PRIMARY KEY, btree (id) |                          |           |          |                   |          |              |             |
-  | Access method: heap                    |                          |           |          |                   |          |              |             |
-
 
   #+BEGIN_SRC sql :results value drawer
-    explain analyze
+    explain (analyze, buffers)
      select resource
-       from patient
-      where id = '176121b8-3f42-0ef6-75c5-a71778bc32d9';
+       from observation
+      where id = 'bc666ab5-b43d-63a0-2f5a-3ce4b57b6fc1'
   #+END_SRC
 
-  #+RESULTS:
-  :results:
-  QUERY PLAN
-  Index Scan using patient_pkey on patient  (cost=0.28..8.29 rows=1 width=320) (actual time=0.108..0.125 rows=1 loops=1)
-    Index Cond: (id = '176121b8-3f42-0ef6-75c5-a71778bc32d9'::text)
-  Planning Time: 2.656 ms
-  Execution Time: 0.230 ms
-  :end:
-
-  #+BEGIN_SRC sql
-    explain analyze
+  #+BEGIN_SRC sql :results value drawer
+    explain (analyze, buffers)
      select id
-       from patient
-      where id = '176121b8-3f42-0ef6-75c5-a71778bc32d9';
+       from observation
+      where id = 'bc666ab5-b43d-63a0-2f5a-3ce4b57b6fc1'
   #+END_SRC
 
-  #+RESULTS:
-  | QUERY PLAN                                                                                                                 |
-  |----------------------------------------------------------------------------------------------------------------------------|
-  | Index Only Scan using patient_pkey on patient  (cost=0.28..4.29 rows=1 width=37) (actual time=1.514..1.530 rows=1 loops=1) |
-  | Index Cond: (id = '176121b8-3f42-0ef6-75c5-a71778bc32d9'::text)                                                            |
-  | Heap Fetches: 0                                                                                                            |
-  | Planning Time: 6.438 ms                                                                                                    |
-  | Execution Time: 1.598 ms                                                                                                   |
 
+** =Task 1= - find Patient with phohe ~555-712-8424~
 
-** What about JSONB?
-
-   =Task 1= - find Patient with phohe  ~555-636-7428~
+  What about JSONB?
 
    #+BEGIN_SRC sql :results value drawer
-     explain analyze
-       select id, resource->'telecom'
+    explain analyze
+     select id, resource->'telecom'
        from patient
-       where resource#>>'{telecom,0,value}' = '555-636-7428';
+      where resource#>>'{telecom,0,value}' = '555-712-8424';
    #+END_SRC
 
-   #+RESULTS:
-   :results:
-   QUERY PLAN
-   Index Scan using patien_phone on patient  (cost=0.28..8.30 rows=1 width=69) (actual time=0.178..0.200 rows=1 loops=1)
-     Index Cond: ((resource #>> '{telecom,0,value}'::text[]) = '555-636-7428'::text)
-   Planning Time: 4.177 ms
-   Execution Time: 0.294 ms
-   :end:
+*** Answer
 
-1 2 3 4 5 6 7 8 9
+    #+BEGIN_SRC sql
+      create index patien_phone on patient ((resource#>>'{telecom,0,value}'));
+    #+END_SRC
 
+    #+BEGIN_SRC sql
+      vacuum analyze patient;
+    #+END_SRC
 
-    3,       5,   8
-  |       |     |   |
-1->2->3  4->5  7->8 9
-
-   #+BEGIN_SRC sql
-     create index patien_phone on patient ((resource#>>'{telecom,0,value}'));
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-     vacuum analyze patient;
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-     drop index patien_phone;
-   #+END_SRC
-
+    #+BEGIN_SRC sql
+      drop index patien_phone;
+    #+END_SRC
 
 *** Extra
 
-  parallel index scan
-    min_parallel_index_scan
-    parallel_workers (for table)
-
+  - parallel index scan
+  - parallel_workers (for table)
 
 * Bitmap Index scan
 
-
   Bitmap index scan
    where select from index return too many rows
-   and data order by random
-  Parallel Bitmap Heap Scan
+   and data randomly ordered
 
-  BitmapOr
-  BitmapAnd
+** =Task 2= - find patients with birthDate gt 2020-01-01
+
+   #+BEGIN_SRC sql
+     create index patient_resource_birthdate
+         on patient ((resource#>>'{birthDate}'));
+   #+END_SRC
+
+   #+BEGIN_SRC sql
+     vacuum analyze patient
+   #+END_SRC
 
 
-  =Task 3= - find 5 most older patients
-
-
-  #+BEGIN_SRC sql :results value drawer
-    explain analyze
+   #+BEGIN_SRC sql :results value drawer
+     explain analyze
       select id, resource#>>'{birthDate}'
-      from patient
-      where resource#>>'{birthDate}' > '2000-01-01'
-            and resource->'telecom'#>>'{0,value}' > '555-408-5373'
-      --order by resource#>>'{birthDate}'
-#+END_SRC
+	from patient
+       where resource#>>'{birthDate}' > '2020-01-01'
+   #+END_SRC
 
-#+RESULTS:
-:results:
-QUERY PLAN
-Bitmap Heap Scan on patient  (cost=9.98..85.20 rows=75 width=69) (actual time=0.154..5.886 rows=149 loops=1)
-  Recheck Cond: ((resource #>> '{birthDate}'::text[]) > '2000-01-01'::text)
-  Filter: (((resource -> 'telecom'::text) #>> '{0,value}'::text[]) > '555-408-5373'::text)
-  Rows Removed by Filter: 81
-  Heap Blocks: exact=70
-  ->  Bitmap Index Scan on patient_bd  (cost=0.00..9.96 rows=224 width=0) (actual time=0.069..0.076 rows=230 loops=1)
-        Index Cond: ((resource #>> '{birthDate}'::text[]) > '2000-01-01'::text)
-Planning Time: 6.089 ms
-Execution Time: 7.165 ms
-:end:
-
-#+BEGIN_SRC sql
-vacuum analyze patient
-#+END_SRC
-
-#+RESULTS:
-| VACUUM |
-|--------|
-
-#+BEGIN_SRC sql
-\d+ patient
-#+END_SRC
-
-#+RESULTS:
-| Table "public.patient"                                            |                          |           |          |                   |          |              |             |
-|-------------------------------------------------------------------+--------------------------+-----------+----------+-------------------+----------+--------------+-------------|
-| Column                                                            | Type                     | Collation | Nullable | Default           | Storage  | Stats target | Description |
-| id                                                                | text                     |           | not null |                   | extended |              |             |
-| txid                                                              | bigint                   |           | not null |                   | plain    |              |             |
-| cts                                                               | timestamp with time zone |           |          | CURRENT_TIMESTAMP | plain    |              |             |
-| ts                                                                | timestamp with time zone |           |          | CURRENT_TIMESTAMP | plain    |              |             |
-| resource_type                                                     | text                     |           |          | 'Patient'::text   | extended |              |             |
-| status                                                            | resource_status          |           | not null |                   | plain    |              |             |
-| resource                                                          | jsonb                    |           | not null |                   | extended |              |             |
-| Indexes:                                                          |                          |           |          |                   |          |              |             |
-| "patient_pkey" PRIMARY KEY, btree (id)                            |                          |           |          |                   |          |              |             |
-| "patien_phone" btree ((resource #>> '{telecom,0,value}'::text[])) |                          |           |          |                   |          |              |             |
-| "patient_bd" btree ((resource #>> '{birthDate}'::text[]))         |                          |           |          |                   |          |              |             |
-| Access method: heap                                               |                          |           |          |                   |          |              |             |
-
-#+BEGIN_SRC sql
-  create index patient_bd on patient ((resource#>>'{birthDate}'));
-#+END_SRC
-
-
-#+BEGIN_SRC sql
-vacuum analyze patient
-#+END_SRC
-
-#+RESULTS:
-| VACUUM |
-|--------|
-
-  Bitmap AND/OR
-
-  Task 4 - Phone start with 555-8 and older then 50
-
-#+BEGIN_SRC sql
-select '555-8' > '555-715-1598'
-#+END_SRC
-
-
-#+BEGIN_SRC sql
-select '101' > '10'
-#+END_SRC
-
-#+RESULTS:
-| ?column? |
-|----------|
-| f        |
-
-#+BEGIN_SRC sql
-select '101' like '10%'
-#+END_SRC
-
-#+RESULTS:
-| ?column? |
-|----------|
-| t        |
-
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Bitmap Heap Scan on patient  (cost=4.35..31.33 rows=9 width=69) (actual time=0.068..0.296 rows=12 loops=1)
+     Recheck Cond: ((resource #>> '{birthDate}'::text[]) > '2020-01-01'::text)
+     Heap Blocks: exact=12
+     ->  Bitmap Index Scan on patient_resource_birthdate  (cost=0.00..4.34 rows=9 width=0) (actual time=0.025..0.032 rows=12 loops=1)
+	   Index Cond: ((resource #>> '{birthDate}'::text[]) > '2020-01-01'::text)
+   Planning Time: 4.248 ms
+   Execution Time: 0.552 ms
+   :END:
 
 * GIN index
 
-  Gin index scan
-  recheck and filter
-
-  jsonpath / gin and > >=
-
-
-  =Task 4= - How much Blood Pressure observations?
-
-  #+BEGIN_SRC sql :results value drawer
-	explain analyze
-	  select id
-	  from observation
-	  where
-    resource->'category' @> '{"coding": [{"code": "85354-9", "system": "http://loinc.org", "display": "Blood Pressure"}]}'::jsonb
-and
-    resource->'code' @> '{"coding": [{"code": "85354-9", "system": "http://loinc.org", "display": "Blood Pressure"}]}'::jsonb
-
-  #+END_SRC
-
-@>  @@ jsquery/jsonpath
-
-  #+RESULTS:
-  :results:
-  QUERY PLAN
-  Bitmap Heap Scan on observation  (cost=268.46..445.65 rows=45 width=37) (actual time=0.480..0.504 rows=0 loops=1)
-    Recheck Cond: (((resource -> 'code'::text) @> '{"coding": [{"code": "85354-9", "system": "http://loinc.org", "display": "Blood Pressure"}]}'::jsonb) AND ((resource -> 'category'::text) @> '{"coding": [{"code": "85354-9", "system": "http://loinc.org", "display": "Blood Pressure"}]}'::jsonb))
-    ->  Bitmap Index Scan on observation_resource_code_category__gin_jsquery  (cost=0.00..268.45 rows=45 width=0) (actual time=0.464..0.472 rows=0 loops=1)
-	  Index Cond: (((resource -> 'code'::text) @> '{"coding": [{"code": "85354-9", "system": "http://loinc.org", "display": "Blood Pressure"}]}'::jsonb) AND ((resource -> 'category'::text) @> '{"coding": [{"code": "85354-9", "system": "http://loinc.org", "display": "Blood Pressure"}]}'::jsonb))
-  Planning Time: 5.268 ms
-  Execution Time: 0.727 ms
-  :end:
-
+**  =Task 3= - Find Blood Pressure observations
 
   #+BEGIN_SRC json
     {
@@ -440,427 +327,170 @@ and
     }
   #+END_SRC
 
+  #+BEGIN_SRC sql :results value drawer
+    explain (analyze, buffers)
+     select count(id)
+       from observation
+      where resource @> '{"code": {"coding": [{"code": "85354-9", "system": "http://loinc.org"}]}}'
+  #+END_SRC
+
   #+BEGIN_SRC sql
     create index observation_resource__gin_jsquery
-      on observation using gin ((resource) jsonb_path_value_ops)
+        on observation
+     using gin (resource jsonb_path_value_ops)
+  #+END_SRC
+
+  #+BEGIN_SRC sql
+    vacuum analyze observation
   #+END_SRC
 
 
   #+BEGIN_SRC sql
-    create index observation_resource_code_category__gin_jsquery
-      on observation using gin ((resource->'code'), (resource->'category') jsonb_path_value_ops)
+    drop index observation_resource__gin_jsquery;
   #+END_SRC
 
-  #+RESULTS:
-  | CREATE INDEX |
-  |--------------|
 
+** =Task 4= - Find Observations for patient
 
-#+BEGIN_SRC sql
-vacuum analyze observation
-#+END_SRC
+   GIN vs Btree
 
-  #+RESULTS:
-  |   |
+   #+BEGIN_SRC sql
+     drop index observation_resource__subject_id
+   #+END_SRC
 
+   #+BEGIN_SRC sql
+     create index  observation_resource__subject_id
+         on observation ((resource#>>'{subject, id}'))
+   #+END_SRC
 
-@> gin
-jsquery  jsonb_path_value_ops
+   #+BEGIN_SRC sql :results value drawer
+     explain analyze
+     select id
+       from observation
+      where resource#>>'{subject,id}' = '6bfd6661-dbb4-4fd6-3536-c39161f57a5c'
+   #+END_SRC
 
-jsonpath
- gin
-jp + ?  jsonb_ops
-ilike gin_trgm_ops tsvector ... / RUN index
------
-@> and jsquery
+   #+BEGIN_SRC sql :results value drawer
+     explain analyze
+     select id
+       from observation
+      where resource @> '{"subject": {"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}}'
+   #+END_SRC
 
-
-create index patient_resource__gin_jsquery
-on patient using gin ((resource) jsonb_path_value_ops);
-
-
-Ilike
-
-create index if not exists
-patient_resource__gin_tgrm on patient
-using gin ((id || '' || resource::text) gin_trgm_ops);
-
-
-
-
-
+   #+BEGIN_SRC sql
+     select pg_size_pretty(pg_relation_size('observation_resource__subject_id')) btree;
+     select pg_size_pretty(pg_relation_size('observation_resource__gin_jsquery')) gin;
+   #+END_SRC
 
 * JOIN
 
-  - Not about left/right/inner BUT join methods
-  - Always pair
-
+  Not about left/right/inner BUT join methods
 
 ** Nested loop
 
-   JOIN cost N*M
+   JOIN just nested loop -> cost N*M
 
-   =Task 5= - Find the oldest ~Patient~ with =Suspected COVID-19= ~Observation~
+*** =Task 5= - Find the oldest ~Patient~ with =Suspected COVID-19= ~Observation~
 
    ={code,coding,0}= = ={"code": "840544004", "display": "Suspected COVID-19"}=
 
-  #+name: Just JOIN
-  #+BEGIN_SRC sql :results value drawer
-    explain analyze
+   #+BEGIN_SRC sql :results value drawer
+    explain (analyze, costs off, timing off)
      select c.id cid, p.id pid
        from condition c
        join patient p
-	 on p.id = right(c.resource#>>'{subject,uri}', 36)
+         on p.id = c.resource#>>'{subject,id}'
       limit 100
    #+END_SRC
 
+   *Another available plans:*
+    - Nested loop
+    - Nested loop Left/Right Join
+    - Nested loop anti join : jeft join is null (not exists)
+    - Nested loop semi join : (exists)
 
-
-   #+RESULTS: Just JOIN
-   :results:
-   QUERY PLAN
-   Limit  (cost=0.28..48.11 rows=100 width=74) (actual time=0.085..6.507 rows=100 loops=1)
-     ->  Nested Loop  (cost=0.28..7758.56 rows=16222 width=74) (actual time=0.068..4.914 rows=100 loops=1)
-	   ->  Seq Scan on condition c  (cost=0.00..2848.22 rows=16222 width=1123) (actual time=0.013..0.824 rows=100 loops=1)
-	   ->  Index Only Scan using patient_pkey on patient p  (cost=0.28..0.30 rows=1 width=37) (actual time=0.013..0.013 rows=1 loops=100)
-		 Index Cond: (id = "right"((c.resource #>> '{subject,uri}'::text[]), 36))
-		 Heap Fetches: 0
-   Planning Time: 9.152 ms
-   Execution Time: 7.324 ms
-   :end:
-
-
-  #+BEGIN_SRC sql :results value drawer
-    explain analyze
-     select c.id cid, p.id pid
-       from patient p
-       join condition c
-	 on c.resource @> jsonb_build_object('subject', jsonb_build_object('uri', concat('urn:uuid:', p.id)))
-      limit 100
-   #+END_SRC
-
-   #+RESULTS:
-   :results:
-   QUERY PLAN
-   Limit  (cost=3.04..15.17 rows=100 width=74) (actual time=0.403..8.125 rows=100 loops=1)
-     ->  Nested Loop  (cost=3.04..24586.34 rows=202775 width=74) (actual time=0.386..6.311 rows=100 loops=1)
-	   ->  Seq Scan on patient p  (cost=0.00..82.50 rows=1250 width=37) (actual time=0.026..0.109 rows=10 loops=1)
-	   ->  Bitmap Heap Scan on condition c  (cost=3.04..17.98 rows=162 width=1123) (actual time=0.239..0.439 rows=10 loops=10)
-		 Recheck Cond: (resource @> jsonb_build_object('subject', jsonb_build_object('uri', concat('urn:uuid:', p.id))))
-		 Heap Blocks: exact=100
-		 ->  Bitmap Index Scan on condition_resource_gin  (cost=0.00..3.00 rows=162 width=0) (actual time=0.192..0.193 rows=11 loops=10)
-		       Index Cond: (resource @> jsonb_build_object('subject', jsonb_build_object('uri', concat('urn:uuid:', p.id))))
-   Planning Time: 8.510 ms
-   Execution Time: 9.185 ms
-   :end:
-
-   #+BEGIN_SRC sql
-create index condition_resource_gin
-on condition
-using gin (resource);
-   #+END_SRC
-
-   #+RESULTS:
-   | CREATE INDEX |
-   |--------------|
-
-   #+BEGIN_SRC sql
-vacuum analyze condition
-   #+END_SRC
-
-   #+RESULTS:
-   | VACUUM |
-   |--------|
-
-
-   Nested loop
-   Nested loop Left Join
-   Nested loop anti join
-     jeft join is null (not exists)
-   Nested loop semi join
-     (exists)
-
-  + No prepare actions
-  + Good for less data
-  + Depends on join order
-  + Any condition (also <>)
+   *Advantages:*
+    + No prepare actions
+    + Good for less data
+    + Ani condition (also <>)
 
 ** Hash join
 
-  N + M complexity
+   Hash table unioin -> N+M complexity
 
-  #+name: Remove limit
-  #+BEGIN_SRC sql :results value drawer
-     explain (analyze, costs off, buffers)
-      select (right(c.resource#>>'{subject,uri}', 36)) cid, p.id pid, p.resource
-	from condition c
-	join patient p
-	  on p.id = (right(c.resource#>>'{subject,uri}', 36))
-    --order by p.id
-     --  limit 100
-       --where c.resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
+   #+BEGIN_SRC sql :results value drawer
+      explain (analyze, costs off)
+       select p.id pid, c.id
+         from condition c
+         join patient p
+           on p.id = c.resource#>>'{subject,id}'
    #+END_SRC
-
-   #+RESULTS: Remove limit
-   :results:
-   QUERY PLAN
-   Hash Join (actual time=21.800..403.901 rows=16222 loops=1)
-     Hash Cond: ("right"((c.resource #>> '{subject,uri}'::text[]), 36) = p.id)
-     Buffers: shared hit=2759
-     ->  Seq Scan on condition c (actual time=0.015..117.312 rows=16222 loops=1)
-	   Buffers: shared hit=2686
-     ->  Hash (actual time=21.721..21.739 rows=1250 loops=1)
-	   Buckets: 2048  Batches: 1  Memory Usage: 493kB
-	   Buffers: shared hit=70
-	   ->  Seq Scan on patient p (actual time=0.013..10.788 rows=1250 loops=1)
-		 Buffers: shared hit=70
-   Planning:
-     Buffers: shared hit=227
-   Planning Time: 9.990 ms
-   Execution Time: 514.276 ms
-   :end:
-
-|   hash | key (p.id) | resource   |
-|--------+------------+------------|
-| 101010 | guid_1     | {resource} |
-| 101010 | guid_1     | {resource} |
-| 101012 | guid_3     | {resource} |
-| 101013 | guid_4     | {resource} |
-
-
-seq scan condition
-
-get(hash_table, hash((right(c.resource#>>'{subject,uri}', 36))))
-
-
-#+BEGIN_SRC sql
-  select * from pg_stats
-where tablename = 'patient'
-  limit 10
-#+END_SRC
-
-#+BEGIN_SRC sql
-  select * from pg_stats
-   where tablename = 'condition'
-   limit 10
-#+END_SRC
-
-#+RESULTS:
-| schemaname | tablename | attname       | inherited | null_frac | avg_width | n_distinct | most_common_vals                  | most_common_freqs | histogram_bounds                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | correlation | most_common_elems | most_common_elem_freqs | elem_count_histogram |
-|------------+-----------+---------------+-----------+-----------+-----------+------------+-----------------------------------+-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------+-------------------+------------------------+----------------------|
-| public     | patient   | id            | f         |         0 |        37 |         -1 |                                   |                   | {00218691-d90d-c444-015c-9ede1af82502,02895e51-54ab-a56c-bb8d-e8eb50f9c2ce,03cbe2aa-3a62-f8d3-382e-bffdf30feb62,067b02f2-d681-634a-b09a-656a5636b3f8,0a609c57-81f6-ce41-2a94-19bdd4f29c3d,0cb4c1d0-2a00-7892-ad5b-d121c97acbd0,0ea431e3-deb6-2b18-c4bf-a426e760b5b1,1194f4ce-41e7-07ea-1dd7-0fbe788c8601,1467a488-588a-964a-aac2-008043098822,1675a4cd-d56a-6472-5fd4-22b3e37e67ff,1836a66d-93ea-44f7-5e2f-7eea750d04a2,1a9b549c-80cd-9246-818e-17def31fc281,1da40e1e-44d1-5ad7-0cc7-8cd8bde61077,1f7661f8-3e9f-13e9-0403-0e2457ec1c2e,21ffa2dd-51d8-2900-885d-b0b7b3e0a775,24967a4f-8e7a-31a5-64dc-ff0b68c74d51,277fbd52-76eb-aa64-3ad5-6e1b5267e488,2c34ffef-3db2-8658-d49f-0458842ecb06,2fdbdf91-ba6c-fca1-f815-f8f790c5c001,32478695-a55d-61a3-d2e6-cac29f2fbaf0,3418fc9d-a1e0-9436-ff55-c4222f865018,36f577ac-d290-9937-4b3a-15c729c726ad,3a49fca7-b570-d5e2-53c3-34b246b30ada,3ce9610e-0427-0d91-a217-1a937b930cf7,3e45f571-0d38-5f51-04b5-d486aab116ab,40f369a7-1562-c03d-cc55-dd0988c43ec7,43239b01-c65d-20f0-170c-8586f8b9de6b,44ee7dc7-ce9c-c609-0313-86f58da05491,476368ca-4a78-f4f5-984e-7553f312fa38,498df5f1-0050-19cc-7322-c002a0e34a1e,4c08ebe7-967a-a936-820c-1cc62a84212d,4e87736c-67b2-a6d1-45e3-b35aa3c7081d,50c2c85d-c582-429f-3ace-73339e4aa9a3,52b006d6-02f7-9f6c-6299-86856841bf91,5442cff1-e699-aae7-a9bf-9675ce7c9644,55804d18-1c9a-7cb9-a7ba-9f26102fa489,570d1f5a-ab85-80f6-511e-d7b5db300ed3,58eaccc8-fe1e-449d-eb98-ee5929d90b09,5b3e3c18-4612-2b9c-1b26-9cb362047013,5dfee6a6-a14f-d02b-d86d-9352be751813,610ade16-e4db-37a1-a36e-58cde3a2696a,631d8c01-95d5-2137-f0ec-09c110d94f37,64be84de-51b4-19a3-268e-833455843b3c,68dbd8e5-da1f-927c-a383-55b9cb5c0388,6aa32bd4-dc3f-d1d4-79ed-28e02731ac32,6daf8ced-9cc2-cea0-2696-1a4591049d63,70b00c0b-fba7-60b2-93be-43cb9b448fae,7219b40f-2752-f335-0fa3-14b9831e4b3e,74b19532-2b6c-b0f1-2aad-67e71467fcf8,77815d77-9b97-6f74-3a41-4556d92f63cb,7aa16480-77b0-e28a-4142-f2ebe979bca6,7d362bd5-ffe7-5276-23ea-2bdd8fc8a394,8066f01c-cc6d-bd52-4c76-00e9baa12958,830a02b0-bb19-2300-e9f4-79a991bdf4ea,85675ddc-47b5-ac58-c5df-983331038d1d,873cf642-6821-cc6e-d282-afe2f281f664,8a928edb-4a2c-7586-add3-9eeee1a50415,8d75ab27-18f7-62ab-2a85-0dc48a72d6ee,8fbed4fc-885f-1aa4-d97d-ee6e02d03aae,9220caed-1199-e069-bec5-335bdf649c9c,95b1b72b-cb09-f6e2-ad5a-974277174a1b,97cbdbc2-3fd7-1884-d8f9-7d3f6b58d0a6,9b5969e4-b8ac-a657-c242-1df71dc9597f,9f14f740-8a61-08c0-f661-aaf5a1035d7a,a20e414a-c5fc-349d-5738-c2db9001b92f,a3ffc733-93c8-25b9-07f6-3f74b9dfd794,a6e21d63-294f-4be2-548a-ca6c58c1cb49,a94a0199-511a-f067-ce86-1a4233e3fa0d,ab13a78f-2f94-fefc-37a4-f47fd3c9b04c,ad1f9b3f-d46a-20eb-bd9b-edd219279488,b20267f9-4e62-036a-a3bd-c5d024c30eb2,b4ae7203-86b9-2d09-59e6-6b9aa35e9306,b66aed97-dc80-5d29-7094-12e27895cf85,b82a8a94-44d5-c0c3-e226-60d5e13233aa,ba8c6462-547a-8876-33d7-b96e101442a1,bd139cec-0fc3-bf4b-76ab-974316d03a6a,bf6bd6cd-e9c1-77b2-01ca-d468d3a86ca1,c208b44b-1074-2752-ffd4-e5fd8ea6c966,c51a76ee-c92c-8180-ab3a-f2e8ef5c1bd2,c6e3e216-cab7-5005-c2b2-d301124d61f3,c84ced5d-dda4-906f-5d87-86b44d92590e,cb64dce9-8c91-0749-4177-4399b0c45083,ccfc392e-26d9-81b1-f086-6fbe314b009f,d09587b7-8a64-807e-7b86-11fe3fd0f3f2,d2601285-4164-cd51-a4d5-a244a64b426a,d53002ff-32c2-0e58-4179-09dd8afcc96b,d9dd11d2-7294-f4fd-c292-755831325536,dc42ad17-a035-4d33-e7d2-5898a1528550,de9a237f-a7a8-e565-10f3-86ac9af1c28f,e1d1b77b-b78d-ec11-e2f9-9ebe13d53c44,e4a39920-ee6e-7682-7e42-fba5a4c60264,e75fdb51-b18a-44a2-44f8-b7faf0d0efcd,e9fa338a-aa90-a64b-4954-314787c88b2d,ecb58857-40e5-9929-842a-fa1462ea2ea9,ef9ae58e-6c14-1d9d-4583-fee409f92471,f1aac90c-52d2-644e-27c6-66c656973870,f4126313-8cda-d908-9b90-87e43d03fc6d,f67096de-a3f9-498e-e1ac-665303c0b58e,fa18dc64-a9d0-ceda-dc2b-886a23a1a2ba,fcf6e220-e846-e993-3d51-9334eba5af48,ff9fd7f3-c165-00de-74bd-e33fa60f44d3} |  0.89909846 |                   |                        |                      |
-| public     | patient   | txid          | f         |         0 |         8 |          1 | {21}                              | {1}               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |           1 |                   |                        |                      |
-| public     | patient   | cts           | f         |         0 |         8 |          1 | {"2021-03-22 14:44:50.178071+00"} | {1}               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |           1 |                   |                        |                      |
-| public     | patient   | ts            | f         |         0 |         8 |          1 | {"2021-03-22 14:44:50.178071+00"} | {1}               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |           1 |                   |                        |                      |
-| public     | patient   | resource_type | f         |         0 |         8 |          1 | {Patient}                         | {1}               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |           1 |                   |                        |                      |
-| public     | patient   | status        | f         |         0 |         4 |          1 | {created}                         | {1}               |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |           1 |                   |                        |                      |
-| public     | patient   | resource      | f         |         0 |       320 |         -1 |                                   |                   |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |             |                   |                        |                      |
-
-
-
-   #+BEGIN_SRC sql
-   create index condition_resource__code_gin
-       on condition
-    using gin ((resource#>'{code,coding,0}'))
-   #+END_SRC
-
-
-   #+BEGIN_SRC sql
-      drop index condition_resource__code_gin;
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-      drop index condition_resource_subject;
-   #+END_SRC
-
-   #+RESULTS:
-   | DROP INDEX |
-   |------------|
-
-   #+BEGIN_SRC sql
-     create index condition_resource_subject
-         on condition ((right(resource#>>'{subject,uri}', 36)))
-   #+END_SRC
-
-   #+RESULTS:
-   |   |
-
-   #+BEGIN_SRC sql
-     vacuum analyze condition;
-     vacuum analyze patient;
-   #+END_SRC
-
-   #+RESULTS:
-   | VACUUM |
-   |--------|
-   | VACUUM |
-
 
 ** Merge join
 
-  #+name: Add ordering limit
-  #+BEGIN_SRC sql :results value drawer
-     explain (analyze, costs off, buffers)
-      select (right(c.resource#>>'{subject,uri}', 36)) cid, p.id pid
-	from condition c
-	join patient p
-	  on p.id = (right(c.resource#>>'{subject,uri}', 36))
-    order by p.id
-       limit 100
-       --where c.resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
+   On sorting -> N+M or N*Log(N) + M*Log(M)
+
+   #+BEGIN_SRC sql :results value drawer
+     explain (analyze, costs off, timing off)
+      select p.id pid, c.id cid
+        from condition c
+        join patient p
+             on p.id = c.resource#>>'{subject,id}'
+       where c.resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
+       order by p.id
    #+END_SRC
 
-   #+RESULTS: Add ordering limit
-   :results:
-   QUERY PLAN
-   Nested Loop (actual time=0.069..59.097 rows=907 loops=1)
-     Buffers: shared hit=4501
-     ->  Seq Scan on condition c (actual time=0.022..23.526 rows=907 loops=1)
-	   Filter: ((resource #> '{code,coding,0}'::text[]) @> '{"code": "840544004", "display": "Suspected COVID-19"}'::jsonb)
-	   Rows Removed by Filter: 15315
-	   Buffers: shared hit=2686
-     ->  Index Only Scan using patient_pkey on patient p (actual time=0.013..0.013 rows=1 loops=907)
-	   Index Cond: (id = "right"((c.resource #>> '{subject,uri}'::text[]), 36))
-	   Heap Fetches: 0
-	   Buffers: shared hit=1815
-   Planning:
-     Buffers: shared hit=224
-   Planning Time: 9.582 ms
-   Execution Time: 66.068 ms
-   :end:
+   Table: a                Table: b
 
-table a           table b
-
-| id | value |	  | id | value |
-|----+-------|	  |----+-------|
-|  1 | aaa   |	  |  1 | aaa   |
-|  2 | bbb   |	  |  1 | bbb   |
-|  3 | ccc   |	  |  3 | ccc   |
-		  |  3 | ccc   |
-		  |  4 | ddd   |
-		  |  4 | ccc   |
-		  |  7 | ccc   |
-		  |  7 | ccc   |
-		  |  7 | ccc   |
-		  |  7 | ccc   |
+   | id | value |	  | id | value |
+   |----+-------|	  |----+-------|
+   |  1 | aaa   |	  |  1 | aaa   |
+   |  2 | bbb   |	  |  2 | bbb   |
+   |  3 | ccc   |	  |  3 | ccc   |
+   |  4 | ccc   |
+   |  5 | ddd   |
 
 
-#+BEGIN_SRC sql
-select right('123456', 3)
-#+END_SRC
-
-#+RESULTS:
-| right |
-|-------|
-|   456 |
-
-
-  #+name: Find covid
-  #+BEGIN_SRC sql :results value drawer
-     explain (analyze, costs off)
-      select (right(c.resource#>>'{subject,uri}', 36)) cid, p.id pid
-	from patient p
-	join condition c
-	  on p.id = (right(c.resource#>>'{subject,uri}', 36))
-	  --on c.resource->'subject' @> jsonb_build_object('uri', concat('urn:uuid:', p.id))
-       where (c.resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
-    order by p.resource#>>'{birthDate}'
+   #+BEGIN_SRC sql :results value drawer
+     explain (analyze, costs off, timing off)
+      select p.id pid, c.id cid
+	from condition c
+	join patient p
+	     on p.id = c.resource#>>'{subject,id}'
+       where c.resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
+       order by p.resource#>>'{birthDate}'
        limit 1
    #+END_SRC
 
-   #+RESULTS: Find covid
-   :results:
-   QUERY PLAN
-   Limit (actual time=65.628..65.688 rows=1 loops=1)
-     ->  Sort (actual time=65.613..65.654 rows=1 loops=1)
-	   Sort Key: ((p.resource #>> '{birthDate}'::text[]))
-	   Sort Method: top-N heapsort  Memory: 25kB
-	   ->  Nested Loop (actual time=0.191..57.904 rows=907 loops=1)
-		 ->  Index Scan using condition_resource_subject_3_covid on condition c (actual time=0.025..9.681 rows=907 loops=1)
-		 ->  Index Scan using patient_pkey on patient p (actual time=0.012..0.012 rows=1 loops=907)
-		       Index Cond: (id = "right"((c.resource #>> '{subject,uri}'::text[]), 36))
-   Planning Time: 13.023 ms
-   Execution Time: 65.768 ms
-   :end:
-
-#+BEGIN_SRC sql
-drop index condition_resource_gin
-#+END_SRC
-
-#+RESULTS:
-|   |
-
-
-#+BEGIN_SRC sql :results value drawer
-  create index condition_resource_subject_1_covid
-  on condition
-  using gin ((resource->'subject'))
-  where (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
-#+END_SRC
-
-
-#+BEGIN_SRC sql :results value drawer
-  create index condition_resource_subject_3_covid
-  on condition ((right(resource#>>'{subject,uri}', 36)))
-  where (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
-#+END_SRC
-
-#+RESULTS:
-:results:
-CREATE INDEX
-:end:
-
-
-(right(c.resource#>>'{subject,uri}', 36))
-
-#+RESULTS:
-:results:
-:end:
-
-
-#+BEGIN_SRC sql :results value drawer
-explain analyze
-  select id
-  from condition
-  where  resource->'subject' @> '{"uri": "urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d"}'
-    and (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
-#+END_SRC
-
-#+RESULTS:
-:results:
-QUERY PLAN
-Bitmap Heap Scan on condition  (cost=20.00..24.02 rows=1 width=37) (actual time=0.051..0.076 rows=0 loops=1)
-  Recheck Cond: (((resource -> 'subject'::text) @> '{"uri": "urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d"}'::jsonb) AND (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}'::jsonb))
-  ->  Bitmap Index Scan on condition_resource_subject_1_covid  (cost=0.00..20.00 rows=1 width=0) (actual time=0.032..0.041 rows=0 loops=1)
-        Index Cond: ((resource -> 'subject'::text) @> '{"uri": "urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d"}'::jsonb)
-Planning Time: 4.529 ms
-Execution Time: 0.141 ms
-:end:
 
 
 
-#+BEGIN_SRC sql
-vacuum analyze condition
-#+END_SRC
-
-#+RESULTS:
-| VACUUM |
-|--------|
 
 
-* HW
-
-  #+BEGIN_SRC json
-    {"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}
-  #+END_SRC
-
-#+BEGIN_SRC sql
- '{value,Quantity,value}'
-#+END_SRC
 
 
- *  Максимально эффективно найти ссамого тяжелого пациента
 
-Показания веса находятся в таблице Observation
-Закодированы так ~{"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}~
-Само значение веса находится в ~'{value,Quantity,value}'~
+
+
+   #+BEGIN_SRC sql :results value drawer
+     create index condition_resource_subject_1_covid
+     on condition
+     using gin ((resource->'subject'))
+     where (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
+   #+END_SRC
+
+
+   #+BEGIN_SRC sql :results value drawer
+     create index condition_resource_subject_3_covid
+     on condition ((right(resource#>>'{subject,uri}', 36)))
+     where (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
+   #+END_SRC
+
+
+   #+BEGIN_SRC sql :results value drawer
+     explain analyze
+     select id
+     from condition
+     where  resource->'subject' @> '{"uri": "urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d"}'
+     and (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
+   #+END_SRC

@@ -1,35 +1,71 @@
 ---- db: -h localhost -p 5400 -U postgres postgres
+
+-- Prepared statement
+
+\timing
+
+PREPARE select_pt (text) AS
+    select id from patient where id = $1;
+
+EXECUTE select_pt('10bedb48-ddce-608b-dba5-c89de191e7e1');
+
+\x
+select  * from pg_prepared_statements;
+
+-- Cursor
+----
+BEGIN;
+DECLARE crs CURSOR FOR SELECT id FROM patient order by id;
+FETCH 5 from crs;
+FETCH 5 from crs;
+FETCH  backward 5 from crs;
+END;
+----
+select jsonb_pretty(resource)
+from patient
+limit 10;
+----
+select resource->>'birthDate'
+from patient
+limit 10;
+----
+-- Watch buffers
+explain (analyze, buffers)
+select count(id)
+  from observation
+ where resource->>'birthDate' > '2000-01-01' \watch 1
+
+----
+show  max_parallel_workers_per_gather;
+alter system set  max_parallel_workers_per_gather to DEFAULT;
+--alter system set  max_parallel_workers_per_gather = 8;
+select pg_reload_conf();
+
+----
+select id from observation
+order by random()
+limit 1;
+
+----
+select jsonb_pretty(resource->'telecom')
+from patient
+order by random()
+limit 1;
+
+
+----
+select jsonb_pretty(resource)
+from observation
+order by random()
+limit 1;
+----
+
+
+
+
+
+
 ---- db: -h localhost -p 5437 -U postgres devbox
-
-select * from pg_replication_slots;
-
-
-SELECT
-*
---pid ,wait_event, age(clock_timestamp(), query_start) ,query
-FROM pg_stat_activity
-WHERE
-  query != '<IDLE>'
-  AND query NOT ILIKE '%pg_stat_activity%'
-  AND "state" = 'active'
-ORDER BY query_start  nulls last;
-
-
-
-----
-SELECT
-pg_l.objid,
-pg_l.pid,
-pg_sa.application_name,
-pg_sa.backend_start,
-age(clock_timestamp(), pg_sa.backend_start) as "process_time",
-age(clock_timestamp(), pg_sa.query_start) as "qeury_time"
-
-FROM pg_locks as pg_l
-left join  pg_stat_activity as pg_sa
-on pg_sa.pid = pg_l.pid
-WHERE locktype = 'advisory';
-----
 
 select ....
 
@@ -217,32 +253,4 @@ from patient
 where id =
 urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d
 ;
-----
-
-  #+BEGIN_SRC sql :results value drawer
-----
-CarePlan: 5720
-Observation: 447093
-SupplyDelivery: 13868
-MedicationAdministration: 1634
-DocumentReference: 68829
-PractitionerRole: 1165
-Patient: 1250
-DiagnosticReport: 103810
-Provenance: 1250
-Practitioner: 1165
-ExplanationOfBenefit: 68829
-Immunization: 16256
-Claim: 144313
-MedicationRequest: 75484
-Encounter: 68829
-Medication: 1634
-Condition: 16222
-CareTeam: 5720
-Procedure: 45093
-Location: 1163
-Organization: 1163
-Device: 263
-AllergyIntolerance: 518
-ImagingStudy: 977
 ----
