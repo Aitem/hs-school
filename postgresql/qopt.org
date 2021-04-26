@@ -1,87 +1,98 @@
 #+TITLE: QOPT
 #+AUTHOR: M. Surmashev @muradbei
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
-#+PROPERTY: header-args:sql :engine postgresql :dbport 5437 :dbhost localhost :dbuser postgres :dbpassword postgres :database devbox
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
 * Intro                                                            :noexport:
 
   [[./qopt.jpg]]
 
 * Table of Contents                                                   :TOC_3:
-- [[#install-aidbox-dev][Install Aidbox Dev]]
+- [[#install][Install]]
+  - [[#run-database][Run database]]
+  - [[#fill-data][Fill data]]
+- [[#optimization][Optimization]]
 - [[#query][Query]]
+  - [[#standart-simple-protocol][Standart (simple) protocol]]
+    - [[#extrra][Extrra]]
+  - [[#extended-protocol][Extended protocol]]
+  - [[#query-planning][Query planning]]
 - [[#seq-scan][SEQ scan]]
 - [[#index-scan][Index scan]]
+  - [[#what-about-jsonb][What about JSONB?]]
+    - [[#extra][Extra]]
 - [[#bitmap-index-scan][Bitmap Index scan]]
 - [[#gin-index][GIN index]]
 - [[#join][JOIN]]
   - [[#nested-loop][Nested loop]]
   - [[#hash-join][Hash join]]
   - [[#merge-join][Merge join]]
+- [[#hw][HW]]
 
-* Install Aidbox Dev
+* Install
 
-  Register on [[https://license-ui.aidbox.app/][License Server]]
+** Run database
 
-  Install [[git clone https://github.com/Aidbox/devbox.git][DevBox]]
-
-     #+BEGIN_SRC bash
-       git clone https://github.com/Aidbox/devbox.git
-       cd devbox
-     #+END_SRC
-
-  Copy ~.env.tpl~ to ~.env~
-
-  Insert your =AIDBOX_LICENSE_ID= and =AIDBOX_LICENSE_KEY= in ~.env~ file
-
-  Run ~AidboxDev~
-
-     #+BEGIN_SRC bash
-       docker-compose up -d
-     #+END_SRC
-
-  Check http://localhost:8888  *Login:* admin *Password:* secret
-
-  Load test data in [[http://localhost:8888/static/console.html?#/rest][RestConsole]]
-
-  #+BEGIN_SRC
-POST /fhir/$load
-
-source: 'https://storage.googleapis.com/aidbox-public/school/synthea_all_1000.ndjson.gz'
+  Run docker container vith PostgreSQL 12:
+  #+name: Run db
+  #+BEGIN_SRC bash
+    docker-compose up -d
   #+END_SRC
 
-  Vait ~ 20min
+  Check connection:
+  #+name: Check connection
+  #+BEGIN_SRC bash :results value drawer
+    psql -h localhost -p 5400 -U postgres -c 'select 1';
+  #+END_SRC
 
-  Check upload status in [[http://localhost:878/static/console.html?#/db][DBConsole]]
-
-     #+BEGIN_SRC sql
-       SELECT pid, age(clock_timestamp(), query_start), query_start , query
-	 FROM pg_stat_activity
-	WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' and "state" = 'active';
-     #+END_SRC
+  Ensure connection via psql:
+  #+name: Check connection and list databases
+  #+BEGIN_SRC sql
+    \l
+  #+END_SRC
 
 
-  Check connection
+** Fill data
 
-     #+BEGIN_SRC sql
-       select count(*) from patient;
-     #+END_SRC
+   Download sql dump file with ~Patient~, ~Observation~, ~Condition~, ~Encounter~, ~DocumentReference~ tables.
 
-     #+RESULTS:
-     | count |
-     |-------|
-     |  1250 |
+   #+BEGIN_SRC bash
+      pg_restore -p 5400 -h localhost -U postgres -d postgres fhir_data_sample.dump
+   #+END_SRC
+
+   #+BEGIN_SRC sql :results value drawer
+     select count(*) patient     from patient;
+     select count(*) observation from observation;
+     select count(*) condition   from condition;
+     select count(*) encounter   from encounter;
+     select count(*) docreffs    from documentreference;
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   patient
+   1182
+   observation
+   370360
+   condition
+   15257
+   encounter
+   56153
+   docreffs
+   56153
+   :END:
 
 * Optimization
 
  - =Optimize database instance=
-   Table space, work_mem, shared_buffers, partitioning, vacuum ...
+   Table space, ~work_mem~, ~shared_buffers~, ~partitioning~, ~vacuum~ ...
+
  - =Optimize query=
-   Indexes
+   Query plann optimization
 
 * Query
 
-** Standart protocol
+** Standart (simple) protocol
 
    Query execution states
 
@@ -99,70 +110,26 @@ source: 'https://storage.googleapis.com/aidbox-public/school/synthea_all_1000.nd
       alter system set log_parser_stats = on;
     #+END_SRC
 
-    #+RESULTS:
-    | ALTER SYSTEM |
-    |--------------|
-
     #+BEGIN_SRC sql
-	    alter system set log_plann
-      er_stats = on;
+      alter system set log_planner_stats = on;
     #+END_SRC
-
-    #+RESULTS:
-    | ALTER SYSTEM |
-    |--------------|
 
     #+BEGIN_SRC sql
       alter system set log_executor_stats = on;
     #+END_SRC
 
-    #+RESULTS:
-    | ALTER SYSTEM |
-    |--------------|
-
     #+BEGIN_SRC sql
       select pg_reload_conf();
     #+END_SRC
 
-    #+RESULTS:
-    | pg_reload_conf |
-    |----------------|
-    | t              |
-
     #+BEGIN_SRC sql
       explain (analyze)
-	select id from patient limit 1;
+      select id from patient limit 1;
     #+END_SRC
-
-    #+RESULTS:
-    | QUERY PLAN                                                                                               |
-    |----------------------------------------------------------------------------------------------------------|
-    | Limit  (cost=0.00..0.07 rows=1 width=37) (actual time=0.048..0.078 rows=1 loops=1)                       |
-    | ->  Seq Scan on patient  (cost=0.00..82.50 rows=1250 width=37) (actual time=0.031..0.039 rows=1 loops=1) |
-    | Planning Time: 2.511 ms                                                                                  |
-    | Execution Time: 0.132 ms                                                                                 |
 
     #+BEGIN_SRC bash :results value pp
       docker logs -n 60 devbox_devbox-db_1 2>&1 | egrep 'LOG|elapsed'
     #+END_SRC
-
-    #+RESULTS:
-    #+begin_example
-    2021-03-22 16:18:32.607 UTC [1] LOG:  received SIGHUP, reloading configuration files
-    2021-03-22 16:18:32.616 UTC [1] LOG:  parameter "log_parser_stats" changed to "on"
-    2021-03-22 16:18:32.616 UTC [1] LOG:  parameter "log_planner_stats" changed to "on"
-    2021-03-22 16:18:32.616 UTC [1] LOG:  parameter "log_executor_stats" changed to "on"
-    2021-03-22 16:18:39.455 UTC [496] LOG:  PARSER STATISTICS
-	    !	0.000000 s user, 0.000060 s system, 0.000059 s elapsed
-    2021-03-22 16:18:39.455 UTC [496] LOG:  PARSE ANALYSIS STATISTICS
-	    !	0.000000 s user, 0.000436 s system, 0.000434 s elapsed
-    2021-03-22 16:18:39.455 UTC [496] LOG:  REWRITER STATISTICS
-	    !	0.000000 s user, 0.000002 s system, 0.000007 s elapsed
-    2021-03-22 16:18:39.458 UTC [496] LOG:  PLANNER STATISTICS
-	    !	0.000735 s user, 0.000000 s system, 0.002441 s elapsed
-    2021-03-22 16:18:39.461 UTC [496] LOG:  EXECUTOR STATISTICS
-	    !	0.001239 s user, 0.000000 s system, 0.005710 s elapsed
-    #+end_example
 
 
 ** Extended protocol
@@ -186,68 +153,31 @@ source: 'https://storage.googleapis.com/aidbox-public/school/synthea_all_1000.nd
 
   =Sequential scan=
 
-  #+BEGIN_SRC sql
+  #+BEGIN_SRC sql :results value drawer
     explain (analyze, buffers, costs off)
     select ts from patient
     order by ts;
   #+END_SRC
 
-  #+RESULTS:
-  | QUERY PLAN                                                            |
-  |-----------------------------------------------------------------------|
-  | Sort (actual time=21.575..30.906 rows=1250 loops=1)                   |
-  | Sort Key: ts                                                          |
-  | Sort Method: quicksort  Memory: 107kB                                 |
-  | Buffers: shared hit=73                                                |
-  | ->  Seq Scan on patient (actual time=0.024..11.093 rows=1250 loops=1) |
-  | Buffers: shared hit=70                                                |
-  | Planning:                                                             |
-  | Buffers: shared hit=76                                                |
-  | Planning Time: 2.361 ms                                               |
-  | Execution Time: 40.427 ms                                             |
-
 
   =Parallel seq scan=
 
-  #+BEGIN_SRC sql
+  #+BEGIN_SRC sql :results value drawer
     explain analyze
     select ts from observation;
   #+END_SRC
-
-  #+RESULTS:
-  | QUERY PLAN                                                                                                           |
-  |----------------------------------------------------------------------------------------------------------------------|
-  | Seq Scan on observation  (cost=0.00..64036.59 rows=446859 width=8) (actual time=0.115..3381.321 rows=447093 loops=1) |
-  | Planning Time: 5.118 ms                                                                                              |
-  | Execution Time: 6382.521 ms                                                                                          |
 
   #+BEGIN_SRC sql :results value drawer
     explain analyze
     select count(ts) from observation;
   #+END_SRC
 
-  #+RESULTS:
-  :results:
-  QUERY PLAN
-  Finalize Aggregate  (cost=62895.60..62895.61 rows=1 width=8) (actual time=2044.017..2056.143 rows=1 loops=1)
-    ->  Gather  (cost=62895.39..62895.60 rows=2 width=8) (actual time=2043.893..2056.092 rows=3 loops=1)
-	  Workers Planned: 2
-	  Workers Launched: 2
-	  ->  Partial Aggregate  (cost=61895.39..61895.40 rows=1 width=8) (actual time=2033.642..2033.667 rows=1 loops=3)
-		->  Parallel Seq Scan on observation  (cost=0.00..61429.91 rows=186191 width=8) (actual time=0.017..1018.168 rows=149031 loops=3)
-  Planning Time: 3.393 ms
-  Execution Time: 2056.290 ms
-  :end:
-
 
   #+BEGIN_SRC sql
     show  max_parallel_workers_per_gather
   #+END_SRC
 
-  #+RESULTS:
-  | max_parallel_workers_per_gather |
-  |---------------------------------|
-  |                               2 |
+  *Default:*
 
   #+BEGIN_SRC
     max_parallel_workers_per_gather = 2
