@@ -33,23 +33,23 @@
 
 ** Run database
 
-  Run docker container vith PostgreSQL 12:
-  #+name: Run db
-  #+BEGIN_SRC bash
-    docker-compose up -d
-  #+END_SRC
+   Run docker container vith PostgreSQL 12:
+   #+name: Run db
+   #+BEGIN_SRC bash
+     docker-compose up -d
+   #+END_SRC
 
-  Check connection:
-  #+name: Check connection
-  #+BEGIN_SRC bash :results value drawer
-    psql -h localhost -p 5400 -U postgres -c 'select 1';
-  #+END_SRC
+   Check connection:
+   #+name: Check connection
+   #+BEGIN_SRC bash :results value drawer
+     psql -h localhost -p 5400 -U postgres -c 'select 1';
+   #+END_SRC
 
-  Ensure connection via psql:
-  #+name: Check connection and list databases
-  #+BEGIN_SRC sql
-    \l
-  #+END_SRC
+   Ensure connection via psql:
+   #+name: Check connection and list databases
+   #+BEGIN_SRC sql
+     \l
+   #+END_SRC
 
 
 ** Fill data
@@ -57,7 +57,7 @@
    Download [[https://storage.googleapis.com/aidbox-public/school/fhir_data_sample.dump][fhir_data_sample.dump]] file with ~Patient~, ~Observation~, ~Condition~, ~Encounter~, ~DocumentReference~ tables.
 
    #+BEGIN_SRC bash
-      pg_restore -p 5400 -h localhost -U postgres -d postgres fhir_data_sample.dump
+     pg_restore -p 5400 -h localhost -U postgres -d postgres fhir_data_sample.dump
    #+END_SRC
 
    #+BEGIN_SRC sql :results value drawer
@@ -92,19 +92,9 @@
 *** Extrra
 
     #+BEGIN_SRC sql
-      alter system set log_parser_stats = on;
-    #+END_SRC
-
-    #+BEGIN_SRC sql
-	    alter
-      system set log_planner_stats = on;
-    #+END_SRC
-
-    #+BEGIN_SRC sql
+      alter system set log_parser_stats   = on;
+      alter system set log_planner_stats  = on;
       alter system set log_executor_stats = on;
-    #+END_SRC
-
-    #+BEGIN_SRC sql
       select pg_reload_conf();
     #+END_SRC
 
@@ -113,9 +103,31 @@
       select id from patient limit 1;
     #+END_SRC
 
+    #+RESULTS:
+    | QUERY PLAN                                                                                               |
+    |----------------------------------------------------------------------------------------------------------|
+    | Limit  (cost=0.00..0.08 rows=1 width=37) (actual time=0.045..0.082 rows=1 loops=1)                       |
+    | ->  Seq Scan on patient  (cost=0.00..89.82 rows=1182 width=37) (actual time=0.024..0.039 rows=1 loops=1) |
+    | Planning Time: 3.373 ms                                                                                  |
+    | Execution Time: 0.157 ms                                                                                 |
+
     #+BEGIN_SRC bash :results value pp
       docker logs -n 60 hs-db 2>&1 | egrep 'LOG|elapsed'
     #+END_SRC
+
+    #+RESULTS:
+    #+begin_example
+    2021-04-26 16:11:05.815 UTC [386] LOG:  PARSER STATISTICS
+	    !	0.000000 s user, 0.000050 s system, 0.000052 s elapsed
+    2021-04-26 16:11:05.815 UTC [386] LOG:  PARSE ANALYSIS STATISTICS
+	    !	0.000000 s user, 0.000323 s system, 0.000329 s elapsed
+    2021-04-26 16:11:05.816 UTC [386] LOG:  REWRITER STATISTICS
+	    !	0.000000 s user, 0.000004 s system, 0.000008 s elapsed
+    2021-04-26 16:11:05.819 UTC [386] LOG:  PLANNER STATISTICS
+	    !	0.000856 s user, 0.000001 s system, 0.003391 s elapsed
+    2021-04-26 16:11:05.819 UTC [386] LOG:  EXECUTOR STATISTICS
+	    !	0.000901 s user, 0.000224 s system, 0.003661 s elapsed
+    #+end_example
 
 ** Extened protocol
    The results of preparatory steps can be re-used multiple times for improved efficiency.
@@ -141,6 +153,7 @@
      limit 10
    #+END_SRC
 
+
 * Query Optimization
 
   Optimization query execution plan
@@ -154,14 +167,28 @@
    [[https://postgrespro.ru/docs/postgrespro/12/using-explain?lang=en][Using explain]] documentation
 
    #+BEGIN_SRC sql :results value drawer
-     explain (analyze)
+    explain (analyze, buffers, costs off, timing off)
      select count(id)
        from patient
       where resource->>'birthDate' > '2000-01-01'
    #+END_SRC
 
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Aggregate (actual rows=1 loops=1)
+     Buffers: shared hit=2900
+     ->  Seq Scan on patient (actual rows=261 loops=1)
+	   Filter: ((resource ->> 'birthDate'::text) > '2000-01-01'::text)
+	   Rows Removed by Filter: 921
+	   Buffers: shared hit=2900
+   Planning Time: 9.969 ms
+   Execution Time: 13.326 ms
+   :END:
+
+
    #+BEGIN_SRC sql :results value drawer
-     explain analyze
+     explain (analyze, costs off, timing off)
      select count(e.id)
        from patient p
        join encounter e
@@ -169,49 +196,64 @@
       where p.resource->>'birthDate' > '2000-01-01'
    #+END_SRC
 
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Aggregate (actual rows=1 loops=1)
+     ->  Hash Join (actual rows=6471 loops=1)
+	   Hash Cond: ((e.resource #>> '{subject,id}'::text[]) = p.id)
+	   ->  Seq Scan on encounter e (actual rows=56153 loops=1)
+	   ->  Hash (actual rows=261 loops=1)
+		 Buckets: 1024  Batches: 1  Memory Usage: 26kB
+		 ->  Seq Scan on patient p (actual rows=261 loops=1)
+		       Filter: ((resource ->> 'birthDate'::text) > '2000-01-01'::text)
+		       Rows Removed by Filter: 921
+   Planning Time: 7.573 ms
+   Execution Time: 64.892 ms
+   :END:
+
+
 * SEQ scan
 
   =Sequential scan=
 
   #+BEGIN_SRC sql :results value drawer
     explain (analyze, buffers, costs off)
-     select id
+     select id, resource
        from patient
-      --where resource->>'birthDate' > '2000-01-01'
+      where resource->>'birthDate' > '2000-01-01'
   #+END_SRC
 
   =Parallel seq scan=
 
   Just select very heavy for parallel
-
-  #+BEGIN_SRC sql :results value drawer
-    explain analyze
-    select ts
-      from observation
-  #+END_SRC
-
   Aggregates good for parallel
 
   #+BEGIN_SRC sql :results value drawer
-    explain analyze
-     select count(*)
-       from observation
-  #+END_SRC
-
-  #+BEGIN_SRC sql
-    show  max_parallel_workers_per_gather
+    explain (analyze, costs off, timing off)
+    select count(id)
+    from observation
   #+END_SRC
 
 
   #+BEGIN_SRC sql
     show  max_parallel_workers_per_gather;
-    alter system set  max_parallel_workers_per_gather = DEFAULT;
+    alter system set  max_parallel_workers_per_gather = 4;
     select pg_reload_conf();
     show  max_parallel_workers_per_gather;
-
   #+END_SRC
 
-  *Default:*
+  #+RESULTS:
+  | max_parallel_workers_per_gather |
+  |---------------------------------|
+  | 4                               |
+  | ALTER SYSTEM                    |
+  | pg_reload_conf                  |
+  | t                               |
+  | max_parallel_workers_per_gather |
+  | 4                               |
+
+  *Defaults:*
 
   #+BEGIN_SRC
     max_parallel_workers_per_gather = 2
@@ -228,10 +270,6 @@
 
   =Index scan= / =Index only scan=
 
-  #+BEGIN_SRC sql :results value drawer
-    \d+ patient
-  #+END_SRC
-
 
   #+BEGIN_SRC sql :results value drawer
     explain (analyze, buffers)
@@ -240,12 +278,34 @@
       where id = 'bc666ab5-b43d-63a0-2f5a-3ce4b57b6fc1'
   #+END_SRC
 
+  #+RESULTS:
+  :RESULTS:
+  QUERY PLAN
+  Index Scan using observation_pkey on observation  (cost=0.42..8.44 rows=1 width=1005) (actual time=0.091..0.107 rows=1 loops=1)
+    Index Cond: (id = 'bc666ab5-b43d-63a0-2f5a-3ce4b57b6fc1'::text)
+    Buffers: shared hit=4
+  Planning Time: 4.842 ms
+  Execution Time: 0.185 ms
+  :END:
+
   #+BEGIN_SRC sql :results value drawer
     explain (analyze, buffers)
      select id
        from observation
       where id = 'bc666ab5-b43d-63a0-2f5a-3ce4b57b6fc1'
   #+END_SRC
+
+
+  #+RESULTS:
+  :RESULTS:
+  QUERY PLAN
+  Index Only Scan using observation_pkey on observation  (cost=0.42..4.44 rows=1 width=37) (actual time=1.204..1.219 rows=1 loops=1)
+    Index Cond: (id = 'bc666ab5-b43d-63a0-2f5a-3ce4b57b6fc1'::text)
+    Heap Fetches: 0
+    Buffers: shared hit=4
+  Planning Time: 3.094 ms
+  Execution Time: 1.289 ms
+  :END:
 
 
 ** =Task 1= - find Patient with phohe ~555-712-8424~
@@ -259,24 +319,21 @@
       where resource#>>'{telecom,0,value}' = '555-712-8424';
    #+END_SRC
 
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Index Scan using patien_phone on patient  (cost=0.28..8.30 rows=1 width=69) (actual time=0.157..0.174 rows=1 loops=1)
+     Index Cond: ((resource #>> '{telecom,0,value}'::text[]) = '555-712-8424'::text)
+   Planning Time: 5.155 ms
+   Execution Time: 0.350 ms
+   :END:
+
 *** Answer
 
     #+BEGIN_SRC sql
       create index patien_phone on patient ((resource#>>'{telecom,0,value}'));
-    #+END_SRC
-
-    #+BEGIN_SRC sql
       vacuum analyze patient;
     #+END_SRC
-
-    #+BEGIN_SRC sql
-      drop index patien_phone;
-    #+END_SRC
-
-*** Extra
-
-  - parallel index scan
-  - parallel_workers (for table)
 
 * Bitmap Index scan
 
@@ -289,9 +346,6 @@
    #+BEGIN_SRC sql
      create index patient_resource_birthdate
          on patient ((resource#>>'{birthDate}'));
-   #+END_SRC
-
-   #+BEGIN_SRC sql
      vacuum analyze patient
    #+END_SRC
 
@@ -306,18 +360,18 @@
    #+RESULTS:
    :RESULTS:
    QUERY PLAN
-   Bitmap Heap Scan on patient  (cost=4.35..31.33 rows=9 width=69) (actual time=0.068..0.296 rows=12 loops=1)
+   Bitmap Heap Scan on patient  (cost=4.35..31.33 rows=9 width=69) (actual time=0.073..0.341 rows=12 loops=1)
      Recheck Cond: ((resource #>> '{birthDate}'::text[]) > '2020-01-01'::text)
      Heap Blocks: exact=12
-     ->  Bitmap Index Scan on patient_resource_birthdate  (cost=0.00..4.34 rows=9 width=0) (actual time=0.025..0.032 rows=12 loops=1)
+     ->  Bitmap Index Scan on patient_resource_birthdate  (cost=0.00..4.34 rows=9 width=0) (actual time=0.026..0.034 rows=12 loops=1)
 	   Index Cond: ((resource #>> '{birthDate}'::text[]) > '2020-01-01'::text)
-   Planning Time: 4.248 ms
-   Execution Time: 0.552 ms
+   Planning Time: 5.528 ms
+   Execution Time: 0.510 ms
    :END:
 
 * GIN index
 
-**  =Task 3= - Find Blood Pressure observations
+** =Task 3= - Find Blood Pressure observations
 
   #+BEGIN_SRC json
     {
@@ -334,21 +388,29 @@
       where resource @> '{"code": {"coding": [{"code": "85354-9", "system": "http://loinc.org"}]}}'
   #+END_SRC
 
+  #+RESULTS:
+  :RESULTS:
+  QUERY PLAN
+  Aggregate  (cost=1468.09..1468.10 rows=1 width=8) (actual time=313.978..313.991 rows=1 loops=1)
+    Buffers: shared hit=15527
+    ->  Bitmap Heap Scan on observation  (cost=78.87..1467.17 rows=370 width=37) (actual time=19.410..195.551 rows=16514 loops=1)
+	  Recheck Cond: (resource @> '{"code": {"coding": [{"code": "85354-9", "system": "http://loinc.org"}]}}'::jsonb)
+	  Heap Blocks: exact=14972
+	  Buffers: shared hit=15527
+	  ->  Bitmap Index Scan on observation_resource__gin_jsquery  (cost=0.00..78.78 rows=370 width=0) (actual time=17.044..17.050 rows=16514 loops=1)
+		Index Cond: (resource @> '{"code": {"coding": [{"code": "85354-9", "system": "http://loinc.org"}]}}'::jsonb)
+		Buffers: shared hit=555
+  Planning Time: 11.469 ms
+  Execution Time: 314.354 ms
+  :END:
+
   #+BEGIN_SRC sql
     create index observation_resource__gin_jsquery
-        on observation
-     using gin (resource jsonb_path_value_ops)
-  #+END_SRC
+	on observation
+     using gin (resource jsonb_path_value_ops);
 
-  #+BEGIN_SRC sql
     vacuum analyze observation
   #+END_SRC
-
-
-  #+BEGIN_SRC sql
-    drop index observation_resource__gin_jsquery;
-  #+END_SRC
-
 
 ** =Task 4= - Find Observations for patient
 
@@ -370,6 +432,33 @@
       where resource#>>'{subject,id}' = '6bfd6661-dbb4-4fd6-3536-c39161f57a5c'
    #+END_SRC
 
+
+   #+BEGIN_SRC sql
+     create index observation_resource_subj_gin
+     on observation
+     using gin ((resource->'subject'))
+   #+END_SRC
+
+
+   #+BEGIN_SRC sql :results value drawer
+    explain analyze
+     select id
+       from observation
+      where resource->'subject' @> '{"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}'
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Bitmap Heap Scan on observation  (cost=22.87..1412.09 rows=370 width=37) (actual time=2.448..11.327 rows=541 loops=1)
+     Recheck Cond: ((resource -> 'subject'::text) @> '{"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}'::jsonb)
+     Heap Blocks: exact=537
+     ->  Bitmap Index Scan on observation_resource_subj_gin  (cost=0.00..22.78 rows=370 width=0) (actual time=2.365..2.373 rows=541 loops=1)
+	   Index Cond: ((resource -> 'subject'::text) @> '{"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}'::jsonb)
+   Planning Time: 4.843 ms
+   Execution Time: 16.116 ms
+   :END:
+
    #+BEGIN_SRC sql :results value drawer
      explain analyze
      select id
@@ -377,10 +466,32 @@
       where resource @> '{"subject": {"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}}'
    #+END_SRC
 
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Bitmap Heap Scan on observation  (cost=42.87..1431.17 rows=370 width=37) (actual time=4.582..13.492 rows=541 loops=1)
+     Recheck Cond: (resource @> '{"subject": {"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}}'::jsonb)
+     Heap Blocks: exact=537
+     ->  Bitmap Index Scan on observation_resource__gin_jsquery  (cost=0.00..42.78 rows=370 width=0) (actual time=4.498..4.505 rows=541 loops=1)
+	   Index Cond: (resource @> '{"subject": {"id": "6bfd6661-dbb4-4fd6-3536-c39161f57a5c"}}'::jsonb)
+   Planning Time: 8.757 ms
+   Execution Time: 18.135 ms
+   :END:
+
    #+BEGIN_SRC sql
      select pg_size_pretty(pg_relation_size('observation_resource__subject_id')) btree;
      select pg_size_pretty(pg_relation_size('observation_resource__gin_jsquery')) gin;
+     select pg_size_pretty(pg_relation_size('observation_resource_subj_gin')) gin_sub;
    #+END_SRC
+
+   #+RESULTS:
+   | btree   |
+   |---------|
+   | 21 MB   |
+   | gin     |
+   | 39 MB   |
+   | gin_sub |
+   | 4928 kB |
 
 * JOIN
 
@@ -392,39 +503,88 @@
 
 *** =Task 5= - Find the oldest ~Patient~ with =Suspected COVID-19= ~Observation~
 
-   ={code,coding,0}= = ={"code": "840544004", "display": "Suspected COVID-19"}=
+    ={code,coding,0}= = ={"code": "840544004", "display": "Suspected COVID-19"}=
 
-   #+BEGIN_SRC sql :results value drawer
-    explain (analyze, costs off, timing off)
-     select c.id cid, p.id pid
-       from condition c
-       join patient p
-         on p.id = c.resource#>>'{subject,id}'
+    #+BEGIN_SRC sql :results value drawer
+      explain (analyze, costs off, timing off)
+      select c.id cid, p.id pid
+      from condition c
+      join patient p
+      on p.id = c.resource#>>'{subject,id}'
       limit 100
-   #+END_SRC
+    #+END_SRC
 
-   *Another available plans:*
+    #+RESULTS:
+    :RESULTS:
+    QUERY PLAN
+    Limit (actual rows=100 loops=1)
+    ->  Nested Loop (actual rows=100 loops=1)
+    ->  Seq Scan on condition c (actual rows=100 loops=1)
+    ->  Index Only Scan using patient_pkey on patient p (actual rows=1 loops=100)
+    Index Cond: (id = (c.resource #>> '{subject,id}'::text[]))
+    Heap Fetches: 0
+    Planning Time: 9.519 ms
+    Execution Time: 1.431 ms
+    :END:
+
+    #+BEGIN_SRC sql
+      create index condition_resource__subject
+      on condition
+      using gin ((resource->'subject'));
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      vacuum analyze condition;
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql :results value drawer
+      explain (analyze, costs off, timing off)
+       select c.id cid, p.id pid
+         from patient p
+         join condition c
+           on c.resource->'subject' @> jsonb_build_object('id', p.id)
+        limit 1000
+    #+END_SRC
+
+    *Another available plans:*
     - Nested loop
     - Nested loop Left/Right Join
     - Nested loop anti join : jeft join is null (not exists)
     - Nested loop semi join : (exists)
 
-   *Advantages:*
+    *Advantages:*
     + No prepare actions
     + Good for less data
-    + Ani condition (also <>)
+    + Any condition (also <>)
 
 ** Hash join
 
    Hash table unioin -> N+M complexity
 
+
    #+BEGIN_SRC sql :results value drawer
-      explain (analyze, costs off)
-       select p.id pid, c.id
-         from condition c
-         join patient p
-           on p.id = c.resource#>>'{subject,id}'
+     explain (analyze, costs off)
+      select p.id pid, c.id
+	from condition c
+	join patient p
+	  on p.id = c.resource#>>'{subject,id}'
+       --limit 500
    #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Hash Join (actual time=21.699..368.925 rows=15257 loops=1)
+     Hash Cond: ((c.resource #>> '{subject,id}'::text[]) = p.id)
+     ->  Seq Scan on condition c (actual time=0.016..109.664 rows=15257 loops=1)
+     ->  Hash (actual time=21.616..21.622 rows=1182 loops=1)
+	   Buckets: 2048  Batches: 1  Memory Usage: 96kB
+	   ->  Index Only Scan using patient_pkey on patient p (actual time=0.780..10.741 rows=1182 loops=1)
+		 Heap Fetches: 0
+   Planning Time: 7.810 ms
+   Execution Time: 473.183 ms
+   :END:
 
 ** Merge join
 
@@ -439,6 +599,23 @@
        where c.resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
        order by p.id
    #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Merge Join (actual rows=901 loops=1)
+     Merge Cond: (((c.resource #>> '{subject,id}'::text[])) = p.id)
+     ->  Sort (actual rows=901 loops=1)
+	   Sort Key: ((c.resource #>> '{subject,id}'::text[]))
+	   Sort Method: quicksort  Memory: 1841kB
+	   ->  Seq Scan on condition c (actual rows=901 loops=1)
+		 Filter: ((resource #> '{code,coding,0}'::text[]) @> '{"code": "840544004", "display": "Suspected COVID-19"}'::jsonb)
+		 Rows Removed by Filter: 14356
+     ->  Index Only Scan using patient_pkey on patient p (actual rows=1182 loops=1)
+	   Heap Fetches: 0
+   Planning Time: 7.362 ms
+   Execution Time: 21.148 ms
+   :END:
 
    Table: a                Table: b
 
@@ -459,14 +636,43 @@
 	     on p.id = c.resource#>>'{subject,id}'
        where c.resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
        order by p.resource#>>'{birthDate}'
-       limit 1
+       limit 10
+   #+END_SRC
+
+   #+RESULTS:
+   :RESULTS:
+   QUERY PLAN
+   Limit (actual rows=10 loops=1)
+     ->  Sort (actual rows=10 loops=1)
+	   Sort Key: ((p.resource #>> '{birthDate}'::text[]))
+	   Sort Method: top-N heapsort  Memory: 27kB
+	   ->  Nested Loop (actual rows=901 loops=1)
+		 ->  Bitmap Heap Scan on condition c (actual rows=901 loops=1)
+		       Recheck Cond: ((resource #> '{code,coding,0}'::text[]) @> '{"code": "840544004", "display": "Suspected COVID-19"}'::jsonb)
+		       Heap Blocks: exact=770
+		       ->  Bitmap Index Scan on condition_resoruce_subject_covid (actual rows=901 loops=1)
+		 ->  Index Scan using patient_pkey on patient p (actual rows=1 loops=901)
+		       Index Cond: (id = (c.resource #>> '{subject,id}'::text[]))
+   Planning Time: 8.167 ms
+   Execution Time: 17.974 ms
+   :END:
+
+
+   #+BEGIN_SRC sql
+create index cond_foo
+on condition ((resource#>>'{meta}'))
    #+END_SRC
 
 
+   #+BEGIN_SRC sql
+     create index condition_resoruce_subject_covid
+         on condition  ((resource#>>'{subject,id}'))
+      where resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
+   #+END_SRC
 
-
-
-
+   #+BEGIN_SRC sql
+     vacuum analyze condition
+   #+END_SRC
 
 
 
