@@ -13,7 +13,7 @@
     {"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}
   #+END_SRC
 
-  Само значение веса находится в ='{valueQuantity,value}'=
+  Само значение веса находится в ~{valueQuantity,value}~
 
 
   Пример ресурса с показателем массы тела
