@@ -15,13 +15,12 @@
 
   Само значение веса находится в ~{valueQuantity,value}~
 
-
   Пример ресурса с показателем массы тела
 
   #+BEGIN_SRC sql :results value drawer
     select id,jsonb_pretty(resource)
-    from observation
-    where id = '091e1985-d8aa-6ac5-d780-4f9f18d85b5d'
+      from observation
+     where id = '091e1985-d8aa-6ac5-d780-4f9f18d85b5d'
   #+END_SRC
 
   #+RESULTS:
@@ -75,5 +74,5 @@
   }
   :END:
 
-
   В качестве ответа предоставить запросы на создание индексов, сам поисковый запрос, план и результат его выполнения.
+  В конечном результате вывести имя и вес самого тяжелого пациента.
