@@ -1,15 +1,79 @@
+#+TITLE: QOPT - HW day 1
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Find the heaviest patient
+
+  Максимально эффективно найти самого тяжелого пациента. Показания веса находятся в таблице ~Observation~.
+
+  Значение веса закодированное следующим образом:
 
   #+BEGIN_SRC json
     {"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}
   #+END_SRC
 
-#+BEGIN_SRC sql
- '{value,Quantity,value}'
-#+END_SRC
+  Само значение веса находится в ='{valueQuantity,value}'=
 
 
- *  Максимально эффективно найти ссамого тяжелого пациента
+  Пример ресурса с показателем массы тела
 
-Показания веса находятся в таблице Observation
-Закодированы так ~{"code": {"coding": [{"code": "29463-7", "system": "http://loinc.org"}]}}~
-Само значение веса находится в ~'{value,Quantity,value}'~
+  #+BEGIN_SRC sql :results value drawer
+    select id,jsonb_pretty(resource)
+    from observation
+    where id = '091e1985-d8aa-6ac5-d780-4f9f18d85b5d'
+  #+END_SRC
+
+  #+RESULTS:
+  :RESULTS:
+  id	jsonb_pretty
+  091e1985-d8aa-6ac5-d780-4f9f18d85b5d	{
+      "code": {
+	  "text": "Body Weight",
+	  "coding": [
+	      {
+		  "code": "29463-7",
+		  "system": "http://loinc.org",
+		  "display": "Body Weight"
+	      }
+	  ]
+      },
+      "meta": {
+	  "profile": [
+	      "http://hl7.org/fhir/StructureDefinition/bodyweight",
+	      "http://hl7.org/fhir/StructureDefinition/vitalsigns"
+	  ]
+      },
+      "issued": "2015-11-07T08:26:13.789+03:00",
+      "status": "final",
+      "subject": {
+	  "id": "a7bad218-9d9f-0ea9-445b-39afe1cf6889",
+	  "reference": "Patient/a7bad218-9d9f-0ea9-445b-39afe1cf6889"
+      },
+      "category": [
+	  {
+	      "coding": [
+		  {
+		      "code": "vital-signs",
+		      "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+		      "display": "vital-signs"
+		  }
+	      ]
+	  }
+      ],
+      "encounter": {
+	  "id": "674d8aff-6031-cee0-bedb-71c4044d1576",
+	  "reference": "Encounter/674d8aff-6031-cee0-bedb-71c4044d1576"
+      },
+      "valueQuantity": {
+	  "code": "kg",
+	  "unit": "kg",
+	  "value": 86.7,
+	  "system": "http://unitsofmeasure.org"
+      },
+      "effectiveDateTime": "2015-11-07T08:26:13+03:00"
+  }
+  :END:
+
+
+  В качестве ответа предоставить запросы на создание индексов, сам поисковый запрос, план и результат его выполнения.

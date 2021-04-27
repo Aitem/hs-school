@@ -659,44 +659,8 @@
 
 
    #+BEGIN_SRC sql
-create index cond_foo
-on condition ((resource#>>'{meta}'))
-   #+END_SRC
-
-
-   #+BEGIN_SRC sql
      create index condition_resoruce_subject_covid
          on condition  ((resource#>>'{subject,id}'))
-      where resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}'
-   #+END_SRC
-
-   #+BEGIN_SRC sql
+      where resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}';
      vacuum analyze condition
-   #+END_SRC
-
-
-
-
-
-   #+BEGIN_SRC sql :results value drawer
-     create index condition_resource_subject_1_covid
-     on condition
-     using gin ((resource->'subject'))
-     where (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
-   #+END_SRC
-
-
-   #+BEGIN_SRC sql :results value drawer
-     create index condition_resource_subject_3_covid
-     on condition ((right(resource#>>'{subject,uri}', 36)))
-     where (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
-   #+END_SRC
-
-
-   #+BEGIN_SRC sql :results value drawer
-     explain analyze
-     select id
-     from condition
-     where  resource->'subject' @> '{"uri": "urn:uuid:ef83a9f0-5d52-f0be-3997-90d9fb07905d"}'
-     and (resource @> '{"code": {"coding": [{"code": "840544004", "display": "Suspected COVID-19"}]}}')
    #+END_SRC
