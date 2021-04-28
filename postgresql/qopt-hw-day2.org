@@ -1,0 +1,26 @@
+#+TITLE: QOPT - HW day 2
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Find Encounters
+
+  Максимально эффективно найти ~Encounter~ проведенные в январе 2020 года.
+
+  Время проведения Энкаунтера находится в ~{period}~.
+
+  #+BEGIN_SRC sql
+    select jsonb_pretty(resource#>'{period}') as period
+      from encounter
+     limit 1
+  #+END_SRC
+
+  #+RESULTS:
+  | period                               |
+  |--------------------------------------|
+  | {                                    |
+  | "end": "2017-01-22T10:06:40+03:00",  |
+  | "start": "2017-01-22T09:51:40+03:00" |
+  | }                                    |
+
+  В качестве ответа предоставить запросы на создание индексов, сам поисковый запрос, план и результат его выполнения.
