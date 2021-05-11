@@ -493,6 +493,15 @@
    | gin_sub |
    | 4928 kB |
 
+#+BEGIN_SRC sql
+select 12000/60
+#+END_SRC
+
+#+RESULTS:
+| ?column? |
+|----------|
+|      200 |
+
 * JOIN
 
   Not about left/right/inner BUT join methods
@@ -664,3 +673,37 @@
       where resource#>'{code,coding,0}' @> '{"code": "840544004", "display": "Suspected COVID-19"}';
      vacuum analyze condition
    #+END_SRC
+
+   #+BEGIN_SRC sql
+\dt
+   #+END_SRC
+
+   #+RESULTS:
+   | List of relations |                   |       |          |
+   |-------------------+-------------------+-------+----------|
+   | Schema            | Name              | Type  | Owner    |
+   | public            | appointment       | table | postgres |
+   | public            | condition         | table | postgres |
+   | public            | documentreference | table | postgres |
+   | public            | empty_sample      | table | postgres |
+   | public            | encounter         | table | postgres |
+   | public            | expertise         | table | postgres |
+   | public            | gaps              | table | postgres |
+   | public            | jsonbsample       | table | postgres |
+   | public            | observation       | table | postgres |
+   | public            | organization      | table | postgres |
+   | public            | patient           | table | postgres |
+   | public            | person            | table | postgres |
+   | public            | route             | table | postgres |
+   | public            | sample            | table | postgres |
+   | public            | sample_big        | table | postgres |
+   | public            | schedule          | table | postgres |
+   | public            | seq_sample        | table | postgres |
+   | public            | service           | table | postgres |
+   | public            | stop              | table | postgres |
+   | public            | task              | table | postgres |
+   | public            | task_expertise    | table | postgres |
+   | public            | test_patient      | table | postgres |
+   | public            | trip              | table | postgres |
+   | public            | trip_stop         | table | postgres |
+   | public            | vehicle_stoplog   | table | postgres |

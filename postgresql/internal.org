@@ -1,18 +1,18 @@
 #+TITLE: PG internal
 #+AUTHOR: M. Surmashev @muradbei
 #+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
-#+PROPERTY: header-args:sql :engine postgresql :dbport 5437 :dbhost localhost :dbuser postgres :dbpassword postgres :database devbox
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
 
 * Intro                                                            :noexport:
 
 [[./internal.png]]
 
-From heroku
+From Heroku
+
 * Table of Contents                                                   :TOC_3:
 - [[#install][Install]]
-- [[#pg-architecture][PG architecture]]
-- [[#acid][ACID]]
 - [[#base-concepts][Base concepts]]
+- [[#acid][ACID]]
 - [[#mvcc][MVCC]]
 - [[#isolation-levels][Isolation levels]]
 - [[#cache-wal-checkpoint][Cache Wal CheckPoint]]
@@ -42,15 +42,33 @@ From heroku
   #+END_SRC
 
 
-* PG architecture
+* Base concepts
 
-  ~<Client> =<-- protocol -->= ~<PG Server>~
+** Processes
 
-  [[https://postgrespro.ru/docs/postgrespro/13/protocol?lang=en][Protocol]] - Postgres uses a message-based protocol for communication
-             between frontends and backends (clients and servers).
+  [[./pg_concepts.png]]
 
-  [[https://www.postgresql.org/docs/13/external-interfaces.html][Interfaces]] - language interfaces are external projects ([[https://www.postgresql.org/docs/13/libpq.html][libpq]] included)
 
+  =Postmaster= - Main process
+    - Create and manage all processes
+    - Create connections/backends
+
+    #+BEGIN_SRC bash :results value pp
+      docker exec hs-db ps -aux
+    #+END_SRC
+
+** Memory
+
+   [[./pg_mem.png]]
+
+
+   =Shared memory= - pages with tables and indexes. Communication with disc via operating system + os cache
+   =Local memory= - Each backend process local memory area
+
+
+* File System
+
+  TODO:
 
 * ACID
 
@@ -58,46 +76,6 @@ From heroku
   =Consistency= - Consistency before and after
   =Isolation=   - MVCC
   =Durability=  - WAL
-
-
-* Base concepts
-
-  =postmaster= - Main process
-    - Create and manage all processes
-    - Create connections/backends
-      - local buffer + work_mem (local process memory)
-
-  =Shared memory=
-
-  Parallel = locsk
-  Too many connection bad
-  Most useful - connection pool
-
-  Communication with disc via operating system + os cache
-
- +------------+
- | Postmaster |------+
- +------------+      |
-     |               |
- +------------+  +--------------------+
- | Backend    |	 | Background process |
- +------------+	 +--------------------+
-     |               |
- +----------------------+
- |    Shared memory     |
- +----------------------+
-       ||
-+------+---------------------+
-|      ||               OS   |
-| +----------------------+   |
-| |   OS cashe           |   |
-| +----------------------+   |
-|      ||                    |
-| +----------------------+   |
-| |      Disc            |   |
-| +----------------------+   |
-+----------------------------+
-
 
 * MVCC
 
@@ -116,32 +94,14 @@ From heroku
     select id, xmin, xmax from mvcc_test;
   #+END_SRC
 
-  #+RESULTS:
-  | id | xmin | xmax |
-  |----+------+------|
-  |  2 | 1021 |    0 |
-
   #+BEGIN_SRC sql
     update mvcc_test set id = 3 where id = 2;
   #+END_SRC
-
-  #+RESULTS:
-  | UPDATE 1 |
-  |----------|
 
 
   #+BEGIN_SRC sql
     select id, xmin, xmax from mvcc_test;
   #+END_SRC
-
-  #+RESULTS:
-  | id | xmin | xmax |
-  |----+------+------|
-  |  6 | 1027 |    0 |
-  |    |      |      |
-  |  3 | 1023 |    0 |
-  | -4 | 1024 |    0 |
-  | -5 | 1024 |    0 |
 
 
   =On update= - delete previous and create new record (with create ~xmin~ and close ~xmax~)
@@ -215,7 +175,7 @@ From heroku
   #+RESULTS:
   | pg_current_wal_lsn |
   |--------------------|
-  | 1/661A4660         |
+  | 1/33D30EE0         |
 
   #+BEGIN_SRC sql
     select * from pg_ls_waldir() limit 10;
@@ -224,22 +184,22 @@ From heroku
   #+RESULTS:
   |                     name |     size | modification           |
   |--------------------------+----------+------------------------|
-  | 000000010000000100000066 | 16777216 | 2021-03-29 16:55:53+00 |
-  | 000000010000000100000067 | 16777216 | 2021-03-29 09:08:08+00 |
-  | 000000010000000100000068 | 16777216 | 2021-03-29 09:08:12+00 |
-  | 000000010000000100000069 | 16777216 | 2021-03-29 09:08:17+00 |
-  | 00000001000000010000006A | 16777216 | 2021-03-29 09:08:41+00 |
-  | 00000001000000010000006B | 16777216 | 2021-03-29 09:08:42+00 |
-  | 00000001000000010000006C | 16777216 | 2021-03-29 09:08:42+00 |
-  | 00000001000000010000006D | 16777216 | 2021-03-29 09:08:43+00 |
-  | 00000001000000010000006E | 16777216 | 2021-03-29 09:08:43+00 |
-  | 00000001000000010000006F | 16777216 | 2021-03-29 09:12:54+00 |
+  | 000000010000000100000033 | 16777216 | 2021-04-30 17:30:23+00 |
+  | 000000010000000100000034 | 16777216 | 2021-04-28 17:01:41+00 |
+  | 000000010000000100000035 | 16777216 | 2021-04-28 17:01:44+00 |
+  | 000000010000000100000036 | 16777216 | 2021-04-28 17:01:53+00 |
+  | 000000010000000100000037 | 16777216 | 2021-04-28 17:01:56+00 |
+  | 000000010000000100000038 | 16777216 | 2021-04-28 17:09:55+00 |
+  | 000000010000000100000039 | 16777216 | 2021-04-28 17:10:11+00 |
+  | 00000001000000010000003A | 16777216 | 2021-04-28 17:10:12+00 |
+  | 00000001000000010000003B | 16777216 | 2021-04-28 17:10:12+00 |
+  | 00000001000000010000003C | 16777216 | 2021-04-28 17:10:13+00 |
 
 * Checkpoint
 
   =Checkpointer process=
-    Restore all wals too expensive
-    Make checkpoint and dump all buffers to disc
+  Restore all wals too expensive
+  Make checkpoint and dump all buffers to disc
 
   #+BEGIN_SRC
    checkpoint                checkpoint         fail
@@ -248,13 +208,14 @@ From heroku
   #+END_SRC
 
 
-On update
+  On update
 
-- fsync wal log
-- update on mem table page 8k
+  - fsync wal log
+  - update on mem table page 8k
 
-on checkpoint
-- dump mem to disc
+  on checkpoint
+  - dump mem to disc
+
 * Create database
 
 
@@ -361,7 +322,7 @@ select count(*) from mvcc_test;
   |     6 |
 
   #+BEGIN_SRC sql
-CHECKPOINT
+    CHECKPOINT
   #+END_SRC
 
   #+RESULTS:
