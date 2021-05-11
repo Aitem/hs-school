@@ -11,7 +11,14 @@ From Heroku
 
 * Table of Contents                                                   :TOC_3:
 - [[#install][Install]]
+- [[#logical-and-physical-structure][Logical and physical structure]]
+  - [[#logical][Logical]]
+  - [[#physical][Physical]]
+  - [[#tablespace][TableSpace]]
+  - [[#pages][Pages]]
 - [[#base-concepts][Base concepts]]
+  - [[#processes][Processes]]
+  - [[#memory][Memory]]
 - [[#acid][ACID]]
 - [[#mvcc][MVCC]]
 - [[#isolation-levels][Isolation levels]]
@@ -43,7 +50,6 @@ From Heroku
 
 
 * Logical and physical structure
-
 ** Logical
 
    =DBMS= -> =Database= -> =Schema= -> =Table/View/Index/etc=
@@ -192,9 +198,6 @@ From Heroku
    =Local memory= - Each backend process local memory area
 
 
-* File System
-
-  TODO:
 
 * ACID
 
