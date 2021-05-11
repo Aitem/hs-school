@@ -42,6 +42,132 @@ From Heroku
   #+END_SRC
 
 
+* Logical and physical structure
+
+** Logical
+
+   =DBMS= -> =Database= -> =Schema= -> =Table/View/Index/etc=
+
+   =DBMS= (Cluster) - ~my.super.instance~
+    =Database= - ~project~
+      =Schema= - ~public~
+        =Table= - ~sample~
+	=Index= - ~sample_id_pkey~
+
+** Physical
+
+   [[https://www.postgresql.org/docs/current/storage-file-layout.html][Database file layout]]
+
+   [[./pg_files.png]]
+
+
+    #+NAME: PGDATA
+    #+BEGIN_SRC bash :results value pp
+      docker exec hs-db ls -lah /data
+    #+END_SRC
+
+    #+NAME: PG base
+    #+BEGIN_SRC bash :results value pp
+      docker exec hs-db ls -lah /data/base
+    #+END_SRC
+
+    #+NAME: Create table for file test
+    #+BEGIN_SRC sql
+      create table if not exists file_test(id int);
+    #+END_SRC
+
+    #+NAME: Check database oid
+    #+BEGIN_SRC sql
+      select oid, datname
+        from pg_database
+       where datname = 'postgres';
+    #+END_SRC
+
+    #+NAME: Check table oid
+    #+BEGIN_SRC sql
+      SELECT relname, oid, relfilenode
+        FROM pg_class
+       WHERE relname = 'file_test';
+    #+END_SRC
+
+    #+NAME: Check table filepath
+    #+BEGIN_SRC sql
+      SELECT pg_relation_filepath('file_test');
+    #+END_SRC
+
+    #+NAME: PG view this file
+    #+BEGIN_SRC bash :results value pp
+      docker exec hs-db ls -lah /data/base/13400/147224
+    #+END_SRC
+
+** TableSpace
+
+   [[https://www.postgresql.org/docs/current/sql-createtablespace.html][CREATE TABLESPACE]]
+
+   [[./pg_tablespace.png]]
+
+   #+NAME: Create dir for new tblspc
+   #+BEGIN_SRC bash
+     docker exec hs-db mkdir /data/newtblspc
+     docker exec hs-db chown postgres:postgres /data/newtblspc
+   #+END_SRC
+
+   #+NAME: Create  new tblspc
+   #+BEGIN_SRC sql
+     CREATE TABLESPACE newtblspc LOCATION '/data/newtblspc'
+   #+END_SRC
+
+   #+NAME: Check symlink
+   #+BEGIN_SRC bash
+     docker exec hs-db ls -lah /data/pg_tblspc
+   #+END_SRC
+
+   #+NAME: Create table in new tblspc
+   #+BEGIN_SRC sql
+     create table if not exists another_tbl (id int) tablespace newtblspc;
+   #+END_SRC
+
+    #+NAME: Check table filepath in new tblspc
+    #+BEGIN_SRC sql
+      SELECT pg_relation_filepath('another_tbl');
+      #+END_SRC
+
+** Pages
+
+   =Page structure=
+
+   [[./pg_page.png]]
+
+
+   [[https://postgrespro.ru/docs/postgrespro/12/pageinspect][PageInspect]] - module provides functions that allow you to inspect
+                 the contents of database pages at a low level.
+
+   #+NAME: Create extension pageinspect
+   #+BEGIN_SRC sql
+     create extension if not exists pageinspect;
+   #+END_SRC
+
+   #+NAME: Make some data
+   #+BEGIN_SRC sql
+     truncate another_tbl;
+     insert into another_tbl (id)
+     values (1), (2), (3);
+   #+END_SRC
+
+
+   [[https://postgrespro.ru/docs/postgrespro/13/storage-page-layout?lang=en][Page Header data]]
+
+   #+NAME: Get page headers
+   #+BEGIN_SRC sql
+     SELECT * FROM page_header(get_raw_page('another_tbl', 0));
+   #+END_SRC
+
+
+   #+NAME: Get page items
+   #+BEGIN_SRC sql
+     SELECT * FROM heap_page_items(get_raw_page('another_tbl', 0));
+   #+END_SRC
+
 * Base concepts
 
 ** Processes
