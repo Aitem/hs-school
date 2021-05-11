@@ -1,7 +1,5 @@
 ---- db: -h localhost -p 5400 -U postgres postgres
 
-
-----
 create extension if not exists pageinspect;
 ----
 create table if not exists mvcc_test (id int);

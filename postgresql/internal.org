@@ -13,9 +13,11 @@ From Heroku
 - [[#install][Install]]
 - [[#logical-and-physical-structure][Logical and physical structure]]
   - [[#logical][Logical]]
+    - [[#create-database][Create database]]
+    - [[#schema][Schema]]
   - [[#physical][Physical]]
-  - [[#tablespace][TableSpace]]
-  - [[#pages][Pages]]
+    - [[#tablespace][TableSpace]]
+    - [[#pages][Pages]]
 - [[#base-concepts][Base concepts]]
   - [[#processes][Processes]]
   - [[#memory][Memory]]
@@ -24,8 +26,7 @@ From Heroku
 - [[#isolation-levels][Isolation levels]]
 - [[#cache-wal-checkpoint][Cache Wal CheckPoint]]
 - [[#checkpoint][Checkpoint]]
-- [[#create-database][Create database]]
-  - [[#table-spaces][Table spaces]]
+- [[#create-database-1][Create database]]
   - [[#toast][Toast]]
 
 * Install
@@ -48,8 +49,8 @@ From Heroku
     \l
   #+END_SRC
 
-
 * Logical and physical structure
+
 ** Logical
 
    =DBMS= -> =Database= -> =Schema= -> =Table/View/Index/etc=
@@ -60,34 +61,71 @@ From Heroku
         =Table= - ~sample~
 	=Index= - ~sample_id_pkey~
 
+*** Create database
+
+    By ~default~ - copy =template1=
+
+    #+NAME: List databases
+    #+BEGIN_SRC sql
+      \l
+    #+END_SRC
+
+*** Schema
+
+    #+BEGIN_SRC sql
+      \dnS+
+    #+END_SRC
+
+
+    #+BEGIN_SRC sql
+      show search_path;
+    #+END_SRC
+
 ** Physical
 
    [[https://www.postgresql.org/docs/current/storage-file-layout.html][Database file layout]]
 
+
+   #+NAME: List tablespaces
+   #+BEGIN_SRC sql
+     \db+
+   #+END_SRC
+
+   #+RESULTS: List tablespaces
+   | List of tablespaces |          |                 |                   |         |            |             |
+   |---------------------+----------+-----------------+-------------------+---------+------------+-------------|
+   | Name                | Owner    | Location        | Access privileges | Options | Size       | Description |
+   | newtblspc           | postgres | /data/newtblspc |                   |         | 8288 bytes |             |
+   | pg_default          | postgres |                 |                   |         | 849 MB     |             |
+   | pg_global           | postgres |                 |                   |         | 623 kB     |             |
+
+   =pg_global=  -> ~$PGDATA/global~
+   =pg_default= -> ~$PGDATA/base~
+
    [[./pg_files.png]]
 
 
-    #+NAME: PGDATA
-    #+BEGIN_SRC bash :results value pp
-      docker exec hs-db ls -lah /data
-    #+END_SRC
+   #+NAME: PGDATA
+   #+BEGIN_SRC bash :results value pp
+     docker exec hs-db ls -lah /data
+   #+END_SRC
 
-    #+NAME: PG base
-    #+BEGIN_SRC bash :results value pp
-      docker exec hs-db ls -lah /data/base
-    #+END_SRC
+   #+NAME: PG base
+   #+BEGIN_SRC bash :results value pp
+     docker exec hs-db ls -lah /data/base
+   #+END_SRC
 
-    #+NAME: Create table for file test
-    #+BEGIN_SRC sql
-      create table if not exists file_test(id int);
-    #+END_SRC
+   #+NAME: Create table for file test
+   #+BEGIN_SRC sql
+     create table if not exists file_test(id int);
+   #+END_SRC
 
-    #+NAME: Check database oid
-    #+BEGIN_SRC sql
-      select oid, datname
-        from pg_database
-       where datname = 'postgres';
-    #+END_SRC
+   #+NAME: Check database oid
+   #+BEGIN_SRC sql
+     select oid, datname
+     from pg_database
+     where datname = 'postgres';
+   #+END_SRC
 
     #+NAME: Check table oid
     #+BEGIN_SRC sql
@@ -106,73 +144,74 @@ From Heroku
       docker exec hs-db ls -lah /data/base/13400/147224
     #+END_SRC
 
-** TableSpace
+*** TableSpace
 
-   [[https://www.postgresql.org/docs/current/sql-createtablespace.html][CREATE TABLESPACE]]
+    [[https://www.postgresql.org/docs/current/sql-createtablespace.html][CREATE TABLESPACE]]
 
-   [[./pg_tablespace.png]]
+    [[./pg_tablespace.png]]
 
-   #+NAME: Create dir for new tblspc
-   #+BEGIN_SRC bash
-     docker exec hs-db mkdir /data/newtblspc
-     docker exec hs-db chown postgres:postgres /data/newtblspc
-   #+END_SRC
+    #+NAME: Create dir for new tblspc
+    #+BEGIN_SRC bash
+      docker exec hs-db mkdir /data/newtblspc
+      docker exec hs-db chown postgres:postgres /data/newtblspc
+    #+END_SRC
 
-   #+NAME: Create  new tblspc
-   #+BEGIN_SRC sql
-     CREATE TABLESPACE newtblspc LOCATION '/data/newtblspc'
-   #+END_SRC
+    #+NAME: Create  new tblspc
+    #+BEGIN_SRC sql
+      CREATE TABLESPACE newtblspc LOCATION '/data/newtblspc'
+    #+END_SRC
 
-   #+NAME: Check symlink
-   #+BEGIN_SRC bash
-     docker exec hs-db ls -lah /data/pg_tblspc
-   #+END_SRC
+    #+NAME: Check symlink
+    #+BEGIN_SRC bash
+      docker exec hs-db ls -lah /data/pg_tblspc
+    #+END_SRC
 
-   #+NAME: Create table in new tblspc
-   #+BEGIN_SRC sql
-     create table if not exists another_tbl (id int) tablespace newtblspc;
-   #+END_SRC
+    #+NAME: Create table in new tblspc
+    #+BEGIN_SRC sql
+      create table if not exists another_tbl (id int) tablespace newtblspc;
+    #+END_SRC
 
     #+NAME: Check table filepath in new tblspc
     #+BEGIN_SRC sql
       SELECT pg_relation_filepath('another_tbl');
-      #+END_SRC
+    #+END_SRC
 
-** Pages
+*** Pages
 
-   =Page structure=
+    =Page structure=
 
-   [[./pg_page.png]]
-
-
-   [[https://postgrespro.ru/docs/postgrespro/12/pageinspect][PageInspect]] - module provides functions that allow you to inspect
-                 the contents of database pages at a low level.
-
-   #+NAME: Create extension pageinspect
-   #+BEGIN_SRC sql
-     create extension if not exists pageinspect;
-   #+END_SRC
-
-   #+NAME: Make some data
-   #+BEGIN_SRC sql
-     truncate another_tbl;
-     insert into another_tbl (id)
-     values (1), (2), (3);
-   #+END_SRC
+    [[./pg_page.png]]
 
 
-   [[https://postgrespro.ru/docs/postgrespro/13/storage-page-layout?lang=en][Page Header data]]
+    [[https://postgrespro.ru/docs/postgrespro/12/pageinspect][PageInspect]] - module provides functions that allow you to inspect
+    the contents of database pages at a low level.
 
-   #+NAME: Get page headers
-   #+BEGIN_SRC sql
-     SELECT * FROM page_header(get_raw_page('another_tbl', 0));
-   #+END_SRC
+    #+NAME: Create extension pageinspect
+    #+BEGIN_SRC sql
+      create extension if not exists pageinspect;
+    #+END_SRC
+
+    #+NAME: Make some data
+    #+BEGIN_SRC sql
+      truncate another_tbl;
+      insert into another_tbl (id)
+      values (1), (2), (3);
+    #+END_SRC
 
 
-   #+NAME: Get page items
-   #+BEGIN_SRC sql
-     SELECT * FROM heap_page_items(get_raw_page('another_tbl', 0));
-   #+END_SRC
+    [[https://postgrespro.ru/docs/postgrespro/13/storage-page-layout?lang=en][Page Header data]]
+
+    #+NAME: Get page headers
+    #+BEGIN_SRC sql
+      SELECT * FROM page_header(get_raw_page('another_tbl', 0));
+    #+END_SRC
+
+
+    #+NAME: Get page items
+    #+BEGIN_SRC sql
+      SELECT * FROM heap_page_items(get_raw_page('another_tbl', 0));
+    #+END_SRC
+
 
 * Base concepts
 
@@ -348,19 +387,21 @@ From Heroku
 * Create database
 
 
-  =DBMS= -> =Database= -> =Schema= -> =Table= -> =Column=
 
-  =DBMS= (Cluster) - ~my.super.instance~
-    =Database= - ~project~
-      =Schema= - ~public~
-        =Table= - ~sample~
-          =Column= -  ~id~ (type)
-
-  By ~default~ - copy =template1=
 
   #+BEGIN_SRC sql
     \l
   #+END_SRC
+
+  #+RESULTS:
+  | List of databases     |          |          |                 |             |                   |
+  |-----------------------+----------+----------+-----------------+-------------+-------------------|
+  | Name                  | Owner    | Encoding | Collate         | Ctype       | Access privileges |
+  | postgres              | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
+  | template0             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
+  | postgres=CTc/postgres |          |          |                 |             |                   |
+  | template1             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
+  | postgres=CTc/postgres |          |          |                 |             |                   |
 
   #+BEGIN_SRC sql
     select * from public.user
@@ -381,9 +422,6 @@ From Heroku
   | postgres |
 
 
-  #+BEGIN_SRC sql
-    show search_path;
-  #+END_SRC
 
   #+RESULTS:
   | search_path     |
@@ -402,38 +440,8 @@ From Heroku
   #+END_SRC
 
   #+BEGIN_SRC sql
-    \db
-  #+END_SRC
-
-  #+RESULTS:
-  | List of tablespaces |          |             |
-  |---------------------+----------+-------------|
-  | Name                | Owner    | Location    |
-  | pg_default          | root     |             |
-  | pg_global           | root     |             |
-  | pgtbsp              | postgres | /tmp/pgtbsp |
-
-
-  #+BEGIN_SRC sql
-    select oid, datname from pg_database;
-  #+END_SRC
-
-  #+BEGIN_SRC sql
-    select pg_relation_filepath('mvcc_test');
-  #+END_SRC
-
-#+BEGIN_SRC sql
-vacuum analyze mvcc_test;
-#+END_SRC
-
-
-  #+RESULTS:
-  | VACUUM |
-  |--------|
-
-  #+BEGIN_SRC sql
-insert into mvcc_test (id )
-select id from generate_series(4, 3000) id;
+    insert into mvcc_test (id )
+    select id from generate_series(4, 3000) id;
   #+END_SRC
 
   #+RESULTS:
@@ -471,31 +479,6 @@ select count(*) from mvcc_test;
   | pg_relation_filepath |
   |----------------------|
   | base/16385/18026     |
-
-** Table spaces
-
-
-   =pg_global=  -> ~$PGDATA/global~
-   =pg_default= -> ~$PGDATA/base~
-
-   #+BEGIN_SRC sql
-     select * from pg_tablespace
-   #+END_SRC
-
-
-   #+BEGIN_SRC sql
-     create tablespace pgtbsp location '/tmp/pgtbsp';
-   #+END_SRC
-
-   #+BEGIN_SRC sql
-     \db
-   #+END_SRC
-
-
-   #+BEGIN_SRC sql
-     create database demo tablespace pgtbsp;
-   #+END_SRC
-
 
 ** Toast
 
