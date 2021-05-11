@@ -1,6 +1,5 @@
 ---- db: -h localhost -p 5400 -U postgres postgres
 
-create extension if not exists pageinspect;
 ----
 create table if not exists mvcc_test (id int);
 
@@ -26,8 +25,12 @@ SELECT * FROM heap_page_items(get_raw_page('mvcc_test', 0));
 insert into mvcc_test (id)
 select id from generate_series(10, 100) id;
 
+----
+ SELECT * FROM page_header(get_raw_page('mvcc_test', 0));
+ SELECT * FROM heap_page_items(get_raw_page('mvcc_test', 0));
 
-
+----
+vacuum full mvcc_test;
 ----
 SELECT * FROM heap_page_items(get_raw_page('mvcc_test', 0));
 ----

@@ -23,11 +23,13 @@ From Heroku
   - [[#memory][Memory]]
 - [[#acid][ACID]]
 - [[#mvcc][MVCC]]
-- [[#isolation-levels][Isolation levels]]
-- [[#cache-wal-checkpoint][Cache Wal CheckPoint]]
+  - [[#mvcc-in-work][MVCC in work]]
+  - [[#vacuum][Vacuum]]
+  - [[#transaction-snapshot][Transaction Snapshot]]
+  - [[#isolation-levels][Isolation levels]]
+  - [[#summary][Summary]]
+- [[#wal][WAL]]
 - [[#checkpoint][Checkpoint]]
-- [[#create-database-1][Create database]]
-  - [[#toast][Toast]]
 
 * Install
 
@@ -72,11 +74,12 @@ From Heroku
 
 *** Schema
 
+    #+NAME: List schemas
     #+BEGIN_SRC sql
       \dnS+
     #+END_SRC
 
-
+    #+NAME: Show search path
     #+BEGIN_SRC sql
       show search_path;
     #+END_SRC
@@ -85,30 +88,14 @@ From Heroku
 
    [[https://www.postgresql.org/docs/current/storage-file-layout.html][Database file layout]]
 
-
-   #+NAME: List tablespaces
-   #+BEGIN_SRC sql
-     \db+
-   #+END_SRC
-
-   #+RESULTS: List tablespaces
-   | List of tablespaces |          |                 |                   |         |            |             |
-   |---------------------+----------+-----------------+-------------------+---------+------------+-------------|
-   | Name                | Owner    | Location        | Access privileges | Options | Size       | Description |
-   | newtblspc           | postgres | /data/newtblspc |                   |         | 8288 bytes |             |
-   | pg_default          | postgres |                 |                   |         | 849 MB     |             |
-   | pg_global           | postgres |                 |                   |         | 623 kB     |             |
-
-   =pg_global=  -> ~$PGDATA/global~
-   =pg_default= -> ~$PGDATA/base~
-
-   [[./pg_files.png]]
-
-
    #+NAME: PGDATA
    #+BEGIN_SRC bash :results value pp
      docker exec hs-db ls -lah /data
    #+END_SRC
+
+
+   [[./pg_files.png]]
+
 
    #+NAME: PG base
    #+BEGIN_SRC bash :results value pp
@@ -123,8 +110,8 @@ From Heroku
    #+NAME: Check database oid
    #+BEGIN_SRC sql
      select oid, datname
-     from pg_database
-     where datname = 'postgres';
+       from pg_database
+      where datname = 'postgres';
    #+END_SRC
 
     #+NAME: Check table oid
@@ -149,6 +136,15 @@ From Heroku
     [[https://www.postgresql.org/docs/current/sql-createtablespace.html][CREATE TABLESPACE]]
 
     [[./pg_tablespace.png]]
+
+
+    #+NAME: List tablespaces
+    #+BEGIN_SRC sql
+      \db+
+    #+END_SRC
+
+    =pg_global=  -> ~$PGDATA/global~
+    =pg_default= -> ~$PGDATA/base~
 
     #+NAME: Create dir for new tblspc
     #+BEGIN_SRC bash
@@ -184,7 +180,7 @@ From Heroku
 
 
     [[https://postgrespro.ru/docs/postgrespro/12/pageinspect][PageInspect]] - module provides functions that allow you to inspect
-    the contents of database pages at a low level.
+                  the contents of database pages at a low level.
 
     #+NAME: Create extension pageinspect
     #+BEGIN_SRC sql
@@ -234,9 +230,7 @@ From Heroku
 
 
    =Shared memory= - pages with tables and indexes. Communication with disc via operating system + os cache
-   =Local memory= - Each backend process local memory area
-
-
+   =Local memory=  - Each backend process local memory area
 
 * ACID
 
@@ -247,48 +241,88 @@ From Heroku
 
 * MVCC
 
-  =MVCC= as solution for concurrency
-    - 2 time marks: Create time (xmin) and delete time (xmax)
+  =MVCC= - Multi-version Concurrency Control as solution for concurrency
+
+  [[./txid.png]]
+
+** MVCC in work
 
   #+BEGIN_SRC sql
-    create table mvcc_test (id int);
+    create table if not exists mvcc_test (id int);
+    truncate mvcc_test;
   #+END_SRC
 
   #+BEGIN_SRC sql
+    SELECT txid_current();
     insert into mvcc_test (id) values (1);
   #+END_SRC
 
   #+BEGIN_SRC sql
-    select id, xmin, xmax from mvcc_test;
+    SELECT lp, t_xmin, t_xmax, t_ctid, t_data
+      FROM heap_page_items(get_raw_page('mvcc_test', 0));
   #+END_SRC
 
+  #+NAME: Update
+  #+BEGIN_SRC sql
+    update mvcc_test set id = 2 where id = 1;
+  #+END_SRC
+
+  #+NAME: Check page again
+  #+BEGIN_SRC sql
+    SELECT lp, t_xmin, t_xmax, t_ctid, t_data
+      FROM heap_page_items(get_raw_page('mvcc_test', 0));
+  #+END_SRC
+
+  #+NAME: Update again
   #+BEGIN_SRC sql
     update mvcc_test set id = 3 where id = 2;
   #+END_SRC
 
-
+  #+NAME: Check page again and again
   #+BEGIN_SRC sql
-    select id, xmin, xmax from mvcc_test;
+    SELECT lp, t_xmin, t_xmax, t_ctid, t_data
+      FROM heap_page_items(get_raw_page('mvcc_test', 0));
   #+END_SRC
 
+** Vacuum
 
-  =On update= - delete previous and create new record (with create ~xmin~ and close ~xmax~)
-  =Data shanpshot= - all committed data before this transaction
-    - Current ~txid~ and all current working txid
-  =Row locks=
-    - read never lock
-    - row write lock only for another write, read never lock
-  =Bloat= table and index
-  =Vacuum= / =Autovacuum=
-  - Remove deleted rows
-  - 2 process:
-    - Autovacuum launcher
-    - Autovacuum worker
-  - Vacuum full
-    - Lock table
+   #+NAME: Check page mvcc_test
+   #+BEGIN_SRC sql
+     SELECT lp, t_xmin, t_xmax, t_ctid, t_data
+       FROM heap_page_items(get_raw_page('mvcc_test', 0));
+   #+END_SRC
 
+   #+RESULTS: Check page mvcc_test
+   | lp | t_xmin | t_xmax | t_ctid | t_data     |
+   |----+--------+--------+--------+------------|
+   |  1 |   1057 |      0 | (0,1)  | \x04000000 |
 
-* Isolation levels
+   #+NAME: Vacuum table
+   #+BEGIN_SRC sql
+     vacuum mvcc_test;
+   #+END_SRC
+
+   #+NAME: Update after vacuum
+   #+BEGIN_SRC sql
+     update mvcc_test set id = 4 where id = 3;
+   #+END_SRC
+
+   #+NAME: Vacuum full
+   #+BEGIN_SRC sql
+     vacuum full mvcc_test;
+   #+END_SRC
+
+** Transaction Snapshot
+
+   A ~Transaction Snapshot~ is a dataset that stored information about whether all
+   transactions are active, at a certain point in time for an individual transaction.
+
+   #+NAME: Current snapshot
+   #+BEGIN_SRC sql
+     SELECT txid_current_snapshot();
+   #+END_SRC
+
+** Isolation levels
 
   =Read uncommitted= - +not supporting+
     read not committed rows
@@ -326,168 +360,58 @@ From Heroku
     Full isolation (one each other)
     ~SERIALIZABLE~ is the default transaction isolation level in the ~standard~
 
-* Cache Wal CheckPoint
+  [[./txsnapshot.png]]
+
+** Summary
+
+   =On update= - create new record and delete previous  (with create ~xmin~ and close ~xmax~)
+   =Data shanpshot= - all committed data before this transaction
+                  - Current ~txid~ and all current working txid
+   =Row locks= - read never lock
+             - row write lock only for another write, read never lock
+   =Bloat= table and index
+   =Vacuum= / =Autovacuum=
+   - Remove deleted rows
+   - 2 process:
+     - Autovacuum launcher
+     - Autovacuum worker
+   - Vacuum full
+     - Lock table
+
+* WAL
 
   =WAL= ~write-ahead log~ - journal, write first (fsync)
       not for temp and unlogged tables
-  =Sync= / =Async=
+  =Sync= / =Async= - fsync
   =Wal Levels=
    - Minimal
    - Replica
    - Logical
 
-  #+BEGIN_SRC sql
-    select pg_current_wal_lsn();
-  #+END_SRC
+   #+BEGIN_SRC sql
+     select pg_current_wal_lsn();
+   #+END_SRC
 
-  #+RESULTS:
-  | pg_current_wal_lsn |
-  |--------------------|
-  | 1/33D30EE0         |
+   #+BEGIN_SRC sql
+     SELECT pg_walfile_name(pg_current_wal_lsn());
+   #+END_SRC
 
   #+BEGIN_SRC sql
     select * from pg_ls_waldir() limit 10;
   #+END_SRC
 
-  #+RESULTS:
-  |                     name |     size | modification           |
-  |--------------------------+----------+------------------------|
-  | 000000010000000100000033 | 16777216 | 2021-04-30 17:30:23+00 |
-  | 000000010000000100000034 | 16777216 | 2021-04-28 17:01:41+00 |
-  | 000000010000000100000035 | 16777216 | 2021-04-28 17:01:44+00 |
-  | 000000010000000100000036 | 16777216 | 2021-04-28 17:01:53+00 |
-  | 000000010000000100000037 | 16777216 | 2021-04-28 17:01:56+00 |
-  | 000000010000000100000038 | 16777216 | 2021-04-28 17:09:55+00 |
-  | 000000010000000100000039 | 16777216 | 2021-04-28 17:10:11+00 |
-  | 00000001000000010000003A | 16777216 | 2021-04-28 17:10:12+00 |
-  | 00000001000000010000003B | 16777216 | 2021-04-28 17:10:12+00 |
-  | 00000001000000010000003C | 16777216 | 2021-04-28 17:10:13+00 |
-
 * Checkpoint
 
-  =Checkpointer process=
-  Restore all wals too expensive
-  Make checkpoint and dump all buffers to disc
+  =Checkpointer process= - dump all buffers to disc (fsync)
 
   #+BEGIN_SRC
-   checkpoint                checkpoint         fail
-  .....|.........................|................X.............+......
-       |+++++++++++++++++++++++++| == wal logs == |++++++++++++++
+         checkpoint                checkpoint         fail
+  time .....|.........................|................X..............
+  wal  +++++|+++++++++++++++++++++++++| == wal logs == |++++++++++++++
   #+END_SRC
 
-
-  On update
-
-  - fsync wal log
-  - update on mem table page 8k
-
-  on checkpoint
-  - dump mem to disc
-
-* Create database
-
-
-
-
-  #+BEGIN_SRC sql
-    \l
-  #+END_SRC
-
-  #+RESULTS:
-  | List of databases     |          |          |                 |             |                   |
-  |-----------------------+----------+----------+-----------------+-------------+-------------------|
-  | Name                  | Owner    | Encoding | Collate         | Ctype       | Access privileges |
-  | postgres              | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 |                   |
-  | template0             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
-  | postgres=CTc/postgres |          |          |                 |             |                   |
-  | template1             | postgres | UTF8     | en_US.UTF-8@icu | en_US.UTF-8 | =c/postgres       |
-  | postgres=CTc/postgres |          |          |                 |             |                   |
-
-  #+BEGIN_SRC sql
-    select * from public.user
-  #+END_SRC
-
-  #+RESULTS:
-  | id    | txid | cts                           | ts                            | resource_type | status  | resource                                                                                                                |
-  |-------+------+-------------------------------+-------------------------------+---------------+---------+-------------------------------------------------------------------------------------------------------------------------|
-  | admin |    0 | 2021-03-29 08:23:59.389413+00 | 2021-03-29 08:23:59.389413+00 | User          | updated | {"password": "$s0$f0801$wQ8ZxzZycFnYhw4Q+ImR3g==$u3MeQsgFg3AlaEOidHz8e2Fw0UkyNH43NcB/FEgZWn0=", "resourceType": "User"} |
-
-  #+BEGIN_SRC sql
-    select * from user
-  #+END_SRC
-
-  #+RESULTS:
-  | user     |
-  |----------|
-  | postgres |
-
-
-
-  #+RESULTS:
-  | search_path     |
-  |-----------------|
-  | "$user", public |
-
-  #+BEGIN_SRC sql
-    select * from pg_catalog.pg_database;
-  #+END_SRC
-
-  =pg_catalog= - implicit
-  =pg_temp_N= - for temp and unlogged tables
-
-  #+BEGIN_SRC sql
-    select pg_size_pretty(pg_database_size('devbox'));
-  #+END_SRC
-
-  #+BEGIN_SRC sql
-    insert into mvcc_test (id )
-    select id from generate_series(4, 3000) id;
-  #+END_SRC
-
-  #+RESULTS:
-  | INSERT 0 2997 |
-  |---------------|
-
-
-#+BEGIN_SRC sql
-select count(*) from mvcc_test;
-#+END_SRC
-
-  #+RESULTS:
-  | count |
-  |-------|
-  |     6 |
-
-  #+BEGIN_SRC sql
-    CHECKPOINT
-  #+END_SRC
-
-  #+RESULTS:
-  | CHECKPOINT |
-  |------------|
-
-  #+BEGIN_SRC sql
-    \d+ patient
-  #+END_SRC
-
-
-  #+BEGIN_SRC sql
-    select pg_relation_filepath('patient_pkey');
-  #+END_SRC
-
-  #+RESULTS:
-  | pg_relation_filepath |
-  |----------------------|
-  | base/16385/18026     |
-
-** Toast
-
-   ~Toast~ - The Oversized-Attribute Storage Technique
-
-   Schema =pg_toast=
-
-   1. Zip value untill 8 kb
-   2. Move to another table, and slice
-   3. Move to another table, and slice and zip
-
-   No new version on row update
+  =On update=
+    - write and fsync wal log
+    - update on mem table page
+  =On checkpoint=
+    - dump buffers to disc
