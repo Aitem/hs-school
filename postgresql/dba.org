@@ -5,78 +5,170 @@
 
 * Intro                                                            :noexport:
 * Table of Contents                                                   :TOC_3:
-- [[#install-aidbox-dev][Install Aidbox Dev]]
-- [[#query][Query]]
-- [[#seq-scan][SEQ scan]]
-- [[#index-scan][Index scan]]
-- [[#bitmap-index-scan][Bitmap Index scan]]
-- [[#gin-index][GIN index]]
-- [[#join][JOIN]]
-  - [[#nested-loop][Nested loop]]
-  - [[#hash-join][Hash join]]
-  - [[#merge-join][Merge join]]
+- [[#install][Install]]
+- [[#configuration][Configuration]]
+  - [[#pg_setting][pg_setting]]
+- [[#backups][Backups]]
+  - [[#logical][Logical]]
+  - [[#physical][Physical]]
+    - [[#another-tools][Another tools]]
+- [[#replication][Replication]]
+  - [[#failover][Failover]]
+- [[#monitoring][Monitoring]]
+  - [[#ui][UI]]
+  - [[#raw-pg-metrics-panel][RAW pg metrics (panel)]]
+  - [[#time-destribution][Time destribution]]
+    - [[#pmm][PMM]]
+    - [[#node-exporter][Node exporter]]
+    - [[#postgresql-exporter][Postgresql-exporter]]
+    - [[#okmeter][OkMeter]]
+  - [[#logs][Logs]]
 
 * Install
 
-   #+name: Run db
-   #+BEGIN_SRC bash
-     docker-compose up -d
-   #+END_SRC
+  Run docker container vith PostgreSQL 12:
+  #+name: Run db
+  #+BEGIN_SRC bash
+    docker-compose up -d
+  #+END_SRC
 
-   #+name: Check connection and list databases
-   #+BEGIN_SRC sql
-     \l
-   #+END_SRC
+  Check connection:
+  #+name: Check connection
+  #+BEGIN_SRC bash :results value drawer
+    psql -h localhost -p 5400 -U postgres -c 'select 1';
+  #+END_SRC
+
+  Ensure connection via psql:
+  #+name: Check connection and list databases
+  #+BEGIN_SRC sql
+    \l
+  #+END_SRC
 
 
 * Configuration
 
- - set
- - postgresql.conf overview
- - write settings
+  [[https://postgrespro.ru/docs/postgresql/12/runtime-config?lang=en][Configuration]] - PostgreSQL Server Configuration
 
+  Primary configuration - [[https://github.com/postgres/postgres/blob/master/src/backend/utils/misc/postgresql.conf.sample][postgresql.conf]] and ~postgresql.auto.conf~
+  Access - [[https://postgrespro.ru/docs/postgresql/12/auth-pg-hba-conf?lang=en][pg_hba.conf]]
+
+
+  #+NAME: Show config file
+  #+BEGIN_SRC sql
+    show config_file
+  #+END_SRC
+
+  #+NAME: Change config
+  #+BEGIN_SRC sql
+    show  max_parallel_workers_per_gather;
+    alter system set  max_parallel_workers_per_gather = 8;
+  #+END_SRC
+
+  #+NAME: Aplly changes
+  #+BEGIN_SRC sql
+    alter system set  max_parallel_workers_per_gather = 8;
+    select pg_reload_conf();
+  #+END_SRC
+
+  #+NAME: Reset
+  #+BEGIN_SRC sql
+    alter system reset max_parallel_workers_per_gather;
+    select pg_reload_conf();
+  #+END_SRC
+
+  #+NAME: Show source of setting
+  #+BEGIN_SRC sql
+    select * from pg_file_settings;
+  #+END_SRC
+
+** pg_setting
+
+  [[https://postgrespro.ru/docs/postgresql/12/view-pg-settings?lang=en][pg_settings]] - the view _pg_settings_ provides access to run-time parameters of the server.
+
+  #+NAME: Count of all settings
+  #+BEGIN_SRC sql
+    select count(*) from pg_settings;
+  #+END_SRC
+
+  #+NAME: Setting sample
+  #+BEGIN_SRC sql
+    select * from pg_settings limit 10;
+  #+END_SRC
+
+  #+NAME: System all settings
+  #+BEGIN_SRC sql
+    select * from pg_settings where category = 'Autovacuum' ;
+  #+END_SRC
 
 * Backups
 
- - Logical
-   just sql file
+  [[https://www.youtube.com/watch?v=Us6cHVNA4vk][Инструменты создания бэкапов PostgreSQL / Андрей Сальников (Data Egret)]]
+  [[https://habr.com/ru/company/yandex/blog/415817/][Разгоняем бэкап. Лекция Яндекса / Андрей Бородин]]
 
- - Physical
-   just file system snapshot
+** Logical
 
-PG                     > new instance
+   Logical backups - create  SQL dump.
 
-1) conn replication protocol
-2) wal
-3) copy
-4) next wal
-5) copy wal
-
-         pg_base_backup   cpt         cpt
---------------|=|----------|-----------|------|=|-------------> t
-          open repl con
-                wal_1   wal_2   wal_3   wal_4
+   [[https://www.postgresql.org/docs/12/app-pgdump.html][pg_dump]] - create sql dump of database/table/structure/data
+   [[https://postgrespro.ru/docs/postgresql/12/app-pgrestore][pg_restore]] - restore database from an archive file
 
 
-DEMO
+   #+NAME: Create logical sql backup
+   #+BEGIN_SRC bash :results value drawer
+     docker exec hs-db pg_dump -U postgres -f /tmp/s.sql -t mvcc_test -d postgres
+     docker exec hs-db cat /tmp/s.sql
+   #+END_SRC
 
-pg_base_backup instance <-> instance
-  - one thread
-  - not incremental
+   =Advantages=
+     - result just ~.sql~ file
+     - any granularity (database/schema/table/data/structure_only)
 
-pg_probackup
-  - parallel
-  - incremental
+   =limitations=
+     - too long and big on big data
 
-barman
-  - incremental
-pg_back_rest
-  - incremental
+** Physical
 
-wal-g/wal-e
-  - s3 backups + wal
-  - incremental
-  - parallel
+   Physical backup - file system snapshot.
+   [[https://postgrespro.ru/docs/postgresql/12/app-pgbasebackup?lang=en][pg_basebackup]] - used to take base backups of a running PostgreSQL database cluster.
+
+
+   #+NAME: Create base backup
+   #+BEGIN_SRC bash :results value drawer
+     rm /tmp/base
+     pg_basebackup -U postgresql -h localhost -p 5400 -D /tmp/base
+   #+END_SRC
+
+   #+NAME: Chech replication slot
+   #+BEGIN_SRC sql
+     select * from pg_replication_slots;
+   #+END_SRC
+
+   #+NAME: Check backup
+   #+BEGIN_SRC bash :results value drawer
+     ls -lah /tmp/base
+   #+END_SRC
+
+   How it's work
+     1) conn replication protocol
+     2) set wal
+     3) copy
+     4) next wal
+     5) copy wal
+
+         pg_base_backup
+                cpt        cpt         cpt
+   ------------|=|----------|-----------|------|=|-------------> t
+          open repl.con
+                  wal_1  wal_2  wal_3  wal_4
+
+
+*** Another tools
+
+    - [[https://postgrespro.ru/docs/enterprise/12/app-pgprobackup][pg_probackup]]
+    - [[https://www.pgbarman.org/][barman]]
+    - [[https://pgbackrest.org/][pgBackRest]]
+    - [[https://github.com/wal-g/wal-g][wal-g]]
+    - [[https://github.com/wal-e/wal-e][wal-e]]
 
 * Replication
 
@@ -84,10 +176,10 @@ wal-g/wal-e
  - Chain
  - Sync / Async
 
-pg_logical
-bdr
+ - pg_logical
+ - bdr by second kvadrant
 
-second kvadrant
+** Failover
 
 * Monitoring
 
@@ -96,7 +188,7 @@ second kvadrant
   - Grafana
   - Kibana
 
-** RAW pg metrics (current time snapshot)
+** RAW pg metrics (panel)
 
   - Доступность
   - Доступность replicas
@@ -112,10 +204,13 @@ second kvadrant
 
 ** Time destribution
 
-  - PG exporter
-  - PMM
-  - CPU / MEM / HDD
-  - Node exporter
+*** PMM
+*** Node exporter
+*** Postgresql-exporter
+    https://github.com/prometheus-community/postgres_exporter
+*** OkMeter
+    https://okmeter.io/pg
+
 
 ** Logs
 
