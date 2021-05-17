@@ -13,7 +13,11 @@
   - [[#physical][Physical]]
     - [[#another-tools][Another tools]]
 - [[#replication][Replication]]
-  - [[#failover][Failover]]
+  - [[#create-replica][Create replica]]
+  - [[#multimaster][Multimaster]]
+  - [[#failover--promote][Failover / Promote]]
+    - [[#check-replication-slot][Check replication slot]]
+  - [[#ha-pg][HA PG]]
 - [[#monitoring][Monitoring]]
   - [[#ui][UI]]
   - [[#raw-pg-metrics-panel][RAW pg metrics (panel)]]
@@ -172,14 +176,80 @@
 
 * Replication
 
- - Stream / Restore_command
- - Chain
- - Sync / Async
+  [[https://www.postgresql.org/docs/13/high-availability.html][High Availability, Load Balancing, and Replication]]
 
- - pg_logical
- - bdr by second kvadrant
+  - [[https://www.postgresql.org/docs/current/warm-standby.html#STREAMING-REPLICATION][Streaming replication]] / [[https://www.postgresql.org/docs/13/warm-standby.html][Log-Shipping]]
+  - Chain / Cascade replication
+  - Sync / Async replication
 
-** Failover
+** Create replica
+
+   Configure replica server
+     - Add ~primary_conninfo~  to ='host=host.docker.internal port=5400 user=postgres password=postgres'=
+     - Set ~primary_slot_name~ to ='replica'=
+     - Touch =standby.signal= file
+
+   Create replication slot
+
+   #+NAME: Create replication slot
+   #+BEGIN_SRC sql
+     SELECT pg_create_physical_replication_slot('replica');
+   #+END_SRC
+
+   Run replica server
+   #+NAME: Run replica
+   #+BEGIN_SRC bash
+     docker-compose -f docker-compose.rep.yaml up -d
+   #+END_SRC
+
+
+   #+NAME: Check replication slot with replica
+   #+BEGIN_SRC sql
+     SELECT * FROM pg_replication_slots;
+   #+END_SRC
+
+
+
+** Multimaster
+
+   [[https://www.youtube.com/watch?v=bcRo--JlR14][Зачем нужен мультимастер? / Илья Космодемьянский (PostgreSQL-Consulting LLC)]]
+
+   - [[https://github.com/2ndQuadrant/pglogical][pglogical]]
+   - [[https://www.2ndquadrant.com/en/resources/postgres-bdr-2ndquadrant/][BDR]]
+
+** Failover / Promote
+
+   [[https://postgrespro.ru/docs/postgresql/13/app-pg-ctl][pg_ctl promote]] - mode commands the standby server that is running in the specified data directory to end standby mode and begin read-write operations.
+
+   #+BEGIN_SRC bash
+     docker exec hs-db-rep --user=postgres /opt/pgpro/std-12/bin/pg_ctl promote -D /data
+   #+END_SRC
+
+*** Check replication slot
+
+   #+NAME: Check replication slot after promote
+   #+BEGIN_SRC sql
+     SELECT * FROM pg_replication_slots;
+   #+END_SRC
+
+   #+NAME: Drop if need
+   #+BEGIN_SRC sql
+     select pg_drop_replication_slot('replica');
+   #+END_SRC
+
+
+** HA PG
+
+  HA solutions:
+   - [[https://github.com/zalando/patroni][zalando/patroni]]
+   - [[https://github.com/sorintlab/stolon][Stolon]]
+   - [[https://repmgr.org/][repmgr]]
+   - [[https://clusterlabs.github.io/PAF/][PostgreSQL Automatic Failover (PAF)]]
+   - [[https://github.com/aiven/pglookout][pglookout]]
+   - [[https://www.pgpool.net/mediawiki/index.php/Main_Page][pgPool-II]]
+
+  Bonus:
+   - [[https://docs.timescale.com/timescaledb/latest/how-to-guides/distributed-hypertables/#distributed-hypertables][Distributed Hypertables]] (Timescale DB)
 
 * Monitoring
 
