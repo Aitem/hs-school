@@ -20,13 +20,10 @@
   - [[#ha-pg][HA PG]]
 - [[#monitoring][Monitoring]]
   - [[#ui][UI]]
+    - [[#sample][Sample]]
   - [[#raw-pg-metrics-panel][RAW pg metrics (panel)]]
-  - [[#time-destribution][Time destribution]]
-    - [[#pmm][PMM]]
-    - [[#node-exporter][Node exporter]]
-    - [[#postgresql-exporter][Postgresql-exporter]]
-    - [[#okmeter][OkMeter]]
-  - [[#logs][Logs]]
+  - [[#time-distribution][Time distribution]]
+- [[#audit-logs][Audit Logs]]
 
 * Install
 
@@ -209,7 +206,6 @@
    #+END_SRC
 
 
-
 ** Multimaster
 
    [[https://www.youtube.com/watch?v=bcRo--JlR14][Зачем нужен мультимастер? / Илья Космодемьянский (PostgreSQL-Consulting LLC)]]
@@ -255,34 +251,58 @@
 
 ** UI
 
-  - Grafana
-  - Kibana
+   - Zabbix
+   - Grafana / Prometheus
+   - Kibana / ElasticSearch
+   - Grafana
+   - DataDog
+   - OkMeter
+
+    #+NAME: Run grafana
+    #+BEGIN_SRC bash
+      docker-compose -f audit.yaml up -d
+    #+END_SRC
+
+*** Sample
+
+    *Long query*
+
+    #+BEGIN_SRC sql
+      SELECT count(pid) as value, now() as time
+      FROM pg_stat_activity
+      WHERE query != '<IDLE>' AND query NOT ILIKE '%pg_stat_activity%' and query not ilike '%vacuum%' and "state" = 'active'
+      and query_start < (now() - interval '10 second');
+    #+END_SRC
+
+    #+BEGIN_SRC sql
+      select pg_sleep(60)
+    #+END_SRC
+
 
 ** RAW pg metrics (panel)
 
-  - Доступность
-  - Доступность replicas
-  - Replicas delay
-  - QPS/TPS
-  - Table space
-  - Connections
-  - Vacuum
-  - Oldest transaction
-  - pg_stat_statements
-  - pg_stat_activity (long query)
-  _ pg_stat_replication
+   [[https://www.youtube.com/watch?v=Hbi2AFhd4nY][Основы мониторинга PostgreSQL / Алексей Лесовский (DataEgret)]]
 
-** Time destribution
+   - Доступность
+   - Доступность реплик
+   - Replicas delay
+   - QPS/TPS
+   - Table space
+   - Connections
+   - Vacuum
+   - Oldest transaction
+   - pg_stat_statements
+   - pg_stat_activity (long query)
+   _ pg_stat_replication
 
-*** PMM
-*** Node exporter
-*** Postgresql-exporter
-    https://github.com/prometheus-community/postgres_exporter
-*** OkMeter
-    https://okmeter.io/pg
+** Time distribution
 
+  - [[https://www.percona.com/doc/percona-monitoring-and-management/2.x/index.html][PMM]] ([[https://pmmdemo.percona.com/][demo]])
+  - [[https://github.com/prometheus-community/postgres_exporter][Postgresql exporter]]
+  - [[https://okmeter.io/pg][OkMeter]]
+  - [[https://github.com/prometheus/node_exporter][Node exporter]]
 
-** Logs
+* Audit Logs
 
   - Audit logs
     - Elastic
