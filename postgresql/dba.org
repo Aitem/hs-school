@@ -22,8 +22,10 @@
   - [[#ui][UI]]
     - [[#sample][Sample]]
   - [[#raw-pg-metrics-panel][RAW pg metrics (panel)]]
+  - [[#what-else][What else?]]
   - [[#time-distribution][Time distribution]]
 - [[#audit-logs][Audit Logs]]
+- [[#conclusion][Conclusion]]
 
 * Install
 
@@ -295,6 +297,10 @@
    - pg_stat_activity (long query)
    _ pg_stat_replication
 
+** What else?
+
+   Like tests in programming
+
 ** Time distribution
 
   - [[https://www.percona.com/doc/percona-monitoring-and-management/2.x/index.html][PMM]] ([[https://pmmdemo.percona.com/][demo]])
@@ -304,7 +310,21 @@
 
 * Audit Logs
 
-  - Audit logs
-    - Elastic
-    - Click House
+  - Audit logs (Elastic / Click House)
   - ELK
+
+  HTTP REQ ->
+    Get =req_id=
+      _log_req_: =req_id=, ~url~, ~uid~, ~cid~, ~params~
+      -> do query_1
+         _log_query_ with =req_id=: ~duration~, ~params~
+      -> do query_2
+         _log_query_ with =req_id=: ~duration~, ~params~
+      _log_resp_: =req_id=, ~url~, ~uid~, ~cid~, ~params~, ~status~, ~duration~
+  HTTP RESP
+
+* Conclusion
+
+  - Monitoring is chepp
+  - Monitoring is a endless process
+  - Manula process (anomaly detection)
