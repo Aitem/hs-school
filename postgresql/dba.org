@@ -314,7 +314,7 @@
   - ELK
 
   HTTP REQ ->
-    Get =req_id=
+    Gen =req_id=
       _log_req_: =req_id=, ~url~, ~uid~, ~cid~, ~params~
       -> do query_1
          _log_query_ with =req_id=: ~duration~, ~params~
@@ -325,6 +325,6 @@
 
 * Conclusion
 
-  - Monitoring is chepp
+  - Monitoring is cheap
   - Monitoring is a endless process
   - Manula process (anomaly detection)
