@@ -1,0 +1,23 @@
+#+TITLE: DBA - HW day 1
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Create replica
+
+  Поднять реплику для мастрера
+
+  - Снять базовый бекап
+  - Сконфигурировать и запустить реплику
+
+* Install Grafana
+
+  Поднять [[https://grafana.com/][Grafana]], подключить ее к Postgres и вывести следующие показатели
+
+  - Задержка репликации
+  - Список таблиц, их размеры, размеры индексов
+  - Количество текущих запросов сгруппированных по статусу
+
+  Для имитации нагрузки можно использовать [[https://postgrespro.ru/docs/postgresql/12/pgbench][pgbench]]
+
+  Результат можно сдать в виде скриншотов дашбордов
