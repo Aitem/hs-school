@@ -1,0 +1,20 @@
+#+TITLE: DBA - HW day 2
+#+AUTHOR: M. Surmashev @muradbei
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+PROPERTY: header-args:sql :engine postgresql :dbport 5400 :dbhost localhost :dbuser postgres :dbpassword postgres :database postgres
+
+* Install Prometheus and postgresql-exporter
+
+  - Install [[https://prometheus.io/][Prometheus]] and [[https://github.com/prometheus-community/postgres_exporter][postgresql-exporter]]
+  - Configure Prometheus for fetching data from pg_exporter
+  - Connect [[https://prometheus.io/docs/visualization/grafana/][Grafana to Prometheus]]
+  - Optional install [[https://grafana.com/grafana/dashboards/9628][Grafana PG dashboard]]
+  - Display running queryes in time distribution. Something like this
+
+    [[./activity.png]]
+
+
+
+  Для имитации нагрузки можно использовать [[https://postgrespro.ru/docs/postgresql/12/pgbench][pgbench]]
+
+  Результат можно сдать в виде скриншотов дашбордов
